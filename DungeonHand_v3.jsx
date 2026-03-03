@@ -97,6 +97,12 @@ const COMMONS = [
   { id: "focus", icon: "⚡", name: "기세", fx: "focus" },
 ];
 
+// Reward-only commons (not in starting deck)
+const REWARD_COMMONS = COMMONS.concat([
+  { id: "reclaim", icon: "🔁", name: "회수", fx: "reclaim" },
+  { id: "gambit", icon: "🎰", name: "투기", fx: "gambit" },
+]);
+
 const MONSTERS = [
   // Floor 1: 고블린 소굴 (indices 0-3) — x1.3 적용
   { name: "고블린", emoji: "👺", hp: 36, atk: 6 },
@@ -511,7 +517,7 @@ function CardView(props) {
   // Effect descriptions for common cards
   var fxText = "";
   if (isC) {
-    var fxMap = { fortress: "방어막+" + (c.grade + (c.growthBonus || 0)), aimed: "다음턴 제출+1", wild: "조건부 와일드", focus: "배율+0.5" };
+    var fxMap = { fortress: "방어막+" + (c.grade + (c.growthBonus || 0)), aimed: "다음턴 제출+1", wild: "조건부 와일드", focus: "배율+0.5", reclaim: "회수" + (c.grade + (c.growthBonus || 0)) + "장", gambit: "50% 배율+1/-0.5" };
     fxText = fxMap[c.common.fx] || "";
   }
 
@@ -1096,6 +1102,19 @@ export default function DungeonHand() {
     var pState = { classId: classId, fury: fury, shadow: shadow, stealthBonus: upgradeLevels.stealth * 5, gambleBuff: gambleBuff };
     var dmg = calcDamage(played, h, relics, pState);
 
+    // === 투기(gambit): 50% 배율+1.0, 50% 배율-0.5 ===
+    var gambitPlayed = played.filter(function(c) { return c.isCommon && c.common.fx === "gambit"; });
+    if (gambitPlayed.length > 0) {
+      var gambitWin = Math.random() < 0.5;
+      if (gambitWin) {
+        dmg.mult = Math.round((dmg.mult + 1.0) * 10) / 10;
+      } else {
+        dmg.mult = Math.max(1, Math.round((dmg.mult - 0.5) * 10) / 10);
+      }
+      dmg.total = Math.floor(dmg.atk * dmg.mult);
+      if (dmg.isCrit) dmg.total = Math.floor(dmg.total * 1.5);
+    }
+
     // === Apply poison from previous turns ===
     // (poison damage applied before attack in submitCards)
 
@@ -1185,6 +1204,22 @@ export default function DungeonHand() {
     }
     if (fortressAmt > 0) {
       showPassive("🛡️ 보루! 다음 턴 피격 -" + fortressAmt);
+    }
+    // === 투기 결과 표시 ===
+    if (gambitPlayed.length > 0) {
+      if (gambitWin) {
+        showPassive("🎰 투기 성공! 배율+1.0");
+      } else {
+        showPassive("🎰 투기 실패... 배율-0.5");
+      }
+    }
+    // === 회수 효과 표시 ===
+    var reclaimAmt2 = played.reduce(function(sum, c) {
+      if (c.isCommon && c.common.fx === "reclaim") return sum + c.grade + (c.growthBonus || 0);
+      return sum;
+    }, 0);
+    if (reclaimAmt2 > 0) {
+      showPassive("🔁 회수! " + reclaimAmt2 + "장 덱으로 복귀");
     }
 
     // === Keyword: Growth - permanently increase grade ===
@@ -1328,6 +1363,22 @@ export default function DungeonHand() {
           return c;
         });
         var newDisc = discardPile.concat(usedClean);
+
+        // === 회수(reclaim): 버린 카드 더미에서 드로우 더미로 복귀 ===
+        var reclaimAmt = played.reduce(function(sum, c) {
+          if (c.isCommon && c.common.fx === "reclaim") return sum + c.grade + (c.growthBonus || 0);
+          return sum;
+        }, 0);
+        var reclaimedCards = [];
+        if (reclaimAmt > 0 && newDisc.length > 0) {
+          var reclaimPool = shuffle(newDisc.filter(function(c) {
+            return !(c.isCommon && c.common.fx === "reclaim");
+          }));
+          reclaimedCards = reclaimPool.slice(0, Math.min(reclaimAmt, reclaimPool.length));
+          var reclaimedIds = reclaimedCards.map(function(c) { return c.id; });
+          newDisc = newDisc.filter(function(c) { return reclaimedIds.indexOf(c.id) < 0; });
+        }
+
         var extraDraw = 0;
         // Keyword: chain draw
         if (dmgResult && dmgResult.extraDraw) {
@@ -1337,7 +1388,7 @@ export default function DungeonHand() {
           return r.eff.type === "drawAdd" ? sum + r.eff.val : sum;
         }, 0);
         var needed = selected.length + extraDraw;
-        var tempDraw = drawPile.slice();
+        var tempDraw = reclaimedCards.concat(drawPile.slice());
         var tempDisc = newDisc.slice();
         var drawn = tempDraw.splice(0, needed);
         if (drawn.length < needed && tempDisc.length > 0) {
@@ -1509,7 +1560,7 @@ export default function DungeonHand() {
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
-    var ct = pickN(COMMONS, 1)[0];
+    var ct = pickN(REWARD_COMMONS, 1)[0];
     var s3 = pickN(SUITS, 1)[0];
     var g3 = rollGrade();
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
@@ -1573,7 +1624,7 @@ export default function DungeonHand() {
       g = Math.max(1, Math.min(g, 10));
       var kw = (i < 2 && Math.random() < 0.5) ? pickKw(g) : null;
       if (Math.random() < 0.3) {
-        pool.push(makeCard(s2.id, g, classId, pickN(COMMONS, 1)[0], kw));
+        pool.push(makeCard(s2.id, g, classId, pickN(REWARD_COMMONS, 1)[0], kw));
       } else {
         pool.push(makeCard(s2.id, g, classId, null, kw));
       }

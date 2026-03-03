@@ -1,0 +1,9 @@
+{
+  "name": "던전 핸드",
+  "short_name": "던전핸드",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "start_url": "."
+}

@@ -477,6 +477,8 @@ var CSS = [
   "@keyframes critShine{0%{background-position:-200% 0}100%{background-position:200% 0}}",
   "@keyframes missFlash{0%{opacity:0}15%{opacity:0.4}30%{opacity:0}100%{opacity:0}}",
   "@keyframes missBounce{0%{transform:translateX(-50%) scale(0) rotate(-20deg)}25%{transform:translateX(-50%) scale(2.2) rotate(8deg)}45%{transform:translateX(-50%) scale(0.7) rotate(-3deg)}65%{transform:translateX(-50%) scale(1.4) rotate(2deg)}100%{transform:translateX(-50%) scale(1) rotate(0)}}",
+  "@keyframes encounterIn{0%{opacity:0;transform:scale(0.3)}30%{opacity:1;transform:scale(1.1)}50%{transform:scale(0.95)}100%{transform:scale(1)}}",
+  "@keyframes encounterOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}",
 ].join("\n");
 
 // === COMPONENTS ===
@@ -892,6 +894,7 @@ export default function DungeonHand() {
   var [tenacityUsed, setTenacityUsed] = s(false); // tenacity: revive once per run
   var [frozenIds, setFrozenIds] = s([]); // frozen card ids
   var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
+  var [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
   var [splitMon, setSplitMon] = s(null); // split monster waiting
   var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
   var [deckView, setDeckView] = s(false);
@@ -984,57 +987,41 @@ export default function DungeonHand() {
     setShield(0);
     setPoison(0);
     setErodedIds([]);
-    // Gamble relic roll with roulette animation
-    var hasGamble = curRelics.some(function(r) { return r.eff.type === "gamble"; });
-    if (hasGamble) {
-      var roll = Math.random() < 0.5 ? 1 : -0.5;
-      var options = ["+1", "-0.5", "+1", "-0.5", "+1", "-0.5"];
-      var tick = 0;
-      var interval = setInterval(function() {
-        setGambleAnim("🎲 " + options[tick % options.length]);
-        tick++;
-        if (tick >= 8) {
-          clearInterval(interval);
-          setGambleBuff(roll);
-          setGambleAnim(roll > 0 ? "🎲 배율+1! 🎉" : "🎲 배율-0.5... 💀");
-          setTimeout(function() { setGambleAnim(null); }, 1200);
-        }
-      }, 100);
-    } else {
-      setGambleBuff(0);
-    }
-    // Fury and divine persist across battles (run-scoped stacks reset per turn logic)
+    // === 전투 시작 시퀀스: encounter → dialogue → ambush → dice → draw ===
     var shuffled = shuffle(curDeck);
     var initialHand = shuffled.slice(0, HAND_SIZE);
     setDrawPile(shuffled.slice(HAND_SIZE));
     setDiscardPile([]);
     setScreen("battle");
-    // Boss/miniboss dialogue
-    var dialogueDelay = 0;
-    if ((m.boss || m.miniboss) && BOSS_DIALOGUES[m.name]) {
-      var lines = BOSS_DIALOGUES[m.name];
-      var line = lines[Math.floor(Math.random() * lines.length)];
-      setBossDialogue(line);
-      dialogueDelay = 1500;
-      setTimeout(function() { setBossDialogue(null); }, 1400);
-    }
-    // Animate initial draw (delayed if dialogue)
     setBusy(true);
     setHand([]);
     setNewCardIds([]);
-    initialHand.forEach(function(card, idx) {
+    setEncounterOverlay(null);
+
+    var t = 0; // running delay (ms)
+
+    // Phase 1: Encounter overlay (boss/miniboss only)
+    if (m.boss || m.miniboss) {
+      setEncounterOverlay({ emoji: m.emoji, name: m.name, boss: !!m.boss });
+      setTimeout(function() { setEncounterOverlay(null); }, 1800);
+      t += 2000;
+    }
+
+    // Phase 2: Dialogue (boss/miniboss only)
+    if ((m.boss || m.miniboss) && BOSS_DIALOGUES[m.name]) {
+      var lines = BOSS_DIALOGUES[m.name];
+      var line = lines[Math.floor(Math.random() * lines.length)];
+      setTimeout(function() { setBossDialogue(line); }, t);
+      setTimeout(function() { setBossDialogue(null); }, t + 1200);
+      t += 1300;
+    }
+
+    // Phase 3: Ambush check
+    var ambushChance = m.boss ? 30 : m.miniboss ? 20 : 10;
+    var isAmbush = Math.random() * 100 < ambushChance;
+    if (isAmbush) {
+      var ambushDmg = matk + Math.floor(Math.random() * 3);
       setTimeout(function() {
-        sfx.card();
-        setHand(function(prev) { return prev.concat([card]); });
-        setNewCardIds(function(prev) { return prev.concat([card.id]); });
-      }, dialogueDelay + (idx + 1) * 150);
-    });
-    setTimeout(function() {
-      setNewCardIds([]);
-      // === 기습 판정: 일반10%, 미니보스20%, 보스30% ===
-      var ambushChance = m.boss ? 30 : m.miniboss ? 20 : 10;
-      if (Math.random() * 100 < ambushChance) {
-        var ambushDmg = matk + Math.floor(Math.random() * 3);
         showPassive("⚡ 기습! " + m.name + "의 선제 공격!");
         sfx.enemy();
         setEnemyAttacking(true);
@@ -1056,12 +1043,46 @@ export default function DungeonHand() {
           setEnemyAttacking(false);
           setPlayerShake(false);
           setEnemyDmgShow(null);
-          setBusy(false);
         }, 800);
-      } else {
-        setBusy(false);
-      }
-    }, dialogueDelay + (HAND_SIZE + 1) * 150 + 100);
+      }, t);
+      t += 1000;
+    }
+
+    // Phase 4: Dice (gamble relic)
+    var hasGamble = curRelics.some(function(r) { return r.eff.type === "gamble"; });
+    if (hasGamble) {
+      var roll = Math.random() < 0.5 ? 1 : -0.5;
+      var options = ["+1", "-0.5", "+1", "-0.5", "+1", "-0.5"];
+      setTimeout(function() {
+        var tick = 0;
+        var interval = setInterval(function() {
+          setGambleAnim("🎲 " + options[tick % options.length]);
+          tick++;
+          if (tick >= 8) {
+            clearInterval(interval);
+            setGambleBuff(roll);
+            setGambleAnim(roll > 0 ? "🎲 배율+1! 🎉" : "🎲 배율-0.5... 💀");
+            setTimeout(function() { setGambleAnim(null); }, 1200);
+          }
+        }, 100);
+      }, t);
+      t += 1000;
+    } else {
+      setGambleBuff(0);
+    }
+
+    // Phase 5: Draw cards
+    initialHand.forEach(function(card, idx) {
+      setTimeout(function() {
+        sfx.card();
+        setHand(function(prev) { return prev.concat([card]); });
+        setNewCardIds(function(prev) { return prev.concat([card.id]); });
+      }, t + (idx + 1) * 150);
+    });
+    setTimeout(function() {
+      setNewCardIds([]);
+      setBusy(false);
+    }, t + (HAND_SIZE + 1) * 150 + 100);
   }
 
   function toggleCard(id) {
@@ -2223,9 +2244,29 @@ export default function DungeonHand() {
     else if (currentHand && currentHand.tier >= 3) handTierColor = "var(--rd)";
 
     return (
-      <div style={Object.assign({}, wrapStyle, { height: "100vh", minHeight: "auto", overflow: "hidden" })}>
+      <div style={Object.assign({}, wrapStyle, { height: "100vh", minHeight: "auto", overflow: "hidden", position: "relative" })}>
         <style>{CSS}</style>
         {audioButton}
+        {encounterOverlay && (
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            background: encounterOverlay.boss
+              ? "radial-gradient(circle, #2d1040 0%, #0c0c14 70%)"
+              : "radial-gradient(circle, #1a2040 0%, #0c0c14 70%)",
+            animation: "encounterIn 0.6s ease",
+          }}>
+            <div style={{ fontSize: 72, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
+              {encounterOverlay.emoji}
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "#fbbf24" : "#a855f7", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
+              {encounterOverlay.name}
+            </div>
+            <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
+              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ MINI BOSS ⚔️"}
+            </div>
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
           <div style={{ fontSize: 13 }}>
             <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>

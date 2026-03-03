@@ -32,5 +32,18 @@
 - [x] #15 보스/미니보스 대사: BOSS_DIALOGUES 데이터 (10 몬스터 × 2 대사), bossDialogue state, 전투 시작 시 말풍선 UI, 대사 → 핸드 드로우 → 기습 시퀀스
 
 ### 다음 세션 TODO (세션 4)
-- [ ] #16 보스 인카운터 효과 (풀스크린 오버레이)
-- [ ] #17 전투 시작 시퀀스 정리 (encounter→dialogue→ambush→dice→draw)
+- [x] #16 보스 인카운터 효과 (풀스크린 오버레이)
+- [x] #17 전투 시작 시퀀스 정리 (encounter→dialogue→ambush→dice→draw)
+
+## 세션 4 (2026-03-04) — 인카운터 시퀀스
+
+### 완료
+- [x] #16 보스 인카운터 오버레이: encounterOverlay state, encounterIn/encounterOut CSS, 풀스크린 radial gradient + 이모지 + 이름 + 타입 표시, 1800ms 후 자동 사라짐
+- [x] #17 전투 시작 시퀀스 정리: beginBattle 리팩터링, running delay `t`로 5단계 시퀀스 구현
+  - Phase 1: Encounter overlay (boss/miniboss, 2000ms)
+  - Phase 2: Dialogue (boss/miniboss, 1300ms)
+  - Phase 3: Ambush check (일반10%/미니보스20%/보스30%, 1000ms)
+  - Phase 4: Dice (gamble relic, 1000ms)
+  - Phase 5: Draw cards (HAND_SIZE × 150ms)
+
+### 모든 세션 완료!

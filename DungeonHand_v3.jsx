@@ -95,8 +95,6 @@ const COMMONS = [
   { id: "aimed", icon: "🎯", name: "집중타", fx: "aimed" },
   { id: "wild", icon: "🃏", name: "변환", fx: "wild" },
   { id: "focus", icon: "⚡", name: "기세", fx: "focus" },
-  { id: "reclaim", icon: "🔁", name: "회수", fx: "reclaim" },
-  { id: "gambit", icon: "🎰", name: "투기", fx: "gambit" },
 ];
 
 const MONSTERS = [

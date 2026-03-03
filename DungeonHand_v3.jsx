@@ -902,8 +902,13 @@ export default function DungeonHand() {
   var [deckView, setDeckView] = s(false);
   var [deckSort, setDeckSort] = s("type");
   var [newCardIds, setNewCardIds] = s([]);
+  var [discardedRelicIds, setDiscardedRelicIds] = s([]); // 영구 삭제된 유물 id
+  var [pendingRelic, setPendingRelic] = s(null);          // 교체 대기 중인 유물
+  var [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
+  var [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
 
   var HAND_SIZE = 5;
+  var RELIC_SLOTS = 3;
   var BASE_SUBMIT = 3;
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
@@ -934,6 +939,9 @@ export default function DungeonHand() {
     var maxHp = 70 + upgradeLevels.hp * 5;
     setHp(maxHp);
     setRelics([]);
+    setDiscardedRelicIds([]);
+    setPendingRelic(null);
+    setRelicSwapContext(null);
     setFloor(1);
     setBattleNum(1);
     setBossesKilled([]);
@@ -1597,6 +1605,7 @@ export default function DungeonHand() {
     if (isBoss) {
       var avail = RELICS.filter(function(r) {
         if (relics.find(function(o) { return o.id === r.id; })) return false;
+        if (discardedRelicIds.indexOf(r.id) >= 0) return false;
         if (r.id === "hero" && Math.random() > 0.5) return false;
         return true;
       });
@@ -1679,9 +1688,40 @@ export default function DungeonHand() {
   }
 
   function pickRelic(r) {
-    var newRelics = relics.concat([r]);
+    if (relics.length < RELIC_SLOTS) {
+      var newRelics = relics.concat([r]);
+      setRelics(newRelics);
+      openShop(newRelics);
+    } else {
+      setPendingRelic(r);
+      setRelicSwapContext("boss");
+    }
+  }
+
+  function swapRelic(oldRelic) {
+    if (relicSwapContext === "shop") {
+      sfx.gold();
+      setGold(function(g) { return g - pendingRelicCost; });
+    }
+    var newRelics = relics.filter(function(r) { return r.id !== oldRelic.id; }).concat([pendingRelic]);
+    setDiscardedRelicIds(function(prev) { return prev.concat([oldRelic.id]); });
     setRelics(newRelics);
-    openShop(newRelics);
+    resolveRelicSwap(newRelics);
+  }
+
+  function discardPendingRelic() {
+    setDiscardedRelicIds(function(prev) { return prev.concat([pendingRelic.id]); });
+    resolveRelicSwap(relics);
+  }
+
+  function resolveRelicSwap(finalRelics) {
+    var ctx = relicSwapContext;
+    setPendingRelic(null);
+    setPendingRelicCost(0);
+    setRelicSwapContext(null);
+    if (ctx === "boss") {
+      openShop(finalRelics);
+    }
   }
 
   function openShop(currentRelics) {
@@ -1708,6 +1748,7 @@ export default function DungeonHand() {
     var rels = currentRelics || relics;
     var avail = RELICS.filter(function(r) {
       if (rels.find(function(o) { return o.id === r.id; })) return false;
+      if (discardedRelicIds.indexOf(r.id) >= 0) return false;
       if (r.id === "hero" && Math.random() > 0.5) return false;
       return true;
     });
@@ -1727,10 +1768,17 @@ export default function DungeonHand() {
 
   function buyRelic(r, cost) {
     if (gold < cost) return;
-    sfx.gold();
-    setGold(function(g) { return g - cost; });
-    setRelics(function(p) { return p.concat([r]); });
-    setShopRelic(null);
+    if (relics.length < RELIC_SLOTS) {
+      sfx.gold();
+      setGold(function(g) { return g - cost; });
+      setRelics(function(p) { return p.concat([r]); });
+      setShopRelic(null);
+    } else {
+      setPendingRelic(r);
+      setPendingRelicCost(cost);
+      setRelicSwapContext("shop");
+      setShopRelic(null);
+    }
   }
 
   function removeCard(card, cost) {
@@ -1791,6 +1839,46 @@ export default function DungeonHand() {
       {audioOn ? "🔊" : "🔇"}
     </div>
   );
+
+  // === RELIC SWAP OVERLAY ===
+  if (pendingRelic) {
+    var prBorder = pendingRelic.tier >= 3 ? "var(--gd)" : pendingRelic.tier >= 2 ? "#a855f7" : "var(--bd)";
+    return (
+      <div style={wrapStyle}>
+        <style>{CSS}</style>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+          <div style={{ background: "var(--cd)", border: "1px solid var(--bd)", borderRadius: 16, padding: 24, maxWidth: 340, width: "90%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#ef4444" }}>인벤토리가 가득 찼습니다!</div>
+            <div style={{ fontSize: 13, color: "var(--dm)" }}>새 유물을 장착하려면 기존 유물 하나를 교체하세요</div>
+            <div style={{ padding: 14, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + prBorder, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "80%" }}>
+              <span style={{ fontSize: 28 }}>{pendingRelic.emoji}</span>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>{pendingRelic.name}</span>
+              <span style={{ fontSize: 13, color: "var(--dm)", textAlign: "center" }}>{pendingRelic.desc}</span>
+              <span style={{ fontSize: 11, color: "#22c55e" }}>NEW</span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>교체할 유물을 선택하세요:</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+              {relics.map(function(r) {
+                var bCol = r.tier >= 3 ? "var(--gd)" : r.tier >= 2 ? "#a855f7" : "var(--bd)";
+                return (
+                  <div
+                    key={r.id}
+                    onClick={function() { swapRelic(r); }}
+                    style={{ width: 90, padding: 10, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + bCol, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}
+                  >
+                    <span style={{ fontSize: 22 }}>{r.emoji}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700 }}>{r.name}</span>
+                    <span style={{ fontSize: 10, color: "var(--dm)", textAlign: "center" }}>{r.desc}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <Btn onClick={discardPendingRelic} style={{ marginTop: 6, background: "#7f1d1d" }}>버리기 (영구 삭제)</Btn>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // === SCREENS ===
   if (screen === "village") {

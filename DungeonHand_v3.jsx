@@ -9,7 +9,15 @@ const sfx = (() => {
   let mIdx = 0;
 
   function getCtx() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // iOS Safari unlock: 무음 버퍼 재생으로 오디오 잠금 해제
+      var buf = ctx.createBuffer(1, 1, 22050);
+      var src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+    }
     if (ctx.state === "suspended") ctx.resume();
     return ctx;
   }

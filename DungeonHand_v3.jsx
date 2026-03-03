@@ -156,6 +156,20 @@ const RELICS = [
 
 const FLOOR_NAMES = ["", "고블린 소굴", "언데드 묘지", "마법 탑", "심연", "드래곤 둥지"];
 
+// Boss/miniboss dialogue lines (keyed by monster name)
+const BOSS_DIALOGUES = {
+  "고블린 대장": ["이 녀석들! 내 부하를 건드리다니!", "크하하! 쓸 만한 놈이군!"],
+  "고블린 킹": ["감히 왕 앞에서 칼을 드나!", "이 왕관은 피로 지켜왔다!"],
+  "망령 기사": ["죽음이 끝이 아니라는 걸 보여주지...", "검의 기억은 사라지지 않는다."],
+  "리치": ["영원을 살아온 자에게 도전하겠다고?", "네 영혼... 좋은 재료가 되겠군."],
+  "불꽃 정령": ["타올라! 모든 것을 재로!", "불꽃은 멈추지 않는다!"],
+  "대마법사": ["마법의 힘을 보여주마!", "이 탑의 주인은 나다!"],
+  "공허의 사도": ["심연이 너를 부르고 있다...", "어둠 속에서 영원히 헤매거라."],
+  "심연의 군주": ["나는 심연 그 자체다!", "빛은 이곳에서 의미가 없다."],
+  "드래곤 근위병": ["주인님을 건드리지 마라!", "이 비늘을 뚫을 수 있겠나!"],
+  "드래곤 로드": ["필멸자여, 나에게 도전하다니!", "이 땅의 최강은 바로 나다!"],
+};
+
 // === UTILS ===
 function shuffle(arr) {
   const a = [...arr];
@@ -877,6 +891,7 @@ export default function DungeonHand() {
   var [erodedIds, setErodedIds] = s([]); // eroded card ids (grade temporarily -1)
   var [tenacityUsed, setTenacityUsed] = s(false); // tenacity: revive once per run
   var [frozenIds, setFrozenIds] = s([]); // frozen card ids
+  var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
   var [splitMon, setSplitMon] = s(null); // split monster waiting
   var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
   var [deckView, setDeckView] = s(false);
@@ -965,6 +980,7 @@ export default function DungeonHand() {
     setFrozenIds([]);
     setSplitMon(null);
     setAimedBonus(0);
+    setBossDialogue(null);
     setShield(0);
     setPoison(0);
     setErodedIds([]);
@@ -993,7 +1009,16 @@ export default function DungeonHand() {
     setDrawPile(shuffled.slice(HAND_SIZE));
     setDiscardPile([]);
     setScreen("battle");
-    // Animate initial draw
+    // Boss/miniboss dialogue
+    var dialogueDelay = 0;
+    if ((m.boss || m.miniboss) && BOSS_DIALOGUES[m.name]) {
+      var lines = BOSS_DIALOGUES[m.name];
+      var line = lines[Math.floor(Math.random() * lines.length)];
+      setBossDialogue(line);
+      dialogueDelay = 1500;
+      setTimeout(function() { setBossDialogue(null); }, 1400);
+    }
+    // Animate initial draw (delayed if dialogue)
     setBusy(true);
     setHand([]);
     setNewCardIds([]);
@@ -1002,12 +1027,41 @@ export default function DungeonHand() {
         sfx.card();
         setHand(function(prev) { return prev.concat([card]); });
         setNewCardIds(function(prev) { return prev.concat([card.id]); });
-      }, (idx + 1) * 150);
+      }, dialogueDelay + (idx + 1) * 150);
     });
     setTimeout(function() {
       setNewCardIds([]);
-      setBusy(false);
-    }, (HAND_SIZE + 1) * 150 + 100);
+      // === 기습 판정: 일반10%, 미니보스20%, 보스30% ===
+      var ambushChance = m.boss ? 30 : m.miniboss ? 20 : 10;
+      if (Math.random() * 100 < ambushChance) {
+        var ambushDmg = matk + Math.floor(Math.random() * 3);
+        showPassive("⚡ 기습! " + m.name + "의 선제 공격!");
+        sfx.enemy();
+        setEnemyAttacking(true);
+        setPlayerShake(true);
+        setEnemyDmgShow(ambushDmg);
+        setHp(function(prev) {
+          if (prev - ambushDmg <= 0) {
+            if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
+              setTenacityUsed(true);
+              showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
+              return 1;
+            }
+            setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
+            return 0;
+          }
+          return prev - ambushDmg;
+        });
+        setTimeout(function() {
+          setEnemyAttacking(false);
+          setPlayerShake(false);
+          setEnemyDmgShow(null);
+          setBusy(false);
+        }, 800);
+      } else {
+        setBusy(false);
+      }
+    }, dialogueDelay + (HAND_SIZE + 1) * 150 + 100);
   }
 
   function toggleCard(id) {
@@ -2272,6 +2326,14 @@ export default function DungeonHand() {
               </div>
             )}
           </div>
+
+          {bossDialogue && (
+            <div style={{ textAlign: "center", padding: "4px 0", flexShrink: 0, animation: "slideUp 0.4s ease" }}>
+              <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid #a855f7", borderRadius: 8, padding: "4px 14px", fontSize: 13, fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
+                "{bossDialogue}"
+              </span>
+            </div>
+          )}
 
           {damageInfo && currentHand ? (
             <div style={{ height: 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, flexShrink: 0 }}>

@@ -57,7 +57,7 @@
 | 12 | 플레이어 HP 40→70 | ✅ |
 | 13 | 연쇄고리 val:3→2 | ✅ |
 
-## 완료된 추가 작업 (6건)
+## 완료된 추가 작업 (7건)
 
 ### ~~세션 1: 밸런스 완성~~ ✅ 완료
 
@@ -78,6 +78,10 @@
 - 회수 메시지 정합성 수정 (실제 회수 후 표시) ✅
 - encounterOut dead code 삭제 ✅
 - 기습 사망 시 setTimeout 체인 취소 ✅
+
+### ~~세션 6: 변환(wild) 카드 버그 수정~~ ✅ 완료
+- detectHand suits 매핑에서 wild 카드 `getEffectiveSuit()` 호출 ✅
+- checkStraightFlush에서 wild 공용카드 포함 ✅
 
 ---
 

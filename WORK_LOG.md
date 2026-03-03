@@ -60,3 +60,15 @@
 - tenacityUsed 스테일 클로저: 실질적 영향 없음 (첫 전투 기습 사망 불가능)
 - gambit 복수 장 처리: 현재 밸런스상 적절
 - showPassive 큐 시스템: 규모가 크고 기존 코드 전체에 동일 문제 존재
+
+## 세션 6 (2026-03-04) — 변환(wild) 카드 버그 수정
+
+### 완료
+- [x] detectHand suits 매핑에서 wild 카드 예외처리: `c.common.fx === "wild"`이면 `getEffectiveSuit()` 호출 (기존: 모든 공용카드 "none")
+- [x] checkStraightFlush에서 wild 공용카드 포함: 필터 조건에 `(c.isCommon && c.common.fx === "wild")` 추가
+
+### 검증
+- 빌드 성공 확인
+- 변환카드가 같은 문양 직업카드 2장 이상과 함께 제출 시 플러시/SF 판정에 기여
+- 같은 문양 2장 미만 시 wild 비활성 (기본 suitId 반환)
+- 다른 공용카드 5종(보루, 집중타, 기세, 회수, 투기) 동작 영향 없음

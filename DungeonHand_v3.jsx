@@ -255,9 +255,12 @@ function detectHand(cards) {
 
   // Use effective grade (grade + growthBonus) for hand detection
   var grades = cards.map(function(c) { return c.grade + (c.growthBonus || 0); }).sort(function(a, b) { return a - b; });
-  // Common cards have NO suit for flush/SF purposes
+  // Common cards have NO suit for flush/SF purposes (except wild)
   var suits = cards.map(function(c) {
-    if (c.isCommon) return "none"; // common cards don't count for flush
+    if (c.isCommon) {
+      if (c.common.fx === "wild") return getEffectiveSuit(c, cards);
+      return "none";
+    }
     return getEffectiveSuit(c, cards);
   });
 
@@ -282,8 +285,8 @@ function detectHand(cards) {
 
   function checkStraightFlush() {
     if (len < 3) return false;
-    // Only class cards (non-common) can form a straight flush
-    var classCards = cards.filter(function(c) { return !c.isCommon; });
+    // Class cards + wild common cards can form a straight flush
+    var classCards = cards.filter(function(c) { return !c.isCommon || (c.isCommon && c.common.fx === "wild"); });
     if (classCards.length < 3) return false;
     var suitGroups = {};
     classCards.forEach(function(c) {

@@ -145,11 +145,10 @@ const RELICS = [
   { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 } },
   { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble" } },
   { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 } },
-  { id: "book1", name: "전투의 서", emoji: "📜", desc: "카드 제출 한도 +1 (4장)", tier: 2, eff: { type: "submit", val: 1 } },
   { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 } },
   { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 } },
   { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급4↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 4, val: 2 } },
-  { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "카드 제출 한도 +1 (5장)", tier: 3, eff: { type: "submit", val: 1 } },
+  { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 } },
   { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 } },
   { id: "inf", name: "무한의 덱", emoji: "♾️", desc: "매 턴 드로우 +1", tier: 3, eff: { type: "drawAdd", val: 1 } },
 ];
@@ -832,9 +831,9 @@ function DeckViewer(props) {
 // === MAIN GAME ===
 var UPGRADES = [
   { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2, tier: "basic" },
-  { id: "sharp", name: "강화", icon: "🗡️", desc: "시작 시 중립카드 전체 등급+1", cost: 4, max: 2, tier: "basic" },
+  { id: "sharp", name: "강화", icon: "🗡️", desc: "시작 시 중립카드 전체 등급+1", cost: 4, max: 1, tier: "basic" },
   { id: "stealth", name: "은신", icon: "🌑", desc: "기본 회피 +5%", cost: 3, max: 2, tier: "basic" },
-  { id: "submit", name: "전투 숙련", icon: "⚡", desc: "제출 한도 +1", cost: 8, max: 1, tier: "advanced" },
+  { id: "merchant", name: "노련한 상인", icon: "🏪", desc: "상점 가격 20% 할인", cost: 6, max: 1, tier: "advanced" },
   { id: "loot", name: "약탈", icon: "💰", desc: "매 전투 승리 골드 +3", cost: 6, max: 2, tier: "advanced" },
   { id: "awaken", name: "각성", icon: "🌑", desc: "시작 시 그림자 x1", cost: 10, max: 1, tier: "advanced" },
   { id: "tenacity", name: "집념", icon: "💀", desc: "HP 0 시 1회 HP 1로 부활", cost: 12, max: 1, tier: "advanced" },
@@ -852,7 +851,7 @@ export default function DungeonHand() {
   var [hp, setHp] = s(70);
   // Meta progression (persists across runs)
   var [metaPoints, setMetaPoints] = s(0);
-  var [upgradeLevels, setUpgradeLevels] = s({ hp: 0, sharp: 0, stealth: 0, submit: 0, loot: 0, awaken: 0, tenacity: 0 });
+  var [upgradeLevels, setUpgradeLevels] = s({ hp: 0, sharp: 0, stealth: 0, merchant: 0, loot: 0, awaken: 0, tenacity: 0 });
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
   var MAX_HP = 70 + upgradeLevels.hp * 5;
   var [relics, setRelics] = s([]);
@@ -897,6 +896,7 @@ export default function DungeonHand() {
   var [frozenIds, setFrozenIds] = s([]); // frozen card ids
   var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
   var [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
+  var [book2Used, setBook2Used] = s(false); // book2: once per battle submit bonus
   var [splitMon, setSplitMon] = s(null); // split monster waiting
   var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
   var [deckView, setDeckView] = s(false);
@@ -904,12 +904,11 @@ export default function DungeonHand() {
   var [newCardIds, setNewCardIds] = s([]);
 
   var HAND_SIZE = 5;
-  var BASE_SUBMIT = 3 + upgradeLevels.submit;
+  var BASE_SUBMIT = 3;
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
-  var submitLimit = BASE_SUBMIT + aimedBonus + relics.reduce(function(sum, r) {
-    return r.eff.type === "submit" ? sum + r.eff.val : sum;
-  }, 0);
+  var book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
+  var submitLimit = BASE_SUBMIT + aimedBonus + book2Bonus;
 
   function toggleAudio() {
     var val = sfx.toggle();
@@ -985,6 +984,7 @@ export default function DungeonHand() {
     setFrozenIds([]);
     setSplitMon(null);
     setAimedBonus(0);
+    setBook2Used(false);
     setBossDialogue(null);
     setShield(0);
     setPoison(0);
@@ -1125,6 +1125,7 @@ export default function DungeonHand() {
       return;
     }
     setBusy(true);
+    if (relics.some(function(r) { return r.id === "book2"; })) setBook2Used(true);
     setFrozenIds([]); // clear freeze for next turn
 
     // === Restore eroded cards ===
@@ -2032,6 +2033,7 @@ export default function DungeonHand() {
         setEnemyDmgShow(null);
         setFrozenIds([]);
         setSplitMon(null);
+        setBook2Used(false);
         setNewCardIds([]);
         var shuffled = shuffle(deck);
         setDrawPile(shuffled.slice(HAND_SIZE));
@@ -2645,12 +2647,13 @@ export default function DungeonHand() {
             </button>
           </div>
         </div>
+        {(function() { var discount = upgradeLevels.merchant > 0 ? 0.8 : 1; return (
         <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 18, overflow: "auto" }}>
           <div>
             <h3 style={{ fontSize: 14, marginBottom: 8 }}>📦 카드</h3>
             <div style={{ display: "flex", gap: 8 }}>
               {shopCards.map(function(c) {
-                var cost = c.grade * 3 + (c.isCommon ? 2 : 0) + (c.keyword ? 5 : 0);
+                var cost = Math.floor((c.grade * 3 + (c.isCommon ? 2 : 0) + (c.keyword ? 5 : 0)) * discount);
                 return (
                   <div key={c.id} style={{ textAlign: "center" }}>
                     <CardView card={c} cls={classData} small />
@@ -2666,7 +2669,7 @@ export default function DungeonHand() {
             <div>
               <h3 style={{ fontSize: 14, marginBottom: 8 }}>🔮 유물</h3>
               {(function() {
-                var relicCost = shopRelic.tier === 1 ? 25 : shopRelic.tier === 2 ? 40 : 60;
+                var relicCost = Math.floor((shopRelic.tier === 1 ? 30 : shopRelic.tier === 2 ? 50 : 75) * discount);
                 return (
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + (shopRelic.tier >= 3 ? "#f97316" : shopRelic.tier >= 2 ? "#a855f7" : "var(--bd)"), textAlign: "center" }}>
@@ -2680,6 +2683,7 @@ export default function DungeonHand() {
               })()}
             </div>
           )}
+          {(function() { var healCost = Math.floor(10 * discount); return (
           <div>
             <h3 style={{ fontSize: 14, marginBottom: 8 }}>❤️ 회복 (1회 한정)</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -2690,21 +2694,23 @@ export default function DungeonHand() {
               </div>
               <Btn
                 onClick={function() {
-                  if (shopHealed || gold < 10 || hp >= MAX_HP) return;
+                  if (shopHealed || gold < healCost || hp >= MAX_HP) return;
                   sfx.heal();
-                  setGold(function(g) { return g - 10; });
+                  setGold(function(g) { return g - healCost; });
                   setHp(function(h) { return Math.min(MAX_HP, h + 15); });
                   setShopHealed(true);
                 }}
-                disabled={shopHealed || gold < 10 || hp >= MAX_HP}
+                disabled={shopHealed || gold < healCost || hp >= MAX_HP}
                 color="#22c55e"
               >
-                {shopHealed ? "완료" : hp >= MAX_HP ? "만탄" : "💰10"}
+                {shopHealed ? "완료" : hp >= MAX_HP ? "만탄" : "💰" + healCost}
               </Btn>
             </div>
           </div>
+          ); })()}
+          {(function() { var removeCost = Math.floor(10 * discount); return (
           <div>
-            <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰10, {2 - shopRemoved}회 남음)</h3>
+            <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {2 - shopRemoved}회 남음)</h3>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
               {deck.slice().sort(function(a, b) {
                 var suitOrd = { red: 0, blue: 1, yellow: 2 };
@@ -2716,11 +2722,11 @@ export default function DungeonHand() {
                 if (a.isCommon && b.isCommon) return a.common.id.localeCompare(b.common.id);
                 return 0;
               }).map(function(c) {
-                var canRemove = gold >= 10 && deck.length > 10 && shopRemoved < 2;
+                var canRemove = gold >= removeCost && deck.length > 10 && shopRemoved < 2;
                 return (
                   <div
                     key={c.id}
-                    onClick={function() { removeCard(c, 10); }}
+                    onClick={function() { removeCard(c, removeCost); }}
                     style={{ cursor: canRemove ? "pointer" : "default", opacity: canRemove ? 1 : 0.3 }}
                   >
                     <CardView card={c} cls={classData} small />
@@ -2729,7 +2735,9 @@ export default function DungeonHand() {
               })}
             </div>
           </div>
+          ); })()}
         </div>
+        ); })()}
         <div style={{ padding: 12, borderTop: "1px solid var(--bd)", textAlign: "center" }}>
           <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: 14, padding: "12px 36px" }}>
             {floor >= 5 ? "🏆 클리어!" : "다음 층 →"}

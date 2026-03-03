@@ -72,3 +72,23 @@
 - 변환카드가 같은 문양 직업카드 2장 이상과 함께 제출 시 플러시/SF 판정에 기여
 - 같은 문양 2장 미만 시 wild 비활성 (기본 suitId 반환)
 - 다른 공용카드 5종(보루, 집중타, 기세, 회수, 투기) 동작 영향 없음
+
+## 세션 7 (2026-03-04) — 유물/메타 밸런스 조정
+
+### 완료
+- [x] 수정 1: 전투의 서(book1) 삭제 — RELICS에서 제거
+- [x] 수정 2: 전쟁의 서(book2) 너프 — "매 전투 첫 제출 시 한도 +1" (book2Used state로 1회 제한)
+- [x] 수정 3: submit 메타 → 노련한 상인 (상점 전 가격 20% 할인, cost 6, max 1)
+- [x] 수정 4: sharp 메타 max 2→1
+- [x] 수정 5: 유물 상점 가격 인상 (25/40/60 → 30/50/75)
+
+### 세부 변경
+- RELICS에서 book1 항목 삭제
+- book2: eff.type "submit"→"submitOnce", book2Used state 추가, beginBattle/도망 시 리셋, submitCards에서 setBook2Used(true)
+- submitLimit 계산: relics.reduce(submit) 삭제, book2Bonus로 대체
+- BASE_SUBMIT: `3 + upgradeLevels.submit` → `3` (고정)
+- UPGRADES: submit → merchant (id/name/icon/desc/cost/max 전체 변경)
+- upgradeLevels 초기값: submit → merchant
+- 상점: discount 변수 도입, 카드/유물/회복/제거 4곳에 Math.floor(price * discount) 적용
+- sharp max: 2→1
+- 유물 가격: tier 1: 30, tier 2: 50, tier 3: 75

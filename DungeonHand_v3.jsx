@@ -100,31 +100,31 @@ const COMMONS = [
 ];
 
 const MONSTERS = [
-  // Floor 1: 고블린 소굴 (indices 0-3) — 10% 상향
-  { name: "고블린", emoji: "👺", hp: 28, atk: 6 },
-  { name: "고블린 궁수", emoji: "🏹", hp: 39, atk: 8 },
-  { name: "고블린 대장", emoji: "💪", hp: 55, atk: 9, miniboss: true },
-  { name: "고블린 킹", emoji: "👑", hp: 72, atk: 11, boss: true },
+  // Floor 1: 고블린 소굴 (indices 0-3) — x1.3 적용
+  { name: "고블린", emoji: "👺", hp: 36, atk: 6 },
+  { name: "고블린 궁수", emoji: "🏹", hp: 50, atk: 8 },
+  { name: "고블린 대장", emoji: "💪", hp: 72, atk: 9, miniboss: true },
+  { name: "고블린 킹", emoji: "👑", hp: 94, atk: 11, boss: true },
   // Floor 2: 언데드 묘지 (indices 4-7)
-  { name: "해골 병사", emoji: "💀", hp: 45, atk: 7 },
-  { name: "뱀파이어", emoji: "🧛", hp: 55, atk: 9 },
-  { name: "망령 기사", emoji: "⚔️", hp: 70, atk: 10, miniboss: true },
-  { name: "리치", emoji: "☠️", hp: 95, atk: 12, boss: true },
+  { name: "해골 병사", emoji: "💀", hp: 59, atk: 7 },
+  { name: "뱀파이어", emoji: "🧛", hp: 72, atk: 9 },
+  { name: "망령 기사", emoji: "⚔️", hp: 91, atk: 10, miniboss: true },
+  { name: "리치", emoji: "☠️", hp: 124, atk: 12, boss: true },
   // Floor 3: 마법 탑 (indices 8-11)
-  { name: "골렘", emoji: "🗿", hp: 55, atk: 8, freeze: 1 },
-  { name: "마녀", emoji: "🧙‍♀️", hp: 65, atk: 10, freeze: 2 },
-  { name: "불꽃 정령", emoji: "🔥", hp: 80, atk: 11, miniboss: true, freeze: 1 },
-  { name: "대마법사", emoji: "🌀", hp: 110, atk: 13, boss: true, freeze: 2, split: true },
+  { name: "골렘", emoji: "🗿", hp: 72, atk: 8, freeze: 1 },
+  { name: "마녀", emoji: "🧙‍♀️", hp: 85, atk: 10, freeze: 2 },
+  { name: "불꽃 정령", emoji: "🔥", hp: 104, atk: 11, miniboss: true, freeze: 1 },
+  { name: "대마법사", emoji: "🌀", hp: 143, atk: 13, boss: true, freeze: 2, split: true },
   // Floor 4: 심연 (indices 12-15)
-  { name: "그림자 포식자", emoji: "🌑", hp: 60, atk: 9 },
-  { name: "심연의 눈", emoji: "👁️", hp: 75, atk: 11, erode: 1 },
-  { name: "공허의 사도", emoji: "🕳️", hp: 95, atk: 12, miniboss: true, erode: 2 },
-  { name: "심연의 군주", emoji: "🌀", hp: 135, atk: 15, boss: true, erode: 2 },
+  { name: "그림자 포식자", emoji: "🌑", hp: 78, atk: 9 },
+  { name: "심연의 눈", emoji: "👁️", hp: 98, atk: 11, erode: 1 },
+  { name: "공허의 사도", emoji: "🕳️", hp: 124, atk: 12, miniboss: true, erode: 2 },
+  { name: "심연의 군주", emoji: "🌀", hp: 176, atk: 15, boss: true, erode: 2 },
   // Floor 5: 드래곤 둥지 (indices 16-19)
-  { name: "드래곤 알지기", emoji: "🥚", hp: 90, atk: 12 },
-  { name: "드래곤 새끼", emoji: "🐉", hp: 110, atk: 14, burn: 1 },
-  { name: "드래곤 근위병", emoji: "🛡️", hp: 140, atk: 16, miniboss: true, burn: 1 },
-  { name: "드래곤 로드", emoji: "🐲", hp: 200, atk: 20, boss: true, burn: 2 },
+  { name: "드래곤 알지기", emoji: "🥚", hp: 117, atk: 12 },
+  { name: "드래곤 새끼", emoji: "🐉", hp: 143, atk: 14, burn: 1 },
+  { name: "드래곤 근위병", emoji: "🛡️", hp: 182, atk: 16, miniboss: true, burn: 1 },
+  { name: "드래곤 로드", emoji: "🐲", hp: 260, atk: 20, boss: true, burn: 2 },
 ];
 
 // Campfire events
@@ -1751,7 +1751,7 @@ export default function DungeonHand() {
                         disabled={!canBuy}
                         style={{ padding: "4px 12px", fontSize: 13 }}
                       >
-                        ⭐{u.cost}
+                        ⭐{actualCost}
                       </Btn>
                     )}
                   </div>
@@ -2120,7 +2120,7 @@ export default function DungeonHand() {
     else if (currentHand && currentHand.tier >= 3) handTierColor = "var(--rd)";
 
     return (
-      <div style={wrapStyle}>
+      <div style={Object.assign({}, wrapStyle, { height: "100vh", minHeight: "auto", overflow: "hidden" })}>
         <style>{CSS}</style>
         {audioButton}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>

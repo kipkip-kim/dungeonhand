@@ -73,6 +73,12 @@
 - **#16** 보스 인카운터 효과 (풀스크린 오버레이) ✅
 - **#17** 전투 시작 시퀀스 정리 (encounter→dialogue→ambush→dice→draw) ✅
 
+### ~~세션 5: 정적 분석 버그 수정~~ ✅ 완료
+- HP 초기화 불일치 수정 (startRun 40→70) ✅
+- 회수 메시지 정합성 수정 (실제 회수 후 표시) ✅
+- encounterOut dead code 삭제 ✅
+- 기습 사망 시 setTimeout 체인 취소 ✅
+
 ---
 
 ## 참고: 몬스터 HP (x1.3 적용 완료)

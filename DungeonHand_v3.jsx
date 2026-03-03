@@ -478,7 +478,6 @@ var CSS = [
   "@keyframes missFlash{0%{opacity:0}15%{opacity:0.4}30%{opacity:0}100%{opacity:0}}",
   "@keyframes missBounce{0%{transform:translateX(-50%) scale(0) rotate(-20deg)}25%{transform:translateX(-50%) scale(2.2) rotate(8deg)}45%{transform:translateX(-50%) scale(0.7) rotate(-3deg)}65%{transform:translateX(-50%) scale(1.4) rotate(2deg)}100%{transform:translateX(-50%) scale(1) rotate(0)}}",
   "@keyframes encounterIn{0%{opacity:0;transform:scale(0.3)}30%{opacity:1;transform:scale(1.1)}50%{transform:scale(0.95)}100%{transform:scale(1)}}",
-  "@keyframes encounterOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}",
 ].join("\n");
 
 // === COMPONENTS ===
@@ -930,7 +929,7 @@ export default function DungeonHand() {
     d = shuffle(d);
     setDeck(d);
     setGold(0); // 약탈 효과는 매 전투 승리 시 적용
-    var maxHp = 40 + upgradeLevels.hp * 5;
+    var maxHp = 70 + upgradeLevels.hp * 5;
     setHp(maxHp);
     setRelics([]);
     setFloor(1);
@@ -999,6 +998,7 @@ export default function DungeonHand() {
     setEncounterOverlay(null);
 
     var t = 0; // running delay (ms)
+    var laterTimers = []; // Phase 4/5 timer IDs, cleared on ambush death
 
     // Phase 1: Encounter overlay (boss/miniboss only)
     if (m.boss || m.miniboss) {
@@ -1034,6 +1034,7 @@ export default function DungeonHand() {
               showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
               return 1;
             }
+            laterTimers.forEach(function(tid) { clearTimeout(tid); });
             setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
             return 0;
           }
@@ -1053,7 +1054,7 @@ export default function DungeonHand() {
     if (hasGamble) {
       var roll = Math.random() < 0.5 ? 1 : -0.5;
       var options = ["+1", "-0.5", "+1", "-0.5", "+1", "-0.5"];
-      setTimeout(function() {
+      laterTimers.push(setTimeout(function() {
         var tick = 0;
         var interval = setInterval(function() {
           setGambleAnim("🎲 " + options[tick % options.length]);
@@ -1065,7 +1066,7 @@ export default function DungeonHand() {
             setTimeout(function() { setGambleAnim(null); }, 1200);
           }
         }, 100);
-      }, t);
+      }, t));
       t += 1000;
     } else {
       setGambleBuff(0);
@@ -1073,16 +1074,16 @@ export default function DungeonHand() {
 
     // Phase 5: Draw cards
     initialHand.forEach(function(card, idx) {
-      setTimeout(function() {
+      laterTimers.push(setTimeout(function() {
         sfx.card();
         setHand(function(prev) { return prev.concat([card]); });
         setNewCardIds(function(prev) { return prev.concat([card.id]); });
-      }, t + (idx + 1) * 150);
+      }, t + (idx + 1) * 150));
     });
-    setTimeout(function() {
+    laterTimers.push(setTimeout(function() {
       setNewCardIds([]);
       setBusy(false);
-    }, t + (HAND_SIZE + 1) * 150 + 100);
+    }, t + (HAND_SIZE + 1) * 150 + 100));
   }
 
   function toggleCard(id) {
@@ -1288,14 +1289,6 @@ export default function DungeonHand() {
         showPassive("🎰 투기 실패... 배율-0.5");
       }
     }
-    // === 회수 효과 표시 ===
-    var reclaimAmt2 = played.reduce(function(sum, c) {
-      if (c.isCommon && c.common.fx === "reclaim") return sum + c.grade + (c.growthBonus || 0);
-      return sum;
-    }, 0);
-    if (reclaimAmt2 > 0) {
-      showPassive("🔁 회수! " + reclaimAmt2 + "장 덱으로 복귀");
-    }
 
     // === Keyword: Growth - permanently increase grade ===
     if (dmg.hasGrowth) {
@@ -1452,6 +1445,9 @@ export default function DungeonHand() {
           reclaimedCards = reclaimPool.slice(0, Math.min(reclaimAmt, reclaimPool.length));
           var reclaimedIds = reclaimedCards.map(function(c) { return c.id; });
           newDisc = newDisc.filter(function(c) { return reclaimedIds.indexOf(c.id) < 0; });
+        }
+        if (reclaimedCards.length > 0) {
+          showPassive("🔁 회수! " + reclaimedCards.length + "장 덱으로 복귀");
         }
 
         var extraDraw = 0;

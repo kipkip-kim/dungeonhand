@@ -46,4 +46,17 @@
   - Phase 4: Dice (gamble relic, 1000ms)
   - Phase 5: Draw cards (HAND_SIZE × 150ms)
 
-### 모든 세션 완료!
+---
+
+## 세션 5 (2026-03-04) — 정적 분석 버그 수정
+
+### 완료
+- [x] BUG 1: HP 초기화 불일치 수정 — startRun `maxHp = 40` → `70` (MAX_HP와 일치)
+- [x] BUG 2: 회수 메시지 정합성 수정 — submitCards의 예측 메시지 삭제, enemyTurn에서 실제 `reclaimedCards.length` 기반 메시지 표시
+- [x] encounterOut CSS dead code 삭제 (미사용 @keyframes)
+- [x] 기습 사망 방어 코딩: laterTimers 배열로 Phase 4/5 setTimeout 추적, 사망 시 clearTimeout으로 취소
+
+### 수정하지 않은 항목
+- tenacityUsed 스테일 클로저: 실질적 영향 없음 (첫 전투 기습 사망 불가능)
+- gambit 복수 장 처리: 현재 밸런스상 적절
+- showPassive 큐 시스템: 규모가 크고 기존 코드 전체에 동일 문제 존재

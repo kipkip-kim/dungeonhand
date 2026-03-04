@@ -143,16 +143,16 @@ var CAMPFIRE_EVENTS = [
 ];
 
 const RELICS = [
-  { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 } },
-  { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 } },
-  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble" } },
-  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 } },
-  { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 } },
-  { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 } },
-  { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급4↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 4, val: 2 } },
-  { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 } },
-  { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 } },
-  { id: "inf", name: "무한의 덱", emoji: "♾️", desc: "매 턴 드로우 +1", tier: 3, eff: { type: "drawAdd", val: 1 } },
+  { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 }, classId: null },
+  { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 }, classId: null },
+  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble" }, classId: null },
+  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 }, classId: null },
+  { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 }, classId: null },
+  { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 }, classId: null },
+  { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급4↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 4, val: 2 }, classId: null },
+  { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 }, classId: null },
+  { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 }, classId: null },
+  { id: "inf", name: "무한의 덱", emoji: "♾️", desc: "매 턴 드로우 +1", tier: 3, eff: { type: "drawAdd", val: 1 }, classId: null },
 ];
 
 const FLOOR_NAMES = ["", "고블린 소굴", "언데드 묘지", "마법 탑", "심연", "드래곤 둥지"];
@@ -179,16 +179,53 @@ var KEYWORDS = [
   { id: "resonance", icon: "🔔", name: "공명", desc: "같은 문양 2장+ 시 배율 +0.5" },
 ];
 
-var UPGRADES = [
-  { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2, tier: "basic" },
-  { id: "sharp", name: "강화", icon: "🗡️", desc: "시작 시 중립카드 전체 등급+1", cost: 4, max: 1, tier: "basic" },
-  { id: "stealth", name: "은신", icon: "🌑", desc: "기본 회피 +5%", cost: 3, max: 2, tier: "basic" },
-  { id: "merchant", name: "노련한 상인", icon: "🏪", desc: "상점 가격 20% 할인", cost: 6, max: 1, tier: "advanced" },
-  { id: "loot", name: "약탈", icon: "💰", desc: "매 전투 승리 골드 +3", cost: 6, max: 2, tier: "advanced" },
-  { id: "awaken", name: "각성", icon: "🌑", desc: "시작 시 그림자 x1", cost: 10, max: 1, tier: "advanced" },
-  { id: "tenacity", name: "집념", icon: "💀", desc: "HP 0 시 1회 HP 1로 부활", cost: 12, max: 1, tier: "advanced" },
+var SKILL_TREES = [
+  {
+    id: "common", name: "공통", icon: "⚔️", classId: null,
+    nodes: [
+      { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2 },
+      { id: "sharp", name: "강화", icon: "🗡️", desc: "시작시 중립카드 등급+1", cost: 4, max: 1 },
+      { id: "merchant", name: "상인", icon: "🏪", desc: "상점 20% 할인", cost: 6, max: 1 },
+      { id: "loot", name: "약탈", icon: "💰", desc: "전투 골드 +3", cost: 6, max: 2 },
+      { id: "tenacity", name: "집념", icon: "💀", desc: "HP 0시 1회 부활", cost: 12, max: 1 },
+      { id: "inventory", name: "유물슬롯", icon: "🎒", desc: "유물 슬롯 +1", cost: 8, max: 2 },
+    ],
+  },
+  {
+    id: "ranger_red", name: "습격", icon: "🔺", classId: "ranger",
+    nodes: [
+      { id: "redCollect", name: "🔺수집", icon: "🔺", desc: "보상시 🔺카드 1장 보장", cost: 4, max: 1 },
+      { id: "awaken", name: "각성", icon: "🌑", desc: "시작시 그림자 x1", cost: 10, max: 1 },
+      { id: "stealth", name: "은신", icon: "🌫️", desc: "기본 회피 +5%", cost: 3, max: 2 },
+      { id: "shadowBurst", name: "그림자폭발", icon: "🌑", desc: "스택당 배율 +0.5→+0.8", cost: 8, max: 1 },
+    ],
+  },
+  {
+    id: "ranger_blue", name: "연계", icon: "🔷", classId: "ranger",
+    nodes: [
+      { id: "blueCollect", name: "🔷수집", icon: "🔷", desc: "보상시 🔷카드 1장 보장", cost: 4, max: 1 },
+      { id: "deft", name: "손재주", icon: "👋", desc: "시작 드로우 +1", cost: 5, max: 1 },
+      { id: "nimble", name: "기민함", icon: "🧤", desc: "버리기 +1", cost: 4, max: 1 },
+      { id: "chainBoost", name: "연쇄강화", icon: "🔗", desc: "🔷2장+ 제출시 드로우+2", cost: 7, max: 1 },
+    ],
+  },
+  {
+    id: "ranger_yellow", name: "급소", icon: "⭐", classId: "ranger",
+    nodes: [
+      { id: "yellowCollect", name: "⭐수집", icon: "⭐", desc: "보상시 ⭐카드 1장 보장", cost: 4, max: 1 },
+      { id: "critMastery", name: "급소숙련", icon: "🗡️", desc: "치명타 +10%", cost: 4, max: 2 },
+      { id: "quickStrike", name: "속전속결", icon: "⚡", desc: "첫턴 치명타 2배", cost: 6, max: 1 },
+      { id: "critDamage", name: "치명타격", icon: "💥", desc: "치명 x1.5→x2.0", cost: 8, max: 1 },
+    ],
+  },
 ];
+
+var ULTIMATE_SKILL = {
+  id: "fatedDice", name: "운명의 주사위", icon: "🎲",
+  desc: "매 제출시 1d6: 1-2=x0.5, 3-4=x1.5, 5-6=x3",
+  unlockCost: 40,
+};
 
 var BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
 
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, UPGRADES, BOSS_POINTS };
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS };

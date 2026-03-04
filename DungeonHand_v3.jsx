@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, UPGRADES, BOSS_POINTS } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS } from "./data.js";
 import { shuffle, pickN, makeCard, makeDeck, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
@@ -16,7 +16,18 @@ export default function DungeonHand() {
   var [hp, setHp] = s(70);
   // Meta progression (persists across runs)
   var [metaPoints, setMetaPoints] = s(0);
-  var [upgradeLevels, setUpgradeLevels] = s({ hp: 0, sharp: 0, stealth: 0, merchant: 0, loot: 0, awaken: 0, tenacity: 0 });
+  var [upgradeLevels, setUpgradeLevels] = s({
+    // 공통
+    hp: 0, sharp: 0, merchant: 0, loot: 0, tenacity: 0, inventory: 0,
+    // 습격
+    redCollect: 0, awaken: 0, stealth: 0, shadowBurst: 0,
+    // 연계
+    blueCollect: 0, deft: 0, nimble: 0, chainBoost: 0,
+    // 급소
+    yellowCollect: 0, critMastery: 0, quickStrike: 0, critDamage: 0,
+    // 궁극기
+    fatedDice: 0,
+  });
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
   var MAX_HP = 70 + upgradeLevels.hp * 5;
   var [relics, setRelics] = s([]);
@@ -742,6 +753,7 @@ export default function DungeonHand() {
     sfx.gold();
     if (isBoss) {
       var avail = RELICS.filter(function(r) {
+        if (r.classId != null && r.classId !== classId) return false;
         if (relics.find(function(o) { return o.id === r.id; })) return false;
         if (discardedRelicIds.indexOf(r.id) >= 0) return false;
         if (r.id === "hero" && Math.random() > 0.5) return false;
@@ -887,6 +899,7 @@ export default function DungeonHand() {
     setShopCards(pool);
     var rels = currentRelics || relics;
     var avail = RELICS.filter(function(r) {
+      if (r.classId != null && r.classId !== classId) return false;
       if (rels.find(function(o) { return o.id === r.id; })) return false;
       if (discardedRelicIds.indexOf(r.id) >= 0) return false;
       if (r.id === "hero" && Math.random() > 0.5) return false;
@@ -1022,96 +1035,98 @@ export default function DungeonHand() {
 
   // === SCREENS ===
   if (screen === "village") {
+    var totalInvested = 0;
+    SKILL_TREES.forEach(function(tree) {
+      tree.nodes.forEach(function(node) {
+        var lv = upgradeLevels[node.id] || 0;
+        for (var i = 0; i < lv; i++) {
+          totalInvested += node.cost + i * Math.ceil(node.cost * 0.5);
+        }
+      });
+    });
+    var ulUnlocked = totalInvested >= ULTIMATE_SKILL.unlockCost;
+    var ulOwned = upgradeLevels.fatedDice > 0;
+    var visibleTrees = SKILL_TREES.filter(function(t) {
+      return t.classId === null || t.classId === classId;
+    });
     return (
       <div style={wrapStyle}>
         <style>{CSS}</style>
         {audioButton}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <h2 style={{ fontSize: 16 }}>🏘️ 마을 상점</h2>
+            <h2 style={{ fontSize: 16 }}>🏘️ 스킬 트리</h2>
             <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
+            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
           </div>
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: 14, color: "var(--dm)", marginBottom: 8 }}>기본 업그레이드</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {UPGRADES.filter(function(u) { return u.tier === "basic"; }).map(function(u) {
-                var lv = upgradeLevels[u.id];
-                var maxed = lv >= u.max;
-                var actualCost = u.cost + lv * Math.ceil(u.cost * 0.5);
-                var canBuy = metaPoints >= actualCost && !maxed;
-                return (
-                  <div key={u.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "8px 12px" }}>
-                    <div>
-                      <span style={{ fontSize: 14 }}>{u.icon}</span>
-                      <span style={{ fontWeight: 700, marginLeft: 6 }}>{u.name}</span>
-                      <span style={{ color: "var(--dm)", fontSize: 13, marginLeft: 8 }}>{u.desc}</span>
-                      <span style={{ color: "#a855f7", fontSize: 14, marginLeft: 8 }}>Lv.{lv}/{u.max}</span>
-                    </div>
-                    {maxed ? (
-                      <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>MAX</span>
-                    ) : (
-                      <Btn
-                        onClick={function() {
-                          if (!canBuy) return;
-                          setMetaPoints(function(p) { return p - actualCost; });
-                          setUpgradeLevels(function(prev) {
-                            var n = Object.assign({}, prev);
-                            n[u.id] = (n[u.id] || 0) + 1;
-                            return n;
-                          });
-                        }}
-                        disabled={!canBuy}
-                        style={{ padding: "4px 12px", fontSize: 13 }}
-                      >
-                        {actualCost}p
-                      </Btn>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          {visibleTrees.map(function(tree) {
+            return (
+              <div key={tree.id} style={{ marginBottom: 14 }}>
+                <h3 style={{ fontSize: 14, color: tree.classId ? (tree.id.indexOf("red") >= 0 ? "#e64b35" : tree.id.indexOf("blue") >= 0 ? "#4e79a7" : "#f0b930") : "var(--dm)", marginBottom: 6 }}>{tree.icon} {tree.name}</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {tree.nodes.map(function(node) {
+                    var lv = upgradeLevels[node.id] || 0;
+                    var maxed = lv >= node.max;
+                    var actualCost = node.cost + lv * Math.ceil(node.cost * 0.5);
+                    var canBuy = metaPoints >= actualCost && !maxed;
+                    return (
+                      <div key={node.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "6px 10px" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: 13 }}>{node.icon}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 4, fontSize: 13 }}>{node.name}</span>
+                          <span style={{ color: "var(--dm)", fontSize: 12, marginLeft: 6 }}>{node.desc}</span>
+                          <span style={{ color: "#a855f7", fontSize: 12, marginLeft: 6 }}>{lv}/{node.max}</span>
+                        </div>
+                        {maxed ? (
+                          <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>MAX</span>
+                        ) : (
+                          <Btn
+                            onClick={function() {
+                              var nodeId = node.id;
+                              var cost = node.cost + (upgradeLevels[nodeId] || 0) * Math.ceil(node.cost * 0.5);
+                              if (metaPoints < cost) return;
+                              setMetaPoints(function(p) { return p - cost; });
+                              setUpgradeLevels(function(prev) {
+                                var n = Object.assign({}, prev);
+                                n[nodeId] = (n[nodeId] || 0) + 1;
+                                return n;
+                              });
+                            }}
+                            disabled={!canBuy}
+                            style={{ padding: "3px 10px", fontSize: 12, whiteSpace: "nowrap" }}
+                          >
+                            ⭐{actualCost}
+                          </Btn>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ marginBottom: 14, padding: 10, background: ulUnlocked ? "#f59e0b11" : "#1a1a2e", border: "1px solid " + (ulUnlocked ? "#f59e0b44" : "var(--bd)"), borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: ulUnlocked ? "#f59e0b" : "var(--dm)" }}>{ULTIMATE_SKILL.icon} {ULTIMATE_SKILL.name}</div>
+            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>{ULTIMATE_SKILL.desc}</div>
+            {ulOwned ? (
+              <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>활성화됨</span>
+            ) : ulUnlocked ? (
+              <Btn
+                onClick={function() {
+                  setUpgradeLevels(function(prev) {
+                    return Object.assign({}, prev, { fatedDice: 1 });
+                  });
+                }}
+                style={{ padding: "4px 14px", fontSize: 13, marginTop: 6 }}
+                color="#f59e0b"
+              >
+                해금
+              </Btn>
+            ) : (
+              <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
+            )}
           </div>
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: 14, color: "var(--dm)", marginBottom: 8 }}>고급 업그레이드</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {UPGRADES.filter(function(u) { return u.tier === "advanced"; }).map(function(u) {
-                var lv = upgradeLevels[u.id];
-                var maxed = lv >= u.max;
-                var actualCost = u.cost + lv * Math.ceil(u.cost * 0.5);
-                var canBuy = metaPoints >= actualCost && !maxed;
-                return (
-                  <div key={u.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "8px 12px" }}>
-                    <div>
-                      <span style={{ fontSize: 14 }}>{u.icon}</span>
-                      <span style={{ fontWeight: 700, marginLeft: 6 }}>{u.name}</span>
-                      <span style={{ color: "var(--dm)", fontSize: 13, marginLeft: 8 }}>{u.desc}</span>
-                      <span style={{ color: "#a855f7", fontSize: 14, marginLeft: 8 }}>Lv.{lv}/{u.max}</span>
-                    </div>
-                    {maxed ? (
-                      <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>MAX</span>
-                    ) : (
-                      <Btn
-                        onClick={function() {
-                          if (!canBuy) return;
-                          setMetaPoints(function(p) { return p - actualCost; });
-                          setUpgradeLevels(function(prev) {
-                            var n = Object.assign({}, prev);
-                            n[u.id] = (n[u.id] || 0) + 1;
-                            return n;
-                          });
-                        }}
-                        disabled={!canBuy}
-                        style={{ padding: "4px 12px", fontSize: 13 }}
-                      >
-                        ⭐{actualCost}
-                      </Btn>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div style={{ textAlign: "center", marginTop: 8 }}>
+          <div style={{ textAlign: "center", marginTop: 4 }}>
             <Btn onClick={function() { setScreen("menu"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
           </div>
         </div>

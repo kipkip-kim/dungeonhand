@@ -140,6 +140,13 @@
 - calcDamage: glass 배율 x1.5 추가 ✅
 - submitCards: glass 카드 제출 시 덱에서 영구 소멸 ✅
 
+### ~~세션 16A: 메타 업그레이드 → 스킬 트리 데이터+UI~~ ✅ 완료
+- UPGRADES(7종) → SKILL_TREES(4카테고리 18노드) + ULTIMATE_SKILL 교체 ✅
+- RELICS classId: null 추가 (직업 유물 확장 기반) ✅
+- upgradeLevels 7키 → 21키 확장 ✅
+- 마을 UI: 카테고리별 스킬 트리 + 궁극기 해금 ✅
+- 유물 필터링에 classId 조건 추가 (보스보상/상점) ✅
+
 ---
 
 ## 기능 추가 체크리스트
@@ -174,7 +181,7 @@
 ### 현재 구조 (멀티 파일)
 ```
 audio.js          (87줄)  — sfx 객체
-data.js           (195줄) — SUITS, CLASSES, MONSTERS, RELICS 등 모든 상수
+data.js           (240줄) — SUITS, CLASSES, MONSTERS, RELICS, SKILL_TREES 등 모든 상수
 utils.js          (247줄) — shuffle, makeDeck, detectHand, calcDamage 등
 styles.js         (31줄)  — CSS 문자열
 components.jsx    (350줄) — CardView, HpBar, Btn, DeckViewer

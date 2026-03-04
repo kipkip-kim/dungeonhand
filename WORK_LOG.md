@@ -331,5 +331,29 @@
 - grep "wild" → utils.js/data.js/components.jsx/DungeonHand_v3.jsx 0 matches
 
 ### 다음 세션 TODO
-- [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
-- [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)
+- [x] ~~메타 업그레이드 → 스킬 트리 개편 (세션 16A)~~
+
+## 세션 16A (2026-03-04) — 메타 업그레이드 → 스킬 트리 데이터+UI
+
+### 완료
+- [x] data.js: UPGRADES(7종 flat) → SKILL_TREES(4카테고리×4~6노드=18종) + ULTIMATE_SKILL 교체
+  - 공통(6): hp, sharp, merchant, loot, tenacity, inventory(신규)
+  - 습격🔺(4): redCollect, awaken, stealth, shadowBurst
+  - 연계🔷(4): blueCollect, deft, nimble, chainBoost
+  - 급소⭐(4): yellowCollect, critMastery, quickStrike, critDamage
+  - 궁극기: fatedDice (40⭐ 투자 시 해금)
+- [x] data.js: RELICS 전 10종에 classId: null 추가
+- [x] DungeonHand_v3.jsx: upgradeLevels 초기화 7키 → 21키 확장 + import 변경
+- [x] DungeonHand_v3.jsx: 마을 화면 UI → 스킬 트리 UI 교체 (카테고리별 섹션 + 궁극기 해금)
+- [x] DungeonHand_v3.jsx: 유물 필터링 2곳(보스보상/상점)에 classId 조건 추가
+
+### 검증
+- 빌드 성공 (215.28 kB)
+- grep "UPGRADES" → DungeonHand_v3.jsx/data.js 0 matches (완전 교체)
+
+### 다음 세션 TODO (세션 16B: 신규 스킬 효과 구현 5건)
+- [ ] inventory: RELIC_SLOTS 계산에 upgradeLevels.inventory 반영
+- [ ] 문양수집 ×3: generateRewardCards에서 해당 문양 카드 1장 보장
+- [ ] 그림자폭발: passive.applyMult에서 shadowBurst 반영 (+0.5→+0.8)
+- [ ] 손재주/기민함: 드로우+1 / 버리기+1
+- [ ] 연쇄강화: 🔷 2장+ 제출시 extraDraw +2

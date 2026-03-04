@@ -1,5 +1,6 @@
 import { SUITS } from "./data.js";
 import { getCardName } from "./utils.js";
+import { sfx } from "./audio.js";
 
 // === COMPONENTS ===
 function CardView(props) {
@@ -205,7 +206,7 @@ function Btn(props) {
   var color = props.color || "var(--bd)";
   return (
     <button
-      onClick={isDisabled ? undefined : props.onClick}
+      onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
       style={Object.assign({
         padding: "8px 16px",
         background: isDisabled ? "#1a1a2a" : color,

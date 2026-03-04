@@ -11,14 +11,6 @@ const sfx = (() => {
       notes: [330, 392, 494, 440, 392, 330, 294, 262, 330, 392, 440, 494],
       tempo: 250, wave: "triangle", vol: 0.04,
     },
-    elite: {
-      notes: [220, 208, 196, 185, 175, 165, 156, 147, 175, 165, 196, 185],
-      tempo: 200, wave: "sawtooth", vol: 0.05,
-    },
-    boss: {
-      notes: [131, 165, 131, 196, 262, 196, 165, 131, 147, 175, 147, 262],
-      tempo: 180, wave: "square", vol: 0.05,
-    },
     campfire: {
       notes: [523, 659, 784, 659, 523, 784, 1047, 784, 659, 523, 659, 784],
       tempo: 400, wave: "sine", vol: 0.03,
@@ -103,29 +95,9 @@ const sfx = (() => {
     },
     dmg: () => { noise(0.08, 0.06); },
     enemy: () => { tone(110, 0.1, "sawtooth", 0.08); tone(82, 0.1, "sawtooth", 0.06, 0.08); },
-    monHit: () => {
-      tone(150, 0.08, "square", 0.08);
-      noise(0.05, 0.07);
-    },
-    playerHit: () => {
-      tone(800, 0.06, "sawtooth", 0.07);
-      tone(400, 0.08, "sawtooth", 0.06, 0.03);
-      tone(200, 0.1, "sawtooth", 0.05, 0.06);
-      noise(0.04, 0.05);
-    },
-    win: () => {
-      [262, 330, 392, 523, 659, 784].forEach((f, i) => tone(f, 0.2, "triangle", 0.08, i * 0.1));
-      // final chord
-      tone(523, 0.4, "triangle", 0.06, 0.6);
-      tone(659, 0.4, "triangle", 0.05, 0.6);
-      tone(784, 0.4, "triangle", 0.05, 0.6);
-    },
-    lose: () => {
-      [330, 294, 262, 247, 220, 208].forEach((f, i) => tone(f, 0.3, "triangle", 0.07, i * 0.18));
-      // dissonant finish
-      tone(208, 0.5, "sawtooth", 0.04, 1.1);
-      tone(220, 0.5, "sawtooth", 0.04, 1.1);
-    },
+    win: () => { [262, 330, 392, 523].forEach((f, i) => tone(f, 0.2, "triangle", 0.08, i * 0.12)); },
+    lose: () => { [330, 294, 262, 247].forEach((f, i) => tone(f, 0.3, "triangle", 0.07, i * 0.2)); },
+    click: () => { tone(1200, 0.03, "sine", 0.04); tone(1600, 0.02, "sine", 0.03, 0.02); },
     gold: () => { tone(1319, 0.04, "sine", 0.05); tone(1568, 0.04, "sine", 0.05, 0.04); },
     heal: () => { [523, 659, 784].forEach((f, i) => tone(f, 0.08, "sine", 0.05, i * 0.06)); },
   };

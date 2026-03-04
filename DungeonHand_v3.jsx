@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
 import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS } from "./data.js";
-import { shuffle, pickN, makeCard, makeDeck, getCardName, detectHand, calcDamage } from "./utils.js";
+import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
 
@@ -189,11 +189,7 @@ export default function DungeonHand() {
     setNewCardIds([]);
     setEncounterOverlay(null);
 
-    // BGM by battle type
-    if (sfx.getOn()) {
-      var bgmType = bn === 5 ? "boss" : bn === 4 ? "elite" : "battle";
-      sfx.bgmOn(bgmType);
-    }
+    if (sfx.getOn()) sfx.bgmOn("battle");
 
     var t = 0; // running delay (ms)
     var laterTimers = []; // Phase 4/5 timer IDs, cleared on ambush death
@@ -221,7 +217,7 @@ export default function DungeonHand() {
       var ambushDmg = matk + Math.floor(Math.random() * 3);
       setTimeout(function() {
         showPassive("⚡ 기습! " + m.name + "의 선제 공격!");
-        sfx.playerHit();
+        sfx.enemy();
         setEnemyAttacking(true);
         setPlayerShake(true);
         setEnemyDmgShow(ambushDmg);
@@ -406,11 +402,6 @@ export default function DungeonHand() {
       setMonShakeHard(h.tier >= 4 || dmg.isCrit);
     }
 
-    // 운명의 주사위 연출
-    if (dmg.fatedRoll > 0) {
-      var fatedMsg = "🎲 운명의 주사위 [" + dmg.fatedRoll + "] → x" + dmg.fatedMult;
-      showPassive(fatedMsg);
-    }
     // Suit bonus: ⭐ crit
     if (dmg.isCrit) {
       var critMultMsg = upgradeLevels.critDamage > 0 ? "x2.0" : "x1.5";
@@ -446,7 +437,7 @@ export default function DungeonHand() {
     }
 
     setTimeout(function() {
-      sfx.monHit();
+      sfx.dmg();
       setMonShake(false);
       setMonShakeHard(false);
 
@@ -514,7 +505,7 @@ export default function DungeonHand() {
     }
 
     setEnemyAttacking(true);
-    sfx.playerHit();
+    sfx.enemy();
     var thorns = relics.reduce(function(sum, r) {
       return r.eff.type === "thorns" ? sum + r.eff.val : sum;
     }, 0);
@@ -676,7 +667,7 @@ export default function DungeonHand() {
             var actualBurn = Math.min(burnCount, MAX_HAND - allNewHand.length);
             var burnCards = [];
             for (var bi = 0; bi < actualBurn; bi++) {
-              burnCards.push({ id: nextId++, suitId: "red", suitColor: "#e64b35", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });
+              burnCards.push({ id: getNextId(), suitId: "red", suitColor: "#e64b35", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });
             }
             setHand(function(prev) { return prev.concat(burnCards); });
             showPassive("🔥 화상! " + actualBurn + "장 주입!");
@@ -843,7 +834,7 @@ export default function DungeonHand() {
   }
 
   function addCardToDeck(card) {
-    var newDeck = deck.concat([Object.assign({}, card, { id: nextId++ })]);
+    var newDeck = deck.concat([Object.assign({}, card, { id: getNextId() })]);
     setDeck(newDeck);
     advanceBattle(newDeck);
   }
@@ -946,7 +937,7 @@ export default function DungeonHand() {
     if (gold < cost) return;
     sfx.gold();
     setGold(function(g) { return g - cost; });
-    setDeck(function(d) { return d.concat([Object.assign({}, card, { id: nextId++ })]); });
+    setDeck(function(d) { return d.concat([Object.assign({}, card, { id: getNextId() })]); });
     setShopCards(function(p) { return p.filter(function(x) { return x.id !== card.id; }); });
   }
 
@@ -1666,10 +1657,15 @@ export default function DungeonHand() {
           )}
 
           {damageInfo && currentHand ? (
-            <div style={{ height: 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, flexShrink: 0 }}>
+            <div style={{ height: damageInfo.fatedRoll > 0 ? 72 : 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, flexShrink: 0 }}>
               <div style={{ fontSize: currentHand.tier >= 4 ? 18 : 16, fontWeight: 900, color: handTierColor, animation: "popIn 0.4s ease" }}>
                 {currentHand.emoji} {currentHand.name}! {currentHand.emoji}
               </div>
+              {damageInfo.fatedRoll > 0 && (
+                <div style={{ fontSize: 13, fontWeight: 700, color: damageInfo.fatedMult <= 0.5 ? "#e64b35" : damageInfo.fatedMult <= 1.5 ? "#4e79a7" : "#f0b930", animation: "dmgPop 0.4s ease 0.1s both" }}>
+                  🎲 [{damageInfo.fatedRoll}] → x{damageInfo.fatedMult}
+                </div>
+              )}
               <div style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Silkscreen', cursive", position: "relative" }}>
                 {damageInfo.isCrit && (
                   <div style={{ position: "absolute", inset: -12, background: "radial-gradient(circle, #f0b93044 0%, transparent 70%)", animation: "critFlash 0.8s ease", borderRadius: "50%", pointerEvents: "none" }} />

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
 import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, UPGRADES, BOSS_POINTS } from "./data.js";
-import { shuffle, pickN, makeCard, makeDeck, detectHand, calcDamage } from "./utils.js";
+import { shuffle, pickN, makeCard, makeDeck, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
 
@@ -50,7 +50,6 @@ export default function DungeonHand() {
   // Passive state
   var [passiveState, setPassiveState] = s({ stacks: 0 });
   var [aimedBonus, setAimedBonus] = s(0); // aimed shot: next turn submit +1
-  var [shield, setShield] = s(0); // fortress: damage reduction next turn
   var [gambleBuff, setGambleBuff] = s(0); // dice relic: +1 or -0.5 mult
   var [gambleAnim, setGambleAnim] = s(null); // roulette animation text
   var [poison, setPoison] = s(0); // poison on monster: dmg per turn
@@ -60,6 +59,8 @@ export default function DungeonHand() {
   var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
   var [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
   var [book2Used, setBook2Used] = s(false); // book2: once per battle submit bonus
+  var gambitPendingRef = useRef(false); // gambit: next draw shows 3-pick-1 (ref for setTimeout closure)
+  var [gambitChoices, setGambitChoices] = s([]); // gambit: 3 cards to choose from
   var [splitMon, setSplitMon] = s(null); // split monster waiting
   var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
   var [deckView, setDeckView] = s(false);
@@ -122,6 +123,8 @@ export default function DungeonHand() {
     setPoison(0);
     setErodedIds([]);
     setTenacityUsed(false);
+    gambitPendingRef.current = false;
+    setGambitChoices([]);
     beginBattle(d, [], 1, 1);
     if (sfx.getOn()) sfx.bgmOn();
   }
@@ -348,17 +351,10 @@ export default function DungeonHand() {
     // Build passive state for damage calc
     var dmg = calcDamage(played, h, relics, buildPState(), classData);
 
-    // === 투기(gambit): 50% 배율+1.0, 50% 배율-0.5 ===
+    // === 투기(gambit): 다음 턴 3장 중 1장 선택 ===
     var gambitPlayed = played.filter(function(c) { return c.isCommon && c.common.fx === "gambit"; });
     if (gambitPlayed.length > 0) {
-      var gambitWin = Math.random() < 0.5;
-      if (gambitWin) {
-        dmg.mult = Math.round((dmg.mult + 1.0) * 10) / 10;
-      } else {
-        dmg.mult = Math.max(1, Math.round((dmg.mult - 0.5) * 10) / 10);
-      }
-      dmg.total = Math.floor(dmg.atk * dmg.mult);
-      if (dmg.isCrit) dmg.total = Math.floor(dmg.total * 1.5);
+      gambitPendingRef.current = true;
     }
 
     // === Apply poison from previous turns ===
@@ -378,12 +374,6 @@ export default function DungeonHand() {
     setPassiveState(passiveResult.state);
     if (passiveResult.msg) showPassive(passiveResult.msg);
 
-    var fortressAmt = played.reduce(function(sum, c) {
-      if (c.isCommon && c.common.fx === "fortress") return sum + c.grade + (c.growthBonus || 0);
-      return sum;
-    }, 0);
-    // Fortress sets shield for NEXT turn (consumed this turn's shield already in enemyTurn)
-    setShield(fortressAmt);
     setCurrentHand(h);
     setDamageInfo(dmg);
     sfx.hit(h.tier);
@@ -407,16 +397,9 @@ export default function DungeonHand() {
         showPassive(allTriggers.join(" | "));
       }, 600);
     }
-    if (fortressAmt > 0) {
-      showPassive("🛡️ 보루! 다음 턴 피격 -" + fortressAmt);
-    }
     // === 투기 결과 표시 ===
     if (gambitPlayed.length > 0) {
-      if (gambitWin) {
-        showPassive("🎰 투기 성공! 배율+1.0");
-      } else {
-        showPassive("🎰 투기 실패... 배율-0.5");
-      }
+      showPassive("🎰 투기! 다음 턴 3장 중 1장 선택");
     }
 
     // === Keyword: Growth - permanently increase grade ===
@@ -488,13 +471,6 @@ export default function DungeonHand() {
     // === Warrior 🔷 blue: damage reduction ===
     if (dmgResult && dmgResult.dmgReduction > 0) {
       atkDmg = Math.max(0, atkDmg - dmgResult.dmgReduction);
-    }
-
-    // === 🛡️ Fortress shield ===
-    if (shield > 0) {
-      atkDmg = Math.max(0, atkDmg - shield);
-      showPassive("🛡️ 보루! 피격 -" + shield);
-      setShield(0);
     }
 
     // === Rogue 🔺 red: evasion ===
@@ -669,11 +645,47 @@ export default function DungeonHand() {
             showPassive("🔥 화상! " + actualBurn + "장 주입!");
           }
 
+          // === Gambit: 3장 중 1장 선택 ===
+          if (gambitPendingRef.current) {
+            var gpDraw = tempDraw.slice();
+            var gpDisc = tempDisc.slice();
+            var gpCards = gpDraw.splice(0, 3);
+            if (gpCards.length < 3 && gpDisc.length > 0) {
+              gpDraw = shuffle(gpDisc);
+              gpDisc = [];
+              gpCards = gpCards.concat(gpDraw.splice(0, 3 - gpCards.length));
+            }
+            setDrawPile(gpDraw);
+            setDiscardPile(gpDisc);
+            if (gpCards.length > 0) {
+              setGambitChoices(gpCards);
+              gambitPendingRef.current = false;
+              // busy stays true until player picks
+              setRoundNum(function(r) { return r + 1; });
+              return; // don't setBusy(false) yet
+            }
+            gambitPendingRef.current = false;
+          }
+
           setBusy(false);
           setRoundNum(function(r) { return r + 1; });
         }, (drawn.length + 1) * 120 + 100);
       }, 500);
     }, 300);
+  }
+
+  function pickGambitCard(card) {
+    var rejected = gambitChoices.filter(function(c) { return c.id !== card.id; });
+    setDiscardPile(function(d) { return d.concat(rejected); });
+    if (hand.length < MAX_HAND) {
+      setHand(function(h) { return h.concat([card]); });
+      showPassive("🎰 투기! " + getCardName(card, classData) + " 획득");
+    } else {
+      setDiscardPile(function(d) { return d.concat([card]); });
+      showPassive("🎰 투기! 손패 가득 — 버린카드로 이동");
+    }
+    setGambitChoices([]);
+    setBusy(false);
   }
 
   function doDiscard() {
@@ -718,7 +730,7 @@ export default function DungeonHand() {
     }
     var isBoss = battleNum === 5;
     var lootBonus = upgradeLevels.loot * 3;
-    var earned = (isBoss ? 15 : battleNum === 4 ? 10 : 6) + Math.floor(Math.random() * 8) + lootBonus;
+    var earned = (isBoss ? 10 : battleNum === 4 ? 7 : 4) + Math.floor(Math.random() * 5) + lootBonus;
     setGold(function(g) { return g + earned; });
     sfx.gold();
     if (isBoss) {
@@ -743,7 +755,7 @@ export default function DungeonHand() {
   function generateRewardCards() {
     var pool = [];
     var isBoss = battleNum === 5 || battleNum === 4;
-    var kwChance = isBoss ? 0.6 : 0.3;
+    var kwChance = isBoss ? 0.3 : 0.15;
     // Floor-scaled grade with weighted distribution
     // 50% base, 30% base+1, 15% base+2, 5% base+3 (rare)
     function rollGrade() {
@@ -763,7 +775,8 @@ export default function DungeonHand() {
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
-    var ct = pickN(REWARD_COMMONS, 1)[0];
+    var rcPool = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit"; }) : REWARD_COMMONS;
+    var ct = pickN(rcPool, 1)[0];
     var s3 = pickN(SUITS, 1)[0];
     var g3 = rollGrade();
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
@@ -856,9 +869,10 @@ export default function DungeonHand() {
       else if (roll < 0.95) g = base + 2;
       else g = base + 3;
       g = Math.max(1, Math.min(g, 10));
-      var kw = (i < 2 && Math.random() < 0.5) ? pickKw(g) : null;
+      var kw = (i < 2 && Math.random() < 0.25) ? pickKw(g) : null;
       if (Math.random() < 0.3) {
-        pool.push(makeCard(s2.id, g, classId, pickN(REWARD_COMMONS, 1)[0], kw));
+        var shopRc = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit"; }) : REWARD_COMMONS;
+        pool.push(makeCard(s2.id, g, classId, pickN(shopRc, 1)[0], kw));
       } else {
         pool.push(makeCard(s2.id, g, classId, null, kw));
       }
@@ -1455,6 +1469,25 @@ export default function DungeonHand() {
             </div>
           </div>
         )}
+        {gambitChoices.length > 0 && (
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            background: "rgba(0,0,0,0.85)",
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#fbbf24", marginBottom: 16 }}>🎰 투기 — 1장을 선택하세요</div>
+            <div style={{ display: "flex", gap: 12 }}>
+              {gambitChoices.map(function(c) {
+                return (
+                  <div key={c.id} onClick={function() { pickGambitCard(c); }} style={{ cursor: "pointer", transition: "transform 0.15s" }}>
+                    <CardView card={c} cls={classData} />
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 12 }}>나머지 2장은 버린카드 더미로</div>
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
           <div style={{ fontSize: 13 }}>
             <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>
@@ -1505,11 +1538,6 @@ export default function DungeonHand() {
             {gambleBuff !== 0 && (
               <div style={{ background: gambleBuff > 0 ? "#22c55e22" : "#ef444422", border: "1px solid " + (gambleBuff > 0 ? "#22c55e" : "#ef4444"), borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
                 🎲{gambleBuff > 0 ? "+" : ""}{gambleBuff}
-              </div>
-            )}
-            {shield > 0 && (
-              <div style={{ background: "#3b82f622", border: "1px solid #3b82f6", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-                🛡️{shield}
               </div>
             )}
             {upgradeLevels.tenacity > 0 && !tenacityUsed && (

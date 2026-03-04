@@ -94,9 +94,8 @@ const CLASSES = [
 ];
 
 const COMMONS = [
-  { id: "fortress", icon: "🛡️", name: "보루", fx: "fortress" },
   { id: "aimed", icon: "🎯", name: "집중타", fx: "aimed" },
-  { id: "wild", icon: "🃏", name: "변환", fx: "wild" },
+  { id: "wild", icon: "🪞", name: "모방", fx: "wild" },
   { id: "focus", icon: "⚡", name: "기세", fx: "focus" },
 ];
 

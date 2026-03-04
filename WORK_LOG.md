@@ -55,12 +55,11 @@
 ### 카드 효과
 | 이름 | 효과 | 비고 |
 |------|------|------|
-| 보루 🛡️ | 방어막 +(등급) | 시작덱 |
 | 집중타 🎯 | 다음턴 제출+1 | 시작덱 |
-| 변환 🃏 | 조건부 와일드 | 시작덱 |
+| 모방 🪞 | 문양 따라감 (와일드) | 시작덱 |
 | 기세 ⚡ | 배율 +0.5 | 시작덱 |
 | 회수 🔁 | 버린카드 (등급)장 복구 | 보상전용 |
-| 투기 🎰 | 50% 배율+1 / 50% 배율-0.5 | 보상전용 |
+| 투기 🎰 | 다음턴 3장 중 1장 선택 | 보상전용, 2층~ |
 | 맹독 ☠️ | 등급만큼 매턴 독 | 키워드 |
 | 연쇄 ⛓️ | 제출 시 드로우+1 | 키워드 |
 | 성장 🌱 | 제출마다 등급+1 (캡5) | 키워드 |
@@ -69,9 +68,9 @@
 ### 경제 수치
 | 항목 | 값 |
 |------|-----|
-| 일반 전투 골드 | 6 + rand(0~7) + 약탈 |
-| 미니보스 골드 | 10 + rand(0~7) + 약탈 |
-| 보스 골드 | 15 + rand(0~7) + 약탈 |
+| 일반 전투 골드 | 4 + rand(0~4) + 약탈 |
+| 미니보스 골드 | 7 + rand(0~4) + 약탈 |
+| 보스 골드 | 10 + rand(0~4) + 약탈 |
 | 카드 가격 | 등급×3 + 공용×2 + 키워드×5 |
 | 유물 가격 | T1: 30 / T2: 50 / T3: 75 |
 | 회복 비용 | 10 (2회 제한) |
@@ -294,3 +293,24 @@
 - [ ] screens/ShopScreen.jsx 추출
 - [ ] screens/RewardScreen.jsx 추출
 - [ ] screens/VillageScreen.jsx 추출
+
+## 세션 14 (2026-03-04) — 카드 밸런스 조정
+
+### 완료
+- [x] 수정 1: 보루(fortress) 삭제 — COMMONS/fxMap/submitCards/enemyTurn/shield state/UI 뱃지 전체 제거
+- [x] 수정 2: 변환→모방 이름/아이콘 변경 — icon 🃏→🪞, name 변환→모방, fxMap "조건부 와일드"→"문양 따라감"
+- [x] 수정 3: 투기(gambit) 효과 변경 — 50% 배율→다음 턴 3장 중 1장 선택 메커닉 (gambitPendingRef + gambitChoices state + 선택 오버레이 UI + floor<2 제한)
+- [x] 수정 4: 키워드 드랍 확률 절반 — 보상 0.6/0.3→0.3/0.15, 상점 0.5→0.25
+- [x] 수정 5: 골드 수입 2/3 감소 — 15/10/6+rand(8)→10/7/4+rand(5)
+
+### 세부 변경
+- shield useState 삭제 (fortress 전용이었음, 유물 가시갑옷 thorns는 별도 로직으로 영향 없음)
+- gambit: useRef로 gambitPendingRef 구현 (setTimeout 클로저 문제 방지)
+- gambit: enemyTurn 드로우 완료 후 tempDraw/tempDisc에서 3장 추출 → gambitChoices 설정 → 선택 UI 표시
+- gambit: pickGambitCard() — 1장 핸드에 추가, 나머지 2장 discardPile로
+- gambit: floor<2이면 generateRewardCards/openShop에서 gambit 카드 제외
+- startRun에서 gambitPendingRef.current/gambitChoices 초기화
+
+### 다음 세션 TODO
+- [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
+- [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)

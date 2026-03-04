@@ -4,7 +4,12 @@
 
 | 파일 | 설명 |
 |------|------|
-| `DungeonHand_v3.jsx` | 메인 게임 파일 (작업 대상) |
+| `DungeonHand_v3.jsx` | 메인 게임 컴포넌트 (~1,998줄) |
+| `audio.js` | sfx 오디오 객체 |
+| `data.js` | 상수/배열 (SUITS, CLASSES, MONSTERS 등) |
+| `utils.js` | 순수 함수 (shuffle, detectHand, calcDamage 등) |
+| `styles.js` | CSS 문자열 |
+| `components.jsx` | 공용 컴포넌트 (CardView, HpBar, Btn, DeckViewer) |
 | `DungeonHand_v3_portrait.jsx` | **원본 백업 — 절대 수정 금지** |
 | `CLAUDE.md` | 프로젝트 규칙/현황 (이 파일) |
 | `WORK_LOG.md` | 세션별 변경 이력 + 다음 세션 TODO |
@@ -107,6 +112,10 @@
 ### ~~세션 11: 아키텍처 진단~~ ✅ 완료
 - 코드 수정 없음 — 진단/분석 결과 문서화
 
+### ~~세션 13A: 파일 분할 (데이터/유틸/컴포넌트)~~ ✅ 완료
+- audio.js, data.js, utils.js, styles.js, components.jsx 추출 ✅
+- 메인 파일 2,893줄 → 1,998줄 ✅
+
 ### ~~세션 12: 직업 시스템 데이터 기반 리팩터링~~ ✅ 완료
 - 전사(warrior) 직업 삭제 ✅
 - fury/lastSuit/shadow useState → passiveState 단일 상태로 통합 ✅
@@ -122,26 +131,26 @@
 
 ## 기능 추가 체크리스트
 
-### 카드 효과 추가 시 (5곳 수정)
-1. **COMMONS 또는 REWARD_COMMONS** 배열에 카드 데이터 추가
-2. **fxMap** 객체에 UI 설명 텍스트 추가
-3. **submitCards()** 함수에 전투 로직 분기 추가
-4. **calcDamage()** 에 데미지 관련 효과 반영 (해당 시)
-5. **enemyTurn() 또는 draw()** 에 턴 종료 로직 추가 (해당 시)
+### 카드 효과 추가 시 (5곳, 3개 파일)
+1. `data.js` — **COMMONS 또는 REWARD_COMMONS** 배열에 카드 데이터 추가
+2. `components.jsx` — **fxMap** 객체에 UI 설명 텍스트 추가
+3. `DungeonHand_v3.jsx` — **submitCards()** 함수에 전투 로직 분기 추가
+4. `utils.js` — **calcDamage()** 에 데미지 관련 효과 반영 (해당 시)
+5. `DungeonHand_v3.jsx` — **enemyTurn() 또는 draw()** 에 턴 종료 로직 추가 (해당 시)
 
-### 유물 추가 시 (3곳 수정)
-1. **RELICS** 배열에 유물 데이터 추가
-2. **eff.type** 처리 분기 추가 (submitCards/calcDamage/beginBattle 등)
-3. 유물이 전투 시작 시 리셋되어야 하면 **beginBattle**에 초기화 추가
+### 유물 추가 시 (3곳, 2개 파일)
+1. `data.js` — **RELICS** 배열에 유물 데이터 추가
+2. `DungeonHand_v3.jsx` — **eff.type** 처리 분기 추가 (submitCards/calcDamage/beginBattle 등)
+3. `DungeonHand_v3.jsx` — 유물이 전투 시작 시 리셋되어야 하면 **beginBattle**에 초기화 추가
 
-### 몬스터 추가 시 (3곳 수정)
-1. **MONSTERS** 배열에 몬스터 데이터 추가
-2. **FLOOR_NAMES**에 던전 이름 추가 (새 던전인 경우)
-3. **BOSS_DIALOGUES**에 대사 추가 (보스/미니보스인 경우)
+### 몬스터 추가 시 (3곳, 1개 파일)
+1. `data.js` — **MONSTERS** 배열에 몬스터 데이터 추가
+2. `data.js` — **FLOOR_NAMES**에 던전 이름 추가 (새 던전인 경우)
+3. `data.js` — **BOSS_DIALOGUES**에 대사 추가 (보스/미니보스인 경우)
 
-### 직업 추가 시 (1곳 수정 — 데이터 기반)
+### 직업 추가 시 (1곳, 1개 파일 — 데이터 기반)
 > 세션 12에서 패시브 시스템을 데이터 기반 훅으로 리팩터링 완료
-1. **CLASSES** 배열에 새 항목 추가 (id, icon, name, suits, passive 객체)
+1. `data.js` — **CLASSES** 배열에 새 항목 추가 (id, icon, name, suits, passive 객체)
 2. passive 객체에 모든 훅 구현: init, cardBonus, calcBonus, applyMult, onSubmit, onHit, onEvade, onCamp, suitMessages, renderBadge
 3. 코드 수정 불필요 — 모든 분기가 훅을 호출하므로 자동 적용
 
@@ -149,9 +158,16 @@
 
 ## 아키텍처 참고
 
-### 현재 구조 (단일 파일 ~2,893줄)
-- 오디오(3-88) → 데이터(89-178, CLASSES passive 훅 포함) → 유틸(180-543) → CSS/컴포넌트(545-837) → 메인 게임(839-2893)
-- DungeonHand 컴포넌트: useState 58개 (fury/lastSuit/shadow → passiveState 통합), 함수 133개
+### 현재 구조 (멀티 파일)
+```
+audio.js          (87줄)  — sfx 객체
+data.js           (195줄) — SUITS, CLASSES, MONSTERS, RELICS 등 모든 상수
+utils.js          (247줄) — shuffle, makeDeck, detectHand, calcDamage 등
+styles.js         (31줄)  — CSS 문자열
+components.jsx    (350줄) — CardView, HpBar, Btn, DeckViewer
+DungeonHand_v3.jsx (1,998줄) — 메인 게임 컴포넌트 (useState + 로직 + JSX)
+```
+- DungeonHand 컴포넌트: useState 58개, 함수 ~40개
 
 ### 확장 난이도
 | 작업 | 난이도 | 사유 |

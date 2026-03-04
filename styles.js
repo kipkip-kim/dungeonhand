@@ -1,0 +1,31 @@
+// === STYLES ===
+var CSS = [
+  "@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&display=swap');",
+  "*{margin:0;padding:0;box-sizing:border-box}",
+  ":root{--bg:#0c0c14;--pn:#151525;--cd:#1c1c32;--bd:#2a2a45;--tx:#e8e8f0;--dm:#6b6b8a;--gd:#fbbf24;--rd:#ef4444;--gn:#22c55e;--bl:#3b82f6}",
+  "@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}",
+  "@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}",
+  "@keyframes shake{0%,100%{transform:translateX(0) rotate(0)}10%{transform:translateX(-8px) rotate(-2deg)}30%{transform:translateX(10px) rotate(2deg)}50%{transform:translateX(-10px) rotate(-1deg)}70%{transform:translateX(8px) rotate(1deg)}90%{transform:translateX(-4px) rotate(0)}}",
+  "@keyframes shakeHard{0%,100%{transform:translateX(0) rotate(0)}10%{transform:translateX(-14px) rotate(-4deg)}30%{transform:translateX(16px) rotate(3deg)}50%{transform:translateX(-16px) rotate(-3deg)}70%{transform:translateX(12px) rotate(2deg)}90%{transform:translateX(-6px) rotate(-1deg)}}",
+  "@keyframes dmgPop{0%{opacity:0;transform:scale(0) rotate(-10deg)}40%{transform:scale(1.5) rotate(3deg)}70%{transform:scale(0.9)}100%{opacity:1;transform:scale(1) rotate(0)}}",
+  "@keyframes multIn{0%{opacity:0;transform:scale(2)}100%{opacity:1;transform:scale(1)}}",
+  "@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}",
+  "@keyframes enemyAtk{0%{transform:translateY(0) scale(1)}20%{transform:translateY(-12px) scale(1.08)}50%{transform:translateY(30px) scale(1.12)}70%{transform:translateY(30px) scale(1.12)}100%{transform:translateY(0) scale(1)}}",
+  "@keyframes playerHit{0%{opacity:1;transform:scale(1)}15%{opacity:.2;transform:scale(0.92) translateX(-8px)}30%{opacity:1;transform:scale(1.05)}50%{opacity:.3;transform:scale(0.95) translateX(6px)}70%{opacity:1;transform:scale(1.02)}85%{opacity:.4}100%{opacity:1;transform:scale(1)}}",
+  "@keyframes intentPulse{0%,100%{opacity:.6}50%{opacity:1}}",
+  "@keyframes victBounce{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}",
+  "@keyframes passivePop{0%{opacity:0;transform:translateY(10px) scale(0.8)}20%{opacity:1;transform:translateY(-5px) scale(1.1)}100%{opacity:1;transform:translateY(0) scale(1)}}",
+  "@keyframes passiveFade{0%{opacity:1}70%{opacity:1}100%{opacity:0}}",
+  "@keyframes cardDraw{0%{opacity:0;transform:translateY(40px) scale(0.7) rotate(-8deg)}50%{opacity:1;transform:translateY(-6px) scale(1.05) rotate(2deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}}",
+  "@keyframes dmgFloat{0%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-40px) scale(0.8)}}",
+  "@keyframes screenFlash{0%{opacity:0.5}100%{opacity:0}}",
+  "@keyframes critPulse{0%{box-shadow:0 0 0px #ef4444}50%{box-shadow:0 0 30px #ef444488}100%{box-shadow:0 0 0px #ef4444}}",
+  "@keyframes critFlash{0%{opacity:0}10%{opacity:0.6}20%{opacity:0}35%{opacity:0.4}50%{opacity:0}100%{opacity:0}}",
+  "@keyframes critBurst{0%{transform:scale(0.5) rotate(-15deg);opacity:0}30%{transform:scale(1.8) rotate(5deg);opacity:1}50%{transform:scale(0.9) rotate(-2deg)}70%{transform:scale(1.3) rotate(1deg)}100%{transform:scale(1) rotate(0);opacity:1}}",
+  "@keyframes critShine{0%{background-position:-200% 0}100%{background-position:200% 0}}",
+  "@keyframes missFlash{0%{opacity:0}15%{opacity:0.4}30%{opacity:0}100%{opacity:0}}",
+  "@keyframes missBounce{0%{transform:translateX(-50%) scale(0) rotate(-20deg)}25%{transform:translateX(-50%) scale(2.2) rotate(8deg)}45%{transform:translateX(-50%) scale(0.7) rotate(-3deg)}65%{transform:translateX(-50%) scale(1.4) rotate(2deg)}100%{transform:translateX(-50%) scale(1) rotate(0)}}",
+  "@keyframes encounterIn{0%{opacity:0;transform:scale(0.3)}30%{opacity:1;transform:scale(1.1)}50%{transform:scale(0.95)}100%{transform:scale(1)}}",
+].join("\n");
+
+export { CSS };

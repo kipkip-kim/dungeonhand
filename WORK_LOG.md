@@ -270,3 +270,27 @@
 ### 다음 세션 TODO (세션 13)
 - [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
 - [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)
+
+## 세션 13A (2026-03-04) — 파일 분할 (세션 A: 데이터/유틸/컴포넌트)
+
+### 완료
+- [x] `audio.js` 추출 (87줄) — sfx 객체
+- [x] `data.js` 추출 (195줄) — SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, UPGRADES, BOSS_POINTS
+- [x] `utils.js` 추출 (247줄) — shuffle, pickN, makeCard, makeDeck, getCardName, getEffectiveSuit, detectHand, calcDamage
+- [x] `styles.js` 추출 (31줄) — CSS 문자열
+- [x] `components.jsx` 추출 (350줄) — CardView, HpBar, Btn, DeckViewer
+
+### 줄 수 변화
+- 분할 전: DungeonHand_v3.jsx 2,893줄 (단일 파일)
+- 분할 후: DungeonHand_v3.jsx 1,998줄 + 5개 모듈 910줄 = 2,908줄 (import문 추가분)
+
+### 검증
+- `npm run build` 성공 (빌드 결과 동일: 213.28 kB)
+- 기존 main.jsx import 경로 변경 없음
+
+### 다음 세션 TODO (세션 B: 화면 분리)
+- [ ] screens/CampfireScreen.jsx 추출
+- [ ] screens/BattleScreen.jsx 추출
+- [ ] screens/ShopScreen.jsx 추출
+- [ ] screens/RewardScreen.jsx 추출
+- [ ] screens/VillageScreen.jsx 추출

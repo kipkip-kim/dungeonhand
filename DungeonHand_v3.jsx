@@ -28,6 +28,8 @@ export default function DungeonHand() {
     // 궁극기
     fatedDice: 0,
   });
+  var [resetCount, setResetCount] = s(0);
+  var [skillTab, setSkillTab] = s("common");
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
   var MAX_HP = 70 + upgradeLevels.hp * 5;
   var [relics, setRelics] = s([]);
@@ -1082,10 +1084,20 @@ export default function DungeonHand() {
             <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
             <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
           </div>
-          {visibleTrees.map(function(tree) {
+          <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            {visibleTrees.map(function(tree) {
+              var isActive = skillTab === tree.id;
+              var tColor = tree.classId ? (tree.id.indexOf("red") >= 0 ? "#e64b35" : tree.id.indexOf("blue") >= 0 ? "#4e79a7" : "#f0b930") : "#888";
+              return (
+                <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
+                  {tree.icon} {tree.name}
+                </button>
+              );
+            })}
+          </div>
+          {visibleTrees.filter(function(t) { return t.id === skillTab; }).map(function(tree) {
             return (
               <div key={tree.id} style={{ marginBottom: 14 }}>
-                <h3 style={{ fontSize: 14, color: tree.classId ? (tree.id.indexOf("red") >= 0 ? "#e64b35" : tree.id.indexOf("blue") >= 0 ? "#4e79a7" : "#f0b930") : "var(--dm)", marginBottom: 6 }}>{tree.icon} {tree.name}</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                   {tree.nodes.map(function(node) {
                     var lv = upgradeLevels[node.id] || 0;
@@ -1149,6 +1161,31 @@ export default function DungeonHand() {
               <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
             )}
           </div>
+          {resetCount < 3 && (function() {
+            var resetCost = [2, 3, 4][resetCount];
+            var canReset = metaPoints >= resetCost && totalInvested > 0;
+            return (
+              <div style={{ textAlign: "center", marginTop: 8, marginBottom: 4 }}>
+                <Btn
+                  onClick={function() {
+                    if (!canReset) return;
+                    setMetaPoints(function(p) { return p + totalInvested - resetCost; });
+                    setUpgradeLevels(function(prev) {
+                      var n = {};
+                      Object.keys(prev).forEach(function(k) { n[k] = 0; });
+                      return n;
+                    });
+                    setResetCount(function(c) { return c + 1; });
+                  }}
+                  disabled={!canReset}
+                  color="#ef4444"
+                  style={{ padding: "6px 18px", fontSize: 12 }}
+                >
+                  🔄 스킬 초기화 ({resetCount + 1}/3회) — ⭐{resetCost}
+                </Btn>
+              </div>
+            );
+          })()}
           <div style={{ textAlign: "center", marginTop: 4 }}>
             <Btn onClick={function() { setScreen("menu"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
           </div>

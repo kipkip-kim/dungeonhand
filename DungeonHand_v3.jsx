@@ -579,7 +579,7 @@ function CardView(props) {
           fontWeight: 700,
           letterSpacing: 1,
         }}>
-          공용
+          중립
         </div>
       )}
       {/* Keyword badge */}
@@ -2366,7 +2366,7 @@ export default function DungeonHand() {
               {encounterOverlay.name}
             </div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
-              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ MINI BOSS ⚔️"}
+              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ 중간보스 ⚔️"}
             </div>
           </div>
         )}

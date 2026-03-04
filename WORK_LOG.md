@@ -210,6 +210,11 @@
 - [x] 수정 2: submitCards() 드로우 캡 — needed를 MAX_HAND - remain.length 이하로 제한
 - [x] 수정 3: 화상 메커닉 하드코딩 `< 7` → `< MAX_HAND` 상수 참조
 
-### 다음 세션 TODO (세션 10)
+## 세션 10 (2026-03-04) — 화상 카드 MAX_HAND 초과 버그 수정
+
+### 완료
+- [x] 화상(burn) 카드 주입 시 MAX_HAND 초과 버그 수정 — `Math.min(burnCount, MAX_HAND - allNewHand.length)`로 실제 주입 수 제한
+
+### 다음 세션 TODO (세션 11)
 - [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
 - [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)

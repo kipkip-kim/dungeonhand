@@ -1555,12 +1555,13 @@ export default function DungeonHand() {
           // === Burn mechanic (드래곤) ===
           var burnCount = monster ? (monster.burn || 0) : 0;
           if (burnCount > 0 && allNewHand.length < MAX_HAND) {
+            var actualBurn = Math.min(burnCount, MAX_HAND - allNewHand.length);
             var burnCards = [];
-            for (var bi = 0; bi < burnCount; bi++) {
+            for (var bi = 0; bi < actualBurn; bi++) {
               burnCards.push({ id: nextId++, suitId: "red", suitColor: "#e64b35", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });
             }
             setHand(function(prev) { return prev.concat(burnCards); });
-            showPassive("🔥 화상! " + burnCount + "장 주입!");
+            showPassive("🔥 화상! " + actualBurn + "장 주입!");
           }
 
           setBusy(false);

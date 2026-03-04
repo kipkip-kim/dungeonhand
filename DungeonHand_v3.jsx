@@ -532,6 +532,13 @@ export default function DungeonHand() {
           if (c.eroded) return Object.assign({}, c, { grade: c.grade + 1, eroded: false });
           return c;
         });
+        // glass 카드 소멸: discardPile로 보내지 않고 덱에서 영구 제거
+        var glassIds = usedClean.filter(function(c) { return c.isCommon && c.common.fx === "glass"; }).map(function(c) { return c.id; });
+        if (glassIds.length > 0) {
+          usedClean = usedClean.filter(function(c) { return glassIds.indexOf(c.id) < 0; });
+          setDeck(function(d) { return d.filter(function(dc) { return glassIds.indexOf(dc.id) < 0; }); });
+          showPassive("🔮 유리 카드 " + glassIds.length + "장 소멸!");
+        }
         var newDisc = discardPile.concat(usedClean);
 
         // === 회수(reclaim): 버린 카드 더미에서 드로우 더미로 복귀 ===

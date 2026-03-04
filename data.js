@@ -95,7 +95,7 @@ const CLASSES = [
 
 const COMMONS = [
   { id: "aimed", icon: "🎯", name: "집중타", fx: "aimed" },
-  { id: "wild", icon: "🪞", name: "모방", fx: "wild" },
+  { id: "glass", icon: "🔮", name: "유리", fx: "glass" },
   { id: "focus", icon: "⚡", name: "기세", fx: "focus" },
 ];
 

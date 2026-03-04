@@ -53,20 +53,6 @@ function getCardName(card, classData) {
 }
 
 function getEffectiveSuit(card, allCards) {
-  if (card.isCommon && card.common.fx === "wild") {
-    // Conditional wild: only if 2+ same suit among other cards
-    if (allCards) {
-      var otherSuits = {};
-      allCards.forEach(function(c) {
-        if (c.id !== card.id && !c.isCommon) {
-          otherSuits[c.suitId] = (otherSuits[c.suitId] || 0) + 1;
-        }
-      });
-      var hasPair = Object.values(otherSuits).some(function(v) { return v >= 2; });
-      if (hasPair) return "wild";
-    }
-    return card.suitId; // fallback: treated as its base suit
-  }
   return card.suitId;
 }
 
@@ -77,23 +63,19 @@ function detectHand(cards) {
 
   // Use effective grade (grade + growthBonus) for hand detection
   var grades = cards.map(function(c) { return c.grade + (c.growthBonus || 0); }).sort(function(a, b) { return a - b; });
-  // Common cards have NO suit for flush/SF purposes (except wild)
+  // Common cards have NO suit for flush/SF purposes
   var suits = cards.map(function(c) {
-    if (c.isCommon) {
-      if (c.common.fx === "wild") return getEffectiveSuit(c, cards);
-      return "none";
-    }
-    return getEffectiveSuit(c, cards);
+    if (c.isCommon) return "none";
+    return c.suitId;
   });
 
   var gradeCounts = {};
   grades.forEach(function(g) { gradeCounts[g] = (gradeCounts[g] || 0) + 1; });
   var counts = Object.values(gradeCounts).sort(function(a, b) { return b - a; });
 
-  // Flush: ALL cards must be same suit. Common cards (suit "none") break flush.
-  var suitCards = suits.filter(function(s) { return s !== "none" && s !== "wild"; });
-  var wildCount = suits.filter(function(s) { return s === "wild"; }).length;
-  var isFlush = len === 5 && (suitCards.length + wildCount) === 5 && suitCards.length > 0 && new Set(suitCards).size <= 1;
+  // Flush: ALL 5 cards must be same suit. Common cards (suit "none") break flush.
+  var suitCards = suits.filter(function(s) { return s !== "none"; });
+  var isFlush = len === 5 && suitCards.length === 5 && new Set(suitCards).size <= 1;
 
   var uniqueGrades = Array.from(new Set(grades)).sort(function(a, b) { return a - b; });
 
@@ -107,20 +89,16 @@ function detectHand(cards) {
 
   function checkStraightFlush() {
     if (len < 3) return false;
-    // Class cards + wild common cards can form a straight flush
-    var classCards = cards.filter(function(c) { return !c.isCommon || (c.isCommon && c.common.fx === "wild"); });
+    var classCards = cards.filter(function(c) { return !c.isCommon; });
     if (classCards.length < 3) return false;
     var suitGroups = {};
     classCards.forEach(function(c) {
-      var s = getEffectiveSuit(c, cards);
-      if (!suitGroups[s]) suitGroups[s] = [];
-      suitGroups[s].push(c.grade + (c.growthBonus || 0));
+      if (!suitGroups[c.suitId]) suitGroups[c.suitId] = [];
+      suitGroups[c.suitId].push(c.grade + (c.growthBonus || 0));
     });
-    var wilds = suitGroups["wild"] || [];
-    delete suitGroups["wild"];
     var found = false;
     Object.values(suitGroups).forEach(function(gradeArr) {
-      var all = Array.from(new Set(gradeArr.concat(wilds))).sort(function(a, b) { return a - b; });
+      var all = Array.from(new Set(gradeArr)).sort(function(a, b) { return a - b; });
       if (all.length >= 3) {
         for (var i = 0; i <= all.length - 3; i++) {
           if (all[i + 2] - all[i] === 2) found = true;
@@ -190,6 +168,10 @@ function calcDamage(cards, hand, relics, pState, classDef) {
   // Common card: focus
   cards.forEach(function(c) {
     if (c.isCommon && c.common.fx === "focus") mult += 0.5;
+  });
+  // Common card: glass
+  cards.forEach(function(c) {
+    if (c.isCommon && c.common.fx === "glass") mult *= 1.5;
   });
   // Keyword: resonance
   cards.forEach(function(c) {

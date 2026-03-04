@@ -56,7 +56,7 @@
 | 이름 | 효과 | 비고 |
 |------|------|------|
 | 집중타 🎯 | 다음턴 제출+1 | 시작덱 |
-| 모방 🪞 | 문양 따라감 (와일드) | 시작덱 |
+| 유리 🔮 | x1.5 배율, 제출 시 덱에서 소멸 | 시작덱 |
 | 기세 ⚡ | 배율 +0.5 | 시작덱 |
 | 회수 🔁 | 버린카드 (등급)장 복구 | 보상전용 |
 | 투기 🎰 | 다음턴 3장 중 1장 선택 | 보상전용, 2층~ |
@@ -310,6 +310,25 @@
 - gambit: pickGambitCard() — 1장 핸드에 추가, 나머지 2장 discardPile로
 - gambit: floor<2이면 generateRewardCards/openShop에서 gambit 카드 제외
 - startRun에서 gambitPendingRef.current/gambitChoices 초기화
+
+### 다음 세션 TODO
+- [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
+- [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)
+
+## 세션 15 (2026-03-04) — 모방→유리 카드 효과 교체
+
+### 완료
+- [x] utils.js: getEffectiveSuit() wild 분기 전체 삭제 → `return card.suitId` 단순화
+- [x] utils.js: detectHand() wild 예외처리 3곳 삭제 (suits 매핑, suitCards 필터, wildCount)
+- [x] utils.js: checkStraightFlush() wild 포함 로직 삭제 → classCards only
+- [x] utils.js: calcDamage() glass 배율 x1.5 추가 (focus 바로 뒤)
+- [x] data.js: COMMONS wild→glass (🪞→🔮, 모방→유리) — 이전 커밋에서 완료
+- [x] components.jsx: fxMap wild→glass ("문양 따라감"→"x1.5 소멸") — 이전 커밋에서 완료
+- [x] DungeonHand_v3.jsx: submitCards에 glass 소멸 로직 (usedClean에서 분리 → setDeck에서 영구 제거)
+
+### 검증
+- 빌드 성공 (213.86 kB)
+- grep "wild" → utils.js/data.js/components.jsx/DungeonHand_v3.jsx 0 matches
 
 ### 다음 세션 TODO
 - [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)

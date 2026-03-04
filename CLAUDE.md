@@ -134,6 +134,12 @@
 - 키워드 드랍 확률 절반 (보상 0.3/0.15, 상점 0.25) ✅
 - 골드 수입 2/3 감소 (10/7/4+rand(5)) ✅
 
+### ~~세션 15: 모방→유리 카드 효과 교체~~ ✅ 완료
+- 모방(wild) → 유리(glass) 교체 (🪞→🔮) ✅
+- utils.js: getEffectiveSuit/detectHand/checkStraightFlush wild 분기 전체 삭제 ✅
+- calcDamage: glass 배율 x1.5 추가 ✅
+- submitCards: glass 카드 제출 시 덱에서 영구 소멸 ✅
+
 ---
 
 ## 기능 추가 체크리스트

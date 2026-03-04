@@ -83,6 +83,7 @@
 |------|-----|
 | MAX_HP | 70 (+5/레벨) |
 | HAND_SIZE | 5 |
+| MAX_HAND | 7 |
 | BASE_SUBMIT | 3 |
 | RELIC_SLOTS | 3 |
 | 성장 캡 | 5 |
@@ -202,6 +203,13 @@
 - resolveRelicSwap: boss context면 openShop 호출, shop context면 상점 유지
 - shop 교체: swapRelic에서 골드 차감 + sfx.gold(), discardPendingRelic에서는 골드 미차감
 
-### 다음 세션 TODO (세션 9)
+## 세션 9 (2026-03-04) — 최대 손패 7장 제한
+
+### 완료
+- [x] 수정 1: MAX_HAND = 7 상수 추가 (HAND_SIZE 바로 아래)
+- [x] 수정 2: submitCards() 드로우 캡 — needed를 MAX_HAND - remain.length 이하로 제한
+- [x] 수정 3: 화상 메커닉 하드코딩 `< 7` → `< MAX_HAND` 상수 참조
+
+### 다음 세션 TODO (세션 10)
 - [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
 - [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)

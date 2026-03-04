@@ -96,6 +96,11 @@
 - 버린/교체된 유물 재등장 불가 (discardedRelicIds) ✅
 - 상점 교체: 교체 확정 시에만 골드 차감 ✅
 
+### ~~세션 9: 최대 손패 7장 제한~~ ✅ 완료
+- MAX_HAND=7 상수 추가 ✅
+- submitCards() 드로우 캡 (remain + draw ≤ MAX_HAND) ✅
+- 화상 메커닉 하드코딩 → MAX_HAND 상수 참조 ✅
+
 ---
 
 ## 참고: 몬스터 HP (x1.3 적용 완료)

@@ -916,6 +916,7 @@ export default function DungeonHand() {
   var [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
 
   var HAND_SIZE = 5;
+  var MAX_HAND = 7;
   var RELIC_SLOTS = 3;
   var BASE_SUBMIT = 3;
 
@@ -1479,6 +1480,10 @@ export default function DungeonHand() {
           return r.eff.type === "drawAdd" ? sum + r.eff.val : sum;
         }, 0);
         var needed = selected.length + extraDraw;
+        // MAX_HAND 캡 적용
+        var maxDraw = MAX_HAND - remain.length;
+        if (needed > maxDraw) needed = maxDraw;
+        if (needed < 0) needed = 0;
         var tempDraw = reclaimedCards.concat(drawPile.slice());
         var tempDisc = newDisc.slice();
         var drawn = tempDraw.splice(0, needed);
@@ -1549,7 +1554,7 @@ export default function DungeonHand() {
 
           // === Burn mechanic (드래곤) ===
           var burnCount = monster ? (monster.burn || 0) : 0;
-          if (burnCount > 0 && allNewHand.length < 7) {
+          if (burnCount > 0 && allNewHand.length < MAX_HAND) {
             var burnCards = [];
             for (var bi = 0; bi < burnCount; bi++) {
               burnCards.push({ id: nextId++, suitId: "red", suitColor: "#e64b35", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });

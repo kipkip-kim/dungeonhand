@@ -160,6 +160,13 @@
 - 치명타격: 치명배율 1.5→2.0 ✅
 - 운명의 주사위: 1d6 배율(x0.5/x1.5/x3) + 연출 ✅
 
+### ~~세션 17: BGM 5종 + 효과음 확장~~ ✅ 완료
+- BGM 5종: battle/elite/boss/campfire/shop (melodies 객체 + bgmOn(type)) ✅
+- 효과음: monHit()/playerHit() 추가, win()/lose() 6음+화음 개선 ✅
+- beginBattle 내 bn 기반 BGM 분기 (1,2→battle, 4→elite, 5→boss) ✅
+- 캠프파이어/상점 진입 시 각각 campfire/shop BGM ✅
+- sfx.dmg()→monHit(), sfx.enemy()→playerHit() 교체 ✅
+
 ---
 
 ## 기능 추가 체크리스트

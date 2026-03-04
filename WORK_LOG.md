@@ -389,3 +389,25 @@
 
 ### 검증
 - 빌드 성공 (216.23 kB)
+
+## 세션 16D (2026-03-04) — 스킬 초기화 버튼 + 카테고리 탭 UI
+
+*(이전 커밋으로 완료됨)*
+
+## 세션 17 (2026-03-04) — BGM 5종 + 효과음 확장
+
+### 완료
+- [x] audio.js: melodies 객체로 BGM 5종 관리 (battle/elite/boss/campfire/shop)
+- [x] audio.js: bgmOn(type) 파라미터 추가, 각 타입별 멜로디/템포/파형/볼륨 설정
+- [x] audio.js: monHit() 추가 (저음 펀치 + 임팩트 노이즈)
+- [x] audio.js: playerHit() 추가 (고음→저음 하강 + 노이즈)
+- [x] audio.js: win() 개선 (6음 팡파레 + 화음 마무리)
+- [x] audio.js: lose() 개선 (6음 하강 + 불협화음 마무리)
+- [x] DungeonHand_v3.jsx: beginBattle 내부에서 bn 기반 BGM 분기 (battle/elite/boss)
+- [x] DungeonHand_v3.jsx: 캠프파이어 진입 시 campfire BGM
+- [x] DungeonHand_v3.jsx: 상점 진입 시 shop BGM
+- [x] DungeonHand_v3.jsx: sfx.dmg()→sfx.monHit(), sfx.enemy()→sfx.playerHit() 교체
+- [x] DungeonHand_v3.jsx: leaveShop 승리 시 bgmOff 추가
+
+### 검증
+- 빌드 성공 (218.03 kB)

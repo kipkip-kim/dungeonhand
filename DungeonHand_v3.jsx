@@ -146,7 +146,6 @@ export default function DungeonHand() {
     gambitPendingRef.current = false;
     setGambitChoices([]);
     beginBattle(d, [], 1, 1);
-    if (sfx.getOn()) sfx.bgmOn();
   }
 
   function beginBattle(curDeck, curRelics, fl, bn) {
@@ -190,6 +189,12 @@ export default function DungeonHand() {
     setNewCardIds([]);
     setEncounterOverlay(null);
 
+    // BGM by battle type
+    if (sfx.getOn()) {
+      var bgmType = bn === 5 ? "boss" : bn === 4 ? "elite" : "battle";
+      sfx.bgmOn(bgmType);
+    }
+
     var t = 0; // running delay (ms)
     var laterTimers = []; // Phase 4/5 timer IDs, cleared on ambush death
 
@@ -216,7 +221,7 @@ export default function DungeonHand() {
       var ambushDmg = matk + Math.floor(Math.random() * 3);
       setTimeout(function() {
         showPassive("⚡ 기습! " + m.name + "의 선제 공격!");
-        sfx.enemy();
+        sfx.playerHit();
         setEnemyAttacking(true);
         setPlayerShake(true);
         setEnemyDmgShow(ambushDmg);
@@ -441,7 +446,7 @@ export default function DungeonHand() {
     }
 
     setTimeout(function() {
-      sfx.dmg();
+      sfx.monHit();
       setMonShake(false);
       setMonShakeHard(false);
 
@@ -509,7 +514,7 @@ export default function DungeonHand() {
     }
 
     setEnemyAttacking(true);
-    sfx.enemy();
+    sfx.playerHit();
     var thorns = relics.reduce(function(sum, r) {
       return r.eff.type === "thorns" ? sum + r.eff.val : sum;
     }, 0);
@@ -856,9 +861,9 @@ export default function DungeonHand() {
         setCampPhase(1);
         setCampEvent(null);
         setScreen("campfire");
+        if (sfx.getOn()) sfx.bgmOn("campfire");
       } else {
         beginBattle(d, relics, floor, nb);
-        if (sfx.getOn()) sfx.bgmOn();
       }
     }
   }
@@ -934,6 +939,7 @@ export default function DungeonHand() {
     setShopHealed(false);
     setShopRemoved(0);
     setScreen("shop");
+    if (sfx.getOn()) sfx.bgmOn("shop");
   }
 
   function buyCard(card, cost) {
@@ -968,6 +974,7 @@ export default function DungeonHand() {
 
   function leaveShop() {
     if (floor >= 5) {
+      sfx.bgmOff();
       sfx.win();
       setScreen("victory");
       return;
@@ -976,7 +983,6 @@ export default function DungeonHand() {
     setFloor(nextFloor);
     setBattleNum(1);
     beginBattle(deck, relics, nextFloor, 1);
-    if (sfx.getOn()) sfx.bgmOn();
   }
 
   function enhanceCard(card) {
@@ -1278,7 +1284,6 @@ export default function DungeonHand() {
       var nb = 4;
       setBattleNum(nb);
       beginBattle(deck, relics, floor, nb);
-      if (sfx.getOn()) sfx.bgmOn();
     }
 
     function resolveCampfire() {
@@ -1325,7 +1330,7 @@ export default function DungeonHand() {
         setHand(shuffled.slice(0, HAND_SIZE));
         setDiscardPile([]);
         setScreen("battle");
-        if (sfx.getOn()) sfx.bgmOn();
+        if (sfx.getOn()) sfx.bgmOn("battle");
         return;
       }
       if (evtId === "merchant") {
@@ -1345,7 +1350,6 @@ export default function DungeonHand() {
       var nb = 4;
       setBattleNum(nb);
       beginBattle(deck.filter(function(c) { return c.id !== card.id; }), relics, floor, nb);
-      if (sfx.getOn()) sfx.bgmOn();
     }
 
     return (

@@ -147,6 +147,13 @@
 - 마을 UI: 카테고리별 스킬 트리 + 궁극기 해금 ✅
 - 유물 필터링에 classId 조건 추가 (보스보상/상점) ✅
 
+### ~~세션 16B: 신규 스킬 효과 구현~~ ✅ 완료
+- inventory: RELIC_SLOTS = 3 + inventory ✅
+- 문양수집 ×3: 보상 카드 문양 보장 ✅
+- 그림자폭발: applyMult 0.5→0.8 분기 + 메시지 동적화 ✅
+- 손재주/기민함: HAND_SIZE+deft / discards+nimble ✅
+- 연쇄강화: 🔷2장+ extraDraw 1→2 ✅
+
 ---
 
 ## 기능 추가 체크리스트

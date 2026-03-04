@@ -82,9 +82,9 @@ export default function DungeonHand() {
   var [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
   var [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
 
-  var HAND_SIZE = 5;
+  var HAND_SIZE = 5 + (upgradeLevels.deft || 0);
   var MAX_HAND = 7;
-  var RELIC_SLOTS = 3;
+  var RELIC_SLOTS = 3 + (upgradeLevels.inventory || 0);
   var BASE_SUBMIT = 3;
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
@@ -93,6 +93,8 @@ export default function DungeonHand() {
     return Object.assign({}, passiveState, {
       stealthBonus: upgradeLevels.stealth * 5,
       gambleBuff: gambleBuff,
+      shadowBurst: upgradeLevels.shadowBurst > 0,
+      chainBoost: upgradeLevels.chainBoost > 0,
     });
   }
   var book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
@@ -154,7 +156,7 @@ export default function DungeonHand() {
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
     }, 0);
-    setDiscards(2 + discBonus);
+    setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
     setRoundNum(1);
     setDamageInfo(null);
     setCurrentHand(null);
@@ -788,15 +790,25 @@ export default function DungeonHand() {
       if (isBoss) g += 1;
       return Math.max(1, Math.min(g, 10));
     }
+    // 문양수집: 보장할 문양 목록
+    var collectSuits = [];
+    if (upgradeLevels.redCollect > 0) collectSuits.push("red");
+    if (upgradeLevels.blueCollect > 0) collectSuits.push("blue");
+    if (upgradeLevels.yellowCollect > 0) collectSuits.push("yellow");
     for (var i = 0; i < 2; i++) {
-      var s2 = pickN(SUITS, 1)[0];
+      var s2;
+      if (i < collectSuits.length) {
+        s2 = SUITS.find(function(ss) { return ss.id === collectSuits[i]; });
+      } else {
+        s2 = pickN(SUITS, 1)[0];
+      }
       var g2 = rollGrade();
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
     var rcPool = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit"; }) : REWARD_COMMONS;
     var ct = pickN(rcPool, 1)[0];
-    var s3 = pickN(SUITS, 1)[0];
+    var s3 = collectSuits.length > 2 ? SUITS.find(function(ss) { return ss.id === collectSuits[2]; }) : pickN(SUITS, 1)[0];
     var g3 = rollGrade();
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
     pool.push(makeCard(s3.id, g3, classId, ct, kw2));
@@ -1249,7 +1261,7 @@ export default function DungeonHand() {
         var amatk = Math.floor(am.atk * (1 + (floor - 1) * 0.1));
         setMonster({ name: am.name, emoji: am.emoji, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
         var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
-        setDiscards(2 + discBonus);
+        setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
         setRoundNum(1);
         setDamageInfo(null);
         setCurrentHand(null);

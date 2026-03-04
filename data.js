@@ -30,21 +30,25 @@ const CLASSES = [
         return {
           evasion: Math.min(50, 10 + stealthBonus + pState.stacks * 5),
           crit: Math.min(90, suitBonuses.yellow * 15),
-          extraDraw: suitBonuses.blue >= 2 ? 1 : 0,
+          extraDraw: suitBonuses.blue >= 2 ? (pState.chainBoost ? 2 : 1) : 0,
         };
       },
 
       applyMult: function(mult, pState) {
-        if (pState.stacks > 0) mult += pState.stacks * 0.5;
+        if (pState.stacks > 0) {
+          var perStack = pState.shadowBurst ? 0.8 : 0.5;
+          mult += pState.stacks * perStack;
+        }
         return mult;
       },
 
       onSubmit: function(pState, playedCards) {
+        var perStack = pState.shadowBurst ? 0.8 : 0.5;
         var hasRed = playedCards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
         if (hasRed) {
           var ns = pState.stacks + 1;
           var evPct = Math.min(50, 10 + ns * 5);
-          return { state: { stacks: ns }, msg: "🌑 그림자 x" + ns + "! 배율+" + (ns * 0.5).toFixed(1) + " 회피" + evPct + "%" };
+          return { state: { stacks: ns }, msg: "🌑 그림자 x" + ns + "! 배율+" + (ns * perStack).toFixed(1) + " 회피" + evPct + "%" };
         }
         if (pState.stacks > 0) {
           return { state: { stacks: 0 }, msg: "💨 그림자 소멸... (🔺 포함 필요)" };
@@ -60,8 +64,9 @@ const CLASSES = [
       },
 
       onEvade: function(pState) {
+        var perStack = pState.shadowBurst ? 0.8 : 0.5;
         var ns = pState.stacks + 1;
-        return { state: { stacks: ns }, msg: "🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * 0.5).toFixed(1) + ")" };
+        return { state: { stacks: ns }, msg: "🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * perStack).toFixed(1) + ")" };
       },
 
       onCamp: function(pState) {
@@ -77,11 +82,12 @@ const CLASSES = [
       },
 
       renderBadge: function(pState, stealthBonus) {
+        var perStack = pState.shadowBurst ? 0.8 : 0.5;
         if (pState.stacks > 0) {
           return {
             bg: "#7c3aed22", border: "#7c3aed",
             label: "🌑x" + pState.stacks,
-            detail: "+" + (pState.stacks * 0.5).toFixed(1) + " 회피" + Math.min(50, 10 + pState.stacks * 5) + "%",
+            detail: "+" + (pState.stacks * perStack).toFixed(1) + " 회피" + Math.min(50, 10 + pState.stacks * 5) + "%",
           };
         }
         return {

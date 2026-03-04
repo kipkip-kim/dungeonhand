@@ -352,8 +352,27 @@
 - grep "UPGRADES" → DungeonHand_v3.jsx/data.js 0 matches (완전 교체)
 
 ### 다음 세션 TODO (세션 16B: 신규 스킬 효과 구현 5건)
-- [ ] inventory: RELIC_SLOTS 계산에 upgradeLevels.inventory 반영
-- [ ] 문양수집 ×3: generateRewardCards에서 해당 문양 카드 1장 보장
-- [ ] 그림자폭발: passive.applyMult에서 shadowBurst 반영 (+0.5→+0.8)
-- [ ] 손재주/기민함: 드로우+1 / 버리기+1
-- [ ] 연쇄강화: 🔷 2장+ 제출시 extraDraw +2
+- [x] ~~inventory: RELIC_SLOTS 계산에 upgradeLevels.inventory 반영~~
+- [x] ~~문양수집 ×3: generateRewardCards에서 해당 문양 카드 1장 보장~~
+- [x] ~~그림자폭발: passive.applyMult에서 shadowBurst 반영 (+0.5→+0.8)~~
+- [x] ~~손재주/기민함: 드로우+1 / 버리기+1~~
+- [x] ~~연쇄강화: 🔷 2장+ 제출시 extraDraw +2~~
+
+## 세션 16B (2026-03-04) — 신규 스킬 효과 구현
+
+### 완료
+- [x] inventory: RELIC_SLOTS = 3 + upgradeLevels.inventory
+- [x] 문양수집(red/blue/yellow): generateRewardCards에서 collect 스킬 보유 문양의 카드 보장
+- [x] 그림자폭발: buildPState에 shadowBurst 추가, applyMult 0.5→0.8 분기, onSubmit/onEvade/renderBadge 메시지 동적화
+- [x] 손재주(deft): HAND_SIZE = 5 + deft (시작 드로우 +1)
+- [x] 기민함(nimble): setDiscards 2곳에 nimble 반영 (버리기 +1)
+- [x] 연쇄강화(chainBoost): buildPState에 chainBoost 추가, calcBonus extraDraw 1→2 분기
+
+### 검증
+- 빌드 성공 (215.72 kB)
+
+### 다음 세션 TODO (세션 16C: 치명타 스킬 + 궁극기 효과 4건)
+- [ ] 급소숙련(critMastery): calcDamage critChance에 +10% × level
+- [ ] 속전속결(quickStrike): 첫턴 치명타 확률 2배
+- [ ] 치명타격(critDamage): 치명배율 x1.5→x2.0
+- [ ] 운명의 주사위(fatedDice): calcDamage/submitCards에서 1d6 배율 적용 + 주사위 연출

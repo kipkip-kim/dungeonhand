@@ -94,8 +94,91 @@ var SUITS = [
 ];
 
 const CLASSES = [
-  { id: "warrior", icon: "⚔️", name: "전사", suits: { red: "강타", blue: "베기", yellow: "함성" } },
-  { id: "ranger", icon: "🗡️", name: "도적", suits: { red: "습격", blue: "연계", yellow: "급소" } },
+  {
+    id: "ranger",
+    icon: "🗡️",
+    name: "도적",
+    suits: { red: "습격", blue: "연계", yellow: "급소" },
+    passive: {
+      name: "그림자",
+      icon: "🌑",
+      desc: "🌑 🔺포함 → 그림자",
+      color: "#7c3aed",
+      suitDescs: ["🔺 그림자+1", "🔷 드로우+1", "⭐ 급소 15%/장"],
+
+      init: function(hasAwakening) {
+        return { stacks: hasAwakening ? 1 : 0 };
+      },
+
+      cardBonus: function(suitId) {
+        return { atk: 0, defReduce: 0 };
+      },
+
+      calcBonus: function(pState, suitBonuses, stealthBonus) {
+        return {
+          evasion: Math.min(50, 10 + stealthBonus + pState.stacks * 5),
+          crit: Math.min(90, suitBonuses.yellow * 15),
+          extraDraw: suitBonuses.blue >= 2 ? 1 : 0,
+        };
+      },
+
+      applyMult: function(mult, pState) {
+        if (pState.stacks > 0) mult += pState.stacks * 0.5;
+        return mult;
+      },
+
+      onSubmit: function(pState, playedCards) {
+        var hasRed = playedCards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
+        if (hasRed) {
+          var ns = pState.stacks + 1;
+          var evPct = Math.min(50, 10 + ns * 5);
+          return { state: { stacks: ns }, msg: "🌑 그림자 x" + ns + "! 배율+" + (ns * 0.5).toFixed(1) + " 회피" + evPct + "%" };
+        }
+        if (pState.stacks > 0) {
+          return { state: { stacks: 0 }, msg: "💨 그림자 소멸... (🔺 포함 필요)" };
+        }
+        return { state: pState };
+      },
+
+      onHit: function(pState) {
+        if (pState.stacks > 0) {
+          return { state: { stacks: 0 }, msg: "💨 피격! 그림자 소멸..." };
+        }
+        return { state: pState };
+      },
+
+      onEvade: function(pState) {
+        var ns = pState.stacks + 1;
+        return { state: { stacks: ns }, msg: "🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * 0.5).toFixed(1) + ")" };
+      },
+
+      onCamp: function(pState) {
+        return { state: { stacks: pState.stacks + 1 }, msg: "🌑 그림자 +1!" };
+      },
+
+      suitMessages: function(suitBonuses, critChance, hasRed) {
+        var msgs = [];
+        if (hasRed) msgs.push("🔺포함→그림자+1");
+        if (suitBonuses.blue >= 2) msgs.push("🔷드로우+1");
+        if (suitBonuses.yellow > 0) msgs.push("⭐급소" + critChance + "%");
+        return msgs;
+      },
+
+      renderBadge: function(pState, stealthBonus) {
+        if (pState.stacks > 0) {
+          return {
+            bg: "#7c3aed22", border: "#7c3aed",
+            label: "🌑x" + pState.stacks,
+            detail: "+" + (pState.stacks * 0.5).toFixed(1) + " 회피" + Math.min(50, 10 + pState.stacks * 5) + "%",
+          };
+        }
+        return {
+          bg: "#1a1a2e", border: "var(--bd)",
+          label: "🌑회피" + (10 + stealthBonus) + "%",
+        };
+      },
+    },
+  },
 ];
 
 const COMMONS = [
@@ -328,29 +411,23 @@ function detectHand(cards) {
   return { name: "하이카드", mult: 1, tier: 1, emoji: "👊" };
 }
 
-function calcDamage(cards, hand, relics, passiveState) {
+function calcDamage(cards, hand, relics, pState, classDef) {
   var atk = 0;
   var extraDraw = 0;
   var hasGrowth = false;
   var suitBonuses = { red: 0, blue: 0, yellow: 0 };
   var dmgReduction = 0;
-  var cid = passiveState ? passiveState.classId : "warrior";
+  var passive = classDef.passive;
 
   cards.forEach(function(c) {
     var a = c.grade + (c.growthBonus || 0);
 
-    // === Class-specific suit bonuses ===
+    // === Class-specific suit bonuses (via passive hook) ===
     if (!c.isCommon) {
-      if (cid === "warrior") {
-        if (c.suitId === "red") { a += 2; suitBonuses.red += 1; }
-        if (c.suitId === "blue") { dmgReduction += 1; suitBonuses.blue += 1; }
-        if (c.suitId === "yellow") { suitBonuses.yellow += 1; } // fury bonus handled below
-      }
-      if (cid === "ranger") {
-        if (c.suitId === "red") { suitBonuses.red += 1; }
-        if (c.suitId === "blue") { suitBonuses.blue += 1; } // draw bonus handled below
-        if (c.suitId === "yellow") { suitBonuses.yellow += 1; } // crit chance
-      }
+      suitBonuses[c.suitId] = (suitBonuses[c.suitId] || 0) + 1;
+      var cb = passive.cardBonus(c.suitId);
+      a += cb.atk;
+      dmgReduction += cb.defReduce;
     }
 
     relics.forEach(function(r) {
@@ -368,24 +445,15 @@ function calcDamage(cards, hand, relics, passiveState) {
 
   var mult = hand.mult;
 
-  // === Rogue: shadow-based evasion (base 10% + stealth upgrade + 5%/stack, cap 50%) ===
-  var evasionChance = 0;
-  if (cid === "ranger") {
-    var baseEvasion = 10 + (passiveState ? (passiveState.stealthBonus || 0) : 0);
-    evasionChance = Math.min(50, baseEvasion + (passiveState ? passiveState.shadow * 5 : 0));
-  }
+  // === Passive: calcBonus (evasion, crit, extraDraw) ===
+  var stealthBonus = pState ? (pState.stealthBonus || 0) : 0;
+  var bonus = passive.calcBonus(pState || { stacks: 0 }, suitBonuses, stealthBonus);
+  var evasionChance = bonus.evasion;
+  var critChance = bonus.crit;
+  if (bonus.extraDraw) extraDraw += bonus.extraDraw;
 
-  // === Rogue: check if 1+ red class card submitted (for shadow stacking) ===
-  var hasRed = false;
-  if (cid === "ranger") {
-    var redClassCards = cards.filter(function(c) { return !c.isCommon && c.suitId === "red"; }).length;
-    hasRed = redClassCards >= 1;
-  }
-
-  // === Rogue 🔷 bonus: draw+1 if 2+ blue cards ===
-  if (cid === "ranger" && suitBonuses.blue >= 2) {
-    extraDraw += 1;
-  }
+  // === Check if 1+ red class card submitted (for shadow stacking) ===
+  var hasRed = cards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
 
   // Common card: focus
   cards.forEach(function(c) {
@@ -416,30 +484,14 @@ function calcDamage(cards, hand, relics, passiveState) {
     }
   });
 
-  // === Warrior passive: fury ===
-  if (passiveState && cid === "warrior" && passiveState.fury > 0) {
-    // ⭐ yellow bonus: fury +0.5 per yellow card
-    var furyBonus = passiveState.fury + suitBonuses.yellow * 0.5;
-    mult *= (1 + furyBonus * 0.15);
-  } else if (passiveState && cid === "warrior" && suitBonuses.yellow > 0) {
-    // Even without fury stacks, yellow doesn't do anything yet (needs fury > 0)
-  }
-
-  // === Rogue passive: shadow stacks → mult bonus ===
-  if (passiveState && cid === "ranger" && passiveState.shadow > 0) {
-    mult += passiveState.shadow * 0.5;
-  }
+  // === Passive: apply mult bonus ===
+  mult = passive.applyMult(mult, pState || { stacks: 0 });
 
   // === Gamble relic buff ===
-  if (passiveState && passiveState.gambleBuff) {
-    mult += passiveState.gambleBuff;
+  if (pState && pState.gambleBuff) {
+    mult += pState.gambleBuff;
   }
 
-  // === Ranger ⭐ critical hit ===
-  var critChance = 0;
-  if (cid === "ranger") {
-    critChance = Math.min(90, suitBonuses.yellow * 15); // 15% per ⭐ card, cap 90%
-  }
   var isCrit = critChance > 0 && Math.random() * 100 < critChance;
   var finalTotal = Math.floor(atk * mult);
   if (isCrit) finalTotal = Math.floor(finalTotal * 1.5);
@@ -891,9 +943,7 @@ export default function DungeonHand() {
   var [enemyDmgShow, setEnemyDmgShow] = s(null);
   var [audioOn, setAudioOn] = s(false);
   // Passive state
-  var [fury, setFury] = s(0); // warrior: fury stacks
-  var [lastSuit, setLastSuit] = s(null); // warrior: last submitted suit
-  var [shadow, setShadow] = s(0); // rogue: shadow stacks (consecutive evades)
+  var [passiveState, setPassiveState] = s({ stacks: 0 });
   var [aimedBonus, setAimedBonus] = s(0); // aimed shot: next turn submit +1
   var [shield, setShield] = s(0); // fortress: damage reduction next turn
   var [gambleBuff, setGambleBuff] = s(0); // dice relic: +1 or -0.5 mult
@@ -921,6 +971,13 @@ export default function DungeonHand() {
   var BASE_SUBMIT = 3;
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
+
+  function buildPState() {
+    return Object.assign({}, passiveState, {
+      stealthBonus: upgradeLevels.stealth * 5,
+      gambleBuff: gambleBuff,
+    });
+  }
   var book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
   var submitLimit = BASE_SUBMIT + aimedBonus + book2Bonus;
 
@@ -954,20 +1011,9 @@ export default function DungeonHand() {
     setFloor(1);
     setBattleNum(1);
     setBossesKilled([]);
-    // 🔥 각성: start with fury/shadow
-    if (upgradeLevels.awaken > 0) {
-      if (cid === "warrior") {
-        setFury(1);
-        setLastSuit(null); // first submit sets lastSuit, fury won't reset if same suit
-      } else {
-        setFury(0);
-      }
-      setShadow(cid === "ranger" ? 1 : 0);
-    } else {
-      setFury(0);
-      setShadow(0);
-    }
-    setLastSuit(null);
+    // 🔥 각성: init passive via hook
+    var cDef = CLASSES.find(function(c) { return c.id === cid; });
+    setPassiveState(cDef.passive.init(upgradeLevels.awaken > 0));
     setPoison(0);
     setErodedIds([]);
     setTenacityUsed(false);
@@ -997,7 +1043,7 @@ export default function DungeonHand() {
     setBusy(false);
     setEnemyDmgShow(null);
     // Reset battle-scoped passives
-    // (fury and lastSuit persist across battles)
+    // (passiveState persists across battles)
     setFrozenIds([]);
     setSplitMon(null);
     setAimedBonus(0);
@@ -1124,8 +1170,7 @@ export default function DungeonHand() {
   var preview = previewCards.length > 0 ? detectHand(previewCards) : null;
   var previewDmg = null;
   if (preview && previewCards.length > 0) {
-    var pState2 = { classId: classId, fury: fury, shadow: shadow, stealthBonus: upgradeLevels.stealth * 5, gambleBuff: gambleBuff };
-    previewDmg = calcDamage(previewCards, preview, relics, pState2);
+    previewDmg = calcDamage(previewCards, preview, relics, buildPState(), classData);
   }
 
   function showPassive(msg) {
@@ -1196,8 +1241,7 @@ export default function DungeonHand() {
     var h = detectHand(playedClean.length > 0 ? playedClean : played);
 
     // Build passive state for damage calc
-    var pState = { classId: classId, fury: fury, shadow: shadow, stealthBonus: upgradeLevels.stealth * 5, gambleBuff: gambleBuff };
-    var dmg = calcDamage(played, h, relics, pState);
+    var dmg = calcDamage(played, h, relics, buildPState(), classData);
 
     // === 투기(gambit): 50% 배율+1.0, 50% 배율-0.5 ===
     var gambitPlayed = played.filter(function(c) { return c.isCommon && c.common.fx === "gambit"; });
@@ -1224,41 +1268,10 @@ export default function DungeonHand() {
       setPoison(function(p) { return p + poisonAmt; });
     }
 
-    // === Update Warrior Passive: Fury ===
-    if (classId === "warrior") {
-      var dominantSuit = null;
-      var suitCounts = {};
-      played.forEach(function(c) {
-        if (!c.isCommon) {
-          suitCounts[c.suitId] = (suitCounts[c.suitId] || 0) + 1;
-          if (!dominantSuit || suitCounts[c.suitId] > suitCounts[dominantSuit]) dominantSuit = c.suitId;
-        }
-      });
-      if (dominantSuit && lastSuit && dominantSuit === lastSuit) {
-        var newFury = fury + 1;
-        setFury(newFury);
-        showPassive("🔥 분노 x" + newFury + "! 데미지 +" + Math.round(newFury * 15) + "%");
-      } else if (dominantSuit && lastSuit) {
-        if (dominantSuit !== lastSuit && fury > 0) {
-          setFury(0);
-          showPassive("💨 분노 초기화...");
-        }
-      }
-      setLastSuit(dominantSuit);
-    }
-
-    // === Rogue: shadow stacking (2+ 🔺) or reset ===
-    if (classId === "ranger") {
-      if (dmg.hasRed) {
-        var newShadow = shadow + 1;
-        setShadow(newShadow);
-        var evPct = Math.min(50, 10 + newShadow * 5);
-        showPassive("🌑 그림자 x" + newShadow + "! 배율+" + (newShadow * 0.5).toFixed(1) + " 회피" + evPct + "%");
-      } else if (shadow > 0) {
-        setShadow(0);
-        showPassive("💨 그림자 소멸... (🔺 포함 필요)");
-      }
-    }
+    // === Update passive state via hook ===
+    var passiveResult = classData.passive.onSubmit(passiveState, played);
+    setPassiveState(passiveResult.state);
+    if (passiveResult.msg) showPassive(passiveResult.msg);
 
     var fortressAmt = played.reduce(function(sum, c) {
       if (c.isCommon && c.common.fx === "fortress") return sum + c.grade + (c.growthBonus || 0);
@@ -1279,18 +1292,8 @@ export default function DungeonHand() {
       showPassive("💥 급소! 치명타 x1.5!");
     }
 
-    // Build suit bonus message (class-specific)
-    var suitMsgs = [];
-    if (classId === "warrior") {
-      if (dmg.suitBonuses.red > 0) suitMsgs.push("🔺공격+" + (dmg.suitBonuses.red * 2));
-      if (dmg.suitBonuses.blue > 0) suitMsgs.push("🔷방어-" + dmg.dmgReduction);
-      if (dmg.suitBonuses.yellow > 0) suitMsgs.push("⭐분노 강화");
-    }
-    if (classId === "ranger") {
-      if (dmg.hasRed) suitMsgs.push("🔺포함→그림자+1");
-      if (dmg.suitBonuses.blue >= 2) suitMsgs.push("🔷드로우+1");
-      if (dmg.suitBonuses.yellow > 0) suitMsgs.push("⭐급소" + dmg.critChance + "%");
-    }
+    // Build suit bonus message (via passive hook)
+    var suitMsgs = classData.passive.suitMessages(dmg.suitBonuses, dmg.critChance, dmg.hasRed);
 
     // Show relic triggers and suit bonuses
     var allTriggers = (dmg.relicTriggers || []).concat(suitMsgs);
@@ -1413,18 +1416,15 @@ export default function DungeonHand() {
       if (evaded) {
         setPlayerShake(false);
         setEnemyDmgShow("MISS");
-        setShadow(function(prev) {
-          var ns = prev + 1;
-          showPassive("🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * 0.5).toFixed(1) + ")");
-          return ns;
-        });
+        var evadeResult = classData.passive.onEvade(passiveState);
+        setPassiveState(evadeResult.state);
+        if (evadeResult.msg) showPassive(evadeResult.msg);
       } else {
         setPlayerShake(true);
         setEnemyDmgShow(atkDmg);
-        if (shadow > 0 && classId === "ranger") {
-          setShadow(0);
-          showPassive("💨 피격! 그림자 소멸...");
-        }
+        var hitResult = classData.passive.onHit(passiveState);
+        setPassiveState(hitResult.state);
+        if (hitResult.msg) showPassive(hitResult.msg);
         setHp(function(prev) {
           if (prev - atkDmg <= 0) {
             // 💀 Tenacity: revive once
@@ -2005,7 +2005,7 @@ export default function DungeonHand() {
           </h1>
           <p style={{ color: "var(--dm)", fontSize: 13 }}>도적의 카드로 던전을 정복하라!</p>
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <Btn onClick={function() { setScreen("classSelect"); }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
+            <Btn onClick={function() { if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
               ⚔️ 던전 입장
             </Btn>
             <Btn onClick={function() { setScreen("village"); }} color="#22c55e" style={{ fontSize: 14, padding: "14px 32px" }}>
@@ -2021,43 +2021,28 @@ export default function DungeonHand() {
   }
 
   if (screen === "classSelect") {
-    var rangerClass = CLASSES.find(function(c) { return c.id === "ranger"; });
     return (
       <div style={wrapStyle}>
         <style>{CSS}</style>
         {audioButton}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-          <h2 style={{ fontSize: 16 }}>🗡️ 도적으로 던전에 입장</h2>
+          <h2 style={{ fontSize: 16 }}>직업을 선택하세요</h2>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
             {CLASSES.map(function(c) {
-              var isLocked = c.id === "warrior";
-              var passiveDesc = { warrior: "🔥 같은 색 연속 → 분노", ranger: "🌑 🔺포함 → 그림자" };
-              var suitLines = {
-                warrior: ["🔺 공격+2", "🔷 방어-1", "⭐ 분노강화"],
-                ranger: ["🔺 그림자+1", "🔷 드로우+1", "⭐ 급소 15%/장"],
-              };
               return (
                 <div
                   key={c.id}
-                  onClick={isLocked ? undefined : function() { startRun(c.id); }}
-                  style={{ width: 200, background: isLocked ? "#1a1a2a" : "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + (isLocked ? "#333" : "var(--bd)"), borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: isLocked ? "not-allowed" : "pointer", opacity: isLocked ? 0.4 : 1, padding: "16px 12px" }}
+                  onClick={function() { startRun(c.id); }}
+                  style={{ width: 200, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
                 >
-                  <span style={{ fontSize: 42 }}>{isLocked ? "🔒" : c.icon}</span>
+                  <span style={{ fontSize: 42 }}>{c.icon}</span>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
-                  {isLocked ? (
-                    <div style={{ fontSize: 14, color: "#666", textAlign: "center" }}>
-                      확장팩에서 해금
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ fontSize: 14, color: "#a855f7", textAlign: "center", lineHeight: 1.4 }}>
-                        {passiveDesc[c.id]}
-                      </div>
-                      <div style={{ fontSize: 13, color: "var(--dm)", textAlign: "center", lineHeight: 1.6 }}>
-                        {suitLines[c.id].join("  ")}
-                      </div>
-                    </>
-                  )}
+                  <div style={{ fontSize: 14, color: "#a855f7", textAlign: "center", lineHeight: 1.4 }}>
+                    {c.passive.desc}
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--dm)", textAlign: "center", lineHeight: 1.6 }}>
+                    {c.passive.suitDescs.join("  ")}
+                  </div>
                 </div>
               );
             })}
@@ -2100,11 +2085,8 @@ export default function DungeonHand() {
       var evtId = campEvent.id;
 
       if (evtId === "fairy") {
-        if (classId === "warrior") {
-          setFury(function(f) { return f + 1; });
-        } else {
-          setShadow(function(s2) { return s2 + 1; });
-        }
+        var campResult = classData.passive.onCamp(passiveState);
+        setPassiveState(campResult.state);
       }
       if (evtId === "rest") {
         setHp(function(h) { return Math.min(MAX_HP, h + 5); });
@@ -2164,8 +2146,6 @@ export default function DungeonHand() {
       beginBattle(deck.filter(function(c) { return c.id !== card.id; }), relics, floor, nb);
       if (sfx.getOn()) sfx.bgmOn();
     }
-
-    var classData = CLASSES.find(function(c) { return c.id === classId; });
 
     return (
       <div style={wrapStyle}>
@@ -2243,7 +2223,7 @@ export default function DungeonHand() {
                     <br />몸 안에서 힘이 솟아오른다!
                   </p>
                   <div style={{ marginTop: 10, fontSize: 14, color: "#a855f7", fontWeight: 700 }}>
-                    {classId === "warrior" ? "🔥 분노 +1!" : "🌑 그림자 +1!"}
+                    {classData.passive.onCamp(passiveState).msg}
                   </div>
                   <Btn onClick={resolveCampfire} color="#a855f7" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
                     감사히 받다 →
@@ -2402,29 +2382,16 @@ export default function DungeonHand() {
           )}
           {/* Passive Status */}
           <div style={{ display: "flex", justifyContent: "center", gap: 4, padding: "2px 0", flexWrap: "wrap", flexShrink: 0 }}>
-            {classId === "warrior" && (
-              <div style={{ background: fury > 0 ? "#ef444422" : "#1a1a2e", border: "1px solid " + (fury > 0 ? "#ef4444" : "var(--bd)"), borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                {fury > 0 ? (
-                  <span>🔥x{fury} <span style={{ color: "var(--dm)", fontSize: 11 }}>+{Math.round(fury * 15)}%</span></span>
-                ) : (
-                  <span style={{ color: "var(--dm)" }}>🔥대기</span>
-                )}
-                {lastSuit && (
-                  <span style={{ background: fury > 0 ? "#ef444433" : "#ffffff0a", borderRadius: 4, padding: "0px 4px", fontSize: 12 }}>
-                    {SUITS.find(function(s2) { return s2.id === lastSuit; }).emoji}→유지
-                  </span>
-                )}
-              </div>
-            )}
-            {classId === "ranger" && (
-              <div style={{ background: shadow > 0 ? "#7c3aed22" : "#1a1a2e", border: "1px solid " + (shadow > 0 ? "#7c3aed" : "var(--bd)"), borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                {shadow > 0 ? (
-                  <span>🌑x{shadow} <span style={{ color: "#a855f7", fontSize: 11 }}>+{(shadow * 0.5).toFixed(1)} 회피{Math.min(50, 10 + shadow * 5)}%</span></span>
-                ) : (
-                  <span style={{ color: "var(--dm)" }}>🌑회피{10 + upgradeLevels.stealth * 5}%</span>
-                )}
-              </div>
-            )}
+            {(function() {
+              var badge = classData.passive.renderBadge(passiveState, upgradeLevels.stealth * 5);
+              if (!badge) return null;
+              return (
+                <div style={{ background: badge.bg, border: "1px solid " + badge.border, borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+                  <span>{badge.label}</span>
+                  {badge.detail && <span style={{ color: classData.passive.color, fontSize: 11 }}>{badge.detail}</span>}
+                </div>
+              );
+            })()}
             {poison > 0 && (
               <div style={{ background: "#a855f722", border: "1px solid #a855f7", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
                 ☠️독{poison}
@@ -2497,7 +2464,7 @@ export default function DungeonHand() {
             </div>
           ) : (
             <div style={{ height: 56, flexShrink: 0 }} />
-          )}}
+          )}
 
           {/* Passive Trigger Message */}
           {passiveMsg && (

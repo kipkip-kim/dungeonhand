@@ -231,5 +231,42 @@
 - 매직넘버/setTimeout 체인은 현재 관리 가능 수준
 
 ### 다음 세션 TODO (세션 12)
+- [x] 직업 시스템 데이터 기반 리팩터링
+
+## 세션 12 (2026-03-04) — 직업 시스템 데이터 기반 리팩터링
+
+### 완료
+- [x] 수정 1: CLASSES 재구조화 — warrior 삭제, ranger에 passive 훅 객체 추가 (init/cardBonus/calcBonus/applyMult/onSubmit/onHit/onEvade/onCamp/suitMessages/renderBadge)
+- [x] 수정 1: fury/lastSuit/shadow useState 3개 → passiveState 단일 상태 + buildPState() 헬퍼
+- [x] 수정 2: calcDamage 리팩터링 — classId 분기 삭제, passive.cardBonus/calcBonus/applyMult 훅 호출
+- [x] 수정 2: submitCards 리팩터링 — warrior/ranger 패시브 분기 → passive.onSubmit, suitMessages 훅 호출
+- [x] 수정 2: startRun 리팩터링 — 각성 초기화 → passive.init() 훅 호출
+- [x] 수정 2: enemyTurn 리팩터링 — 회피/피격 시 shadow 분기 → passive.onEvade/onHit 훅 호출
+- [x] 수정 2: campfire 리팩터링 — fairy 이벤트 → passive.onCamp 훅 호출
+- [x] 수정 3: 메뉴 — CLASSES.length===1이면 startRun 직접 호출 (직업 선택 스킵)
+- [x] 수정 3: classSelect — isLocked/rangerClass/passiveDesc/suitLines 하드코딩 → passive.desc/suitDescs 참조
+- [x] 수정 3: 패시브 뱃지 — warrior/ranger 분기 → passive.renderBadge() 제네릭 뱃지
+- [x] 수정 3: 캠프 요정 메시지 → passive.onCamp().msg
+- [x] 기존 JSX 구문 오류 수정 (damageInfo ternary `)}}`→`)}`)
+- [x] campfire 내 중복 classData 선언 제거
+
+### 삭제된 코드
+- CLASSES warrior 항목
+- fury/lastSuit/shadow useState + setFury/setLastSuit/setShadow
+- calcDamage classId 분기 6곳
+- submitCards classId 분기 4곳
+- startRun classId 분기 4곳
+- enemyTurn shadow/setShadow 분기 2곳
+- campfire classId 분기 2곳
+- UI classId 분기 2곳 (패시브 뱃지)
+- classSelect isLocked/rangerClass/passiveDesc/suitLines 하드코딩
+
+### 검증
+- grep "warrior" → 0 matches
+- grep "fury\|lastSuit\|setFury\|setLastSuit\|setShadow" → 0 matches
+- JSX 빌드 OK (acorn-jsx)
+- 2926줄 → 2893줄 (33줄 감소)
+
+### 다음 세션 TODO (세션 13)
 - [ ] 메타 업그레이드(inventory): 유물 슬롯 +1 (max 2, 최대 5칸)
 - [ ] 상시 유물 슬롯 UI: 전투 화면 등에 현재 유물 표시 (N/MAX_SLOTS)

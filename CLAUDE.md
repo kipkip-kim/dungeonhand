@@ -107,6 +107,17 @@
 ### ~~세션 11: 아키텍처 진단~~ ✅ 완료
 - 코드 수정 없음 — 진단/분석 결과 문서화
 
+### ~~세션 12: 직업 시스템 데이터 기반 리팩터링~~ ✅ 완료
+- 전사(warrior) 직업 삭제 ✅
+- fury/lastSuit/shadow useState → passiveState 단일 상태로 통합 ✅
+- CLASSES에 passive 훅 객체 추가 (init/cardBonus/calcBonus/applyMult/onSubmit/onHit/onEvade/onCamp/suitMessages/renderBadge) ✅
+- calcDamage classId 분기 → passive 훅 호출로 전환 ✅
+- submitCards/startRun/enemyTurn/campfire classId 분기 → passive 훅 호출로 전환 ✅
+- UI: classSelect passiveDesc/suitLines → passive.desc/suitDescs 참조 ✅
+- UI: 패시브 뱃지 warrior/ranger 분기 → passive.renderBadge() ✅
+- UI: CLASSES.length===1이면 직업 선택 스킵 ✅
+- 기존 JSX 구문 오류 수정 (damageInfo ternary `)}}`→`)}`) ✅
+
 ---
 
 ## 기능 추가 체크리스트
@@ -128,22 +139,19 @@
 2. **FLOOR_NAMES**에 던전 이름 추가 (새 던전인 경우)
 3. **BOSS_DIALOGUES**에 대사 추가 (보스/미니보스인 경우)
 
-### 직업 추가 시 (주의: 6곳+ 하드코딩 분기)
-> 직업 추가 시점에 클래스 패시브 시스템 리팩터링 필요
-1. **CLASSES** 배열에 직업 데이터 추가
-2. **calcDamage()** 문양 보너스 분기
-3. **calcDamage()** 패시브 (분노/그림자 등) 분기
-4. **submitCards()** 패시브 업데이트 분기
-5. **startRun()** 패시브 초기화
-6. **UI** 패시브 표시 렌더링
+### 직업 추가 시 (1곳 수정 — 데이터 기반)
+> 세션 12에서 패시브 시스템을 데이터 기반 훅으로 리팩터링 완료
+1. **CLASSES** 배열에 새 항목 추가 (id, icon, name, suits, passive 객체)
+2. passive 객체에 모든 훅 구현: init, cardBonus, calcBonus, applyMult, onSubmit, onHit, onEvade, onCamp, suitMessages, renderBadge
+3. 코드 수정 불필요 — 모든 분기가 훅을 호출하므로 자동 적용
 
 ---
 
 ## 아키텍처 참고
 
-### 현재 구조 (단일 파일 ~2,926줄)
-- 오디오(3-88) → 데이터(89-178) → 유틸(180-461) → CSS/컴포넌트(463-837) → 메인 게임(839-2926)
-- DungeonHand 컴포넌트: useState 60개, 함수 133개
+### 현재 구조 (단일 파일 ~2,893줄)
+- 오디오(3-88) → 데이터(89-178, CLASSES passive 훅 포함) → 유틸(180-543) → CSS/컴포넌트(545-837) → 메인 게임(839-2893)
+- DungeonHand 컴포넌트: useState 58개 (fury/lastSuit/shadow → passiveState 통합), 함수 133개
 
 ### 확장 난이도
 | 작업 | 난이도 | 사유 |
@@ -151,11 +159,10 @@
 | 카드/유물/몬스터 추가 | 쉬움 | 데이터 배열 + 로직 분기 |
 | 난이도 설정 | 보통 | 스케일링 계수 분기 |
 | 음악/그래픽 변경 | 보통 | sfx/CardView 수정 |
-| 추가 직업 | 어려움 | classId 분기 6곳+ 리팩터링 필요 |
+| 추가 직업 | 쉬움 | CLASSES 배열에 passive 훅 객체 추가만으로 완료 |
 
 ### 리팩터링 기준
 - **4,000줄 초과 시** 화면별 커스텀 훅 분리 검토
-- **직업 추가 시** 클래스 패시브를 데이터 객체로 추출
 
 ---
 

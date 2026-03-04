@@ -95,6 +95,11 @@ export default function DungeonHand() {
       gambleBuff: gambleBuff,
       shadowBurst: upgradeLevels.shadowBurst > 0,
       chainBoost: upgradeLevels.chainBoost > 0,
+      critMastery: upgradeLevels.critMastery || 0,
+      quickStrike: upgradeLevels.quickStrike > 0,
+      critDamage: upgradeLevels.critDamage > 0,
+      fatedDice: upgradeLevels.fatedDice > 0,
+      roundNum: roundNum,
     });
   }
   var book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
@@ -395,9 +400,15 @@ export default function DungeonHand() {
       setMonShakeHard(h.tier >= 4 || dmg.isCrit);
     }
 
+    // 운명의 주사위 연출
+    if (dmg.fatedRoll > 0) {
+      var fatedMsg = "🎲 운명의 주사위 [" + dmg.fatedRoll + "] → x" + dmg.fatedMult;
+      showPassive(fatedMsg);
+    }
     // Suit bonus: ⭐ crit
     if (dmg.isCrit) {
-      showPassive("💥 급소! 치명타 x1.5!");
+      var critMultMsg = upgradeLevels.critDamage > 0 ? "x2.0" : "x1.5";
+      showPassive("💥 급소! 치명타 " + critMultMsg + "!");
     }
 
     // Build suit bonus message (via passive hook)

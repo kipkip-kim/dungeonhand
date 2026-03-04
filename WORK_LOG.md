@@ -372,7 +372,20 @@
 - 빌드 성공 (215.72 kB)
 
 ### 다음 세션 TODO (세션 16C: 치명타 스킬 + 궁극기 효과 4건)
-- [ ] 급소숙련(critMastery): calcDamage critChance에 +10% × level
-- [ ] 속전속결(quickStrike): 첫턴 치명타 확률 2배
-- [ ] 치명타격(critDamage): 치명배율 x1.5→x2.0
-- [ ] 운명의 주사위(fatedDice): calcDamage/submitCards에서 1d6 배율 적용 + 주사위 연출
+- [x] ~~급소숙련(critMastery): calcDamage critChance에 +10% × level~~
+- [x] ~~속전속결(quickStrike): 첫턴 치명타 확률 2배~~
+- [x] ~~치명타격(critDamage): 치명배율 x1.5→x2.0~~
+- [x] ~~운명의 주사위(fatedDice): calcDamage/submitCards에서 1d6 배율 적용 + 주사위 연출~~
+
+## 세션 16C (2026-03-04) — 치명타 스킬 + 궁극기 효과
+
+### 완료
+- [x] buildPState 확장: critMastery/quickStrike/critDamage/fatedDice/roundNum 추가
+- [x] 급소숙련: calcDamage에서 critChance += critMastery × 10 (max 90)
+- [x] 속전속결: roundNum === 1이면 critChance × 2 (max 90)
+- [x] 치명타격: 치명배율 1.5→2.0 분기 (pState.critDamage)
+- [x] 운명의 주사위: calcDamage에서 1d6 배율 (1-2=x0.5, 3-4=x1.5, 5-6=x3.0) + return에 fatedRoll/fatedMult
+- [x] submitCards 연출: 주사위 결과 showPassive + 치명타 메시지 동적화
+
+### 검증
+- 빌드 성공 (216.23 kB)

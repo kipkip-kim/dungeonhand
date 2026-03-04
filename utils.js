@@ -206,9 +206,26 @@ function calcDamage(cards, hand, relics, pState, classDef) {
     mult += pState.gambleBuff;
   }
 
+  // 급소숙련: +10% per level
+  if (pState && pState.critMastery) critChance = Math.min(90, critChance + pState.critMastery * 10);
+  // 속전속결: 첫턴 치명타 2배
+  if (pState && pState.quickStrike && pState.roundNum === 1) critChance = Math.min(90, critChance * 2);
+
+  // 운명의 주사위: 1d6 배율
+  var fatedRoll = 0;
+  var fatedMult = 1;
+  if (pState && pState.fatedDice) {
+    fatedRoll = Math.floor(Math.random() * 6) + 1;
+    if (fatedRoll <= 2) fatedMult = 0.5;
+    else if (fatedRoll <= 4) fatedMult = 1.5;
+    else fatedMult = 3.0;
+    mult *= fatedMult;
+  }
+
   var isCrit = critChance > 0 && Math.random() * 100 < critChance;
+  var critMult = (pState && pState.critDamage) ? 2.0 : 1.5;
   var finalTotal = Math.floor(atk * mult);
-  if (isCrit) finalTotal = Math.floor(finalTotal * 1.5);
+  if (isCrit) finalTotal = Math.floor(finalTotal * critMult);
 
   return {
     atk: Math.round(atk),
@@ -223,6 +240,8 @@ function calcDamage(cards, hand, relics, pState, classDef) {
     dmgReduction: dmgReduction,
     evasionChance: evasionChance,
     hasRed: hasRed,
+    fatedRoll: fatedRoll,
+    fatedMult: fatedMult,
   };
 }
 

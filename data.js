@@ -228,7 +228,7 @@ var SKILL_TREES = [
 
 var ULTIMATE_SKILL = {
   id: "fatedDice", name: "운명의 주사위", icon: "🎲",
-  desc: "매 제출시 1d6: 1-2=x0.5, 3-4=x1.5, 5-6=x3",
+  desc: "제출마다 주사위! 데미지 배율 33% x0.5 / 33% x1.5 / 33% x3",
   unlockCost: 40,
 };
 

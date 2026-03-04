@@ -177,7 +177,6 @@ export default function DungeonHand() {
     setAimedBonus(0);
     setBook2Used(false);
     setBossDialogue(null);
-    setShield(0);
     setPoison(0);
     setErodedIds([]);
     // === 전투 시작 시퀀스: encounter → dialogue → ambush → dice → draw ===
@@ -298,7 +297,7 @@ export default function DungeonHand() {
   var preview = previewCards.length > 0 ? detectHand(previewCards) : null;
   var previewDmg = null;
   if (preview && previewCards.length > 0) {
-    previewDmg = calcDamage(previewCards, preview, relics, buildPState(), classData);
+    previewDmg = calcDamage(previewCards, preview, relics, buildPState(), classData, true);
   }
 
   function showPassive(msg) {
@@ -819,10 +818,11 @@ export default function DungeonHand() {
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
-    var rcPool = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit"; }) : REWARD_COMMONS;
+    var rcPool = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
     var ct = pickN(rcPool, 1)[0];
     var s3 = collectSuits.length > 2 ? SUITS.find(function(ss) { return ss.id === collectSuits[2]; }) : pickN(SUITS, 1)[0];
     var g3 = rollGrade();
+    if (ct && (ct.fx === "reclaim" || ct.fx === "gambit") && g3 < 2) g3 = 2;
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
     pool.push(makeCard(s3.id, g3, classId, ct, kw2));
     setRewardCards(pool);
@@ -915,7 +915,7 @@ export default function DungeonHand() {
       g = Math.max(1, Math.min(g, 10));
       var kw = (i < 2 && Math.random() < 0.25) ? pickKw(g) : null;
       if (Math.random() < 0.3) {
-        var shopRc = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit"; }) : REWARD_COMMONS;
+        var shopRc = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
         pool.push(makeCard(s2.id, g, classId, pickN(shopRc, 1)[0], kw));
       } else {
         pool.push(makeCard(s2.id, g, classId, null, kw));
@@ -1072,7 +1072,7 @@ export default function DungeonHand() {
     var ulUnlocked = totalInvested >= ULTIMATE_SKILL.unlockCost;
     var ulOwned = upgradeLevels.fatedDice > 0;
     var visibleTrees = SKILL_TREES.filter(function(t) {
-      return t.classId === null || t.classId === classId;
+      return t.classId === null || t.classId === classId || CLASSES.length === 1;
     });
     return (
       <div style={wrapStyle}>
@@ -1210,7 +1210,7 @@ export default function DungeonHand() {
               ⚔️ 던전 입장
             </Btn>
             <Btn onClick={function() { setScreen("village"); }} color="#22c55e" style={{ fontSize: 14, padding: "14px 32px" }}>
-              🏘️ 마을
+              🌳 스킬 트리
             </Btn>
           </div>
           {metaPoints > 0 && (

@@ -121,7 +121,7 @@ function detectHand(cards) {
   return { name: "하이카드", mult: 1, tier: 1, emoji: "👊" };
 }
 
-function calcDamage(cards, hand, relics, pState, classDef) {
+function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   var atk = 0;
   var extraDraw = 0;
   var hasGrowth = false;
@@ -214,7 +214,7 @@ function calcDamage(cards, hand, relics, pState, classDef) {
   // 운명의 주사위: 1d6 배율
   var fatedRoll = 0;
   var fatedMult = 1;
-  if (pState && pState.fatedDice) {
+  if (pState && pState.fatedDice && !isPreview) {
     fatedRoll = Math.floor(Math.random() * 6) + 1;
     if (fatedRoll <= 2) fatedMult = 0.5;
     else if (fatedRoll <= 4) fatedMult = 1.5;
@@ -222,7 +222,7 @@ function calcDamage(cards, hand, relics, pState, classDef) {
     mult *= fatedMult;
   }
 
-  var isCrit = critChance > 0 && Math.random() * 100 < critChance;
+  var isCrit = !isPreview && critChance > 0 && Math.random() * 100 < critChance;
   var critMult = (pState && pState.critDamage) ? 2.0 : 1.5;
   var finalTotal = Math.floor(atk * mult);
   if (isCrit) finalTotal = Math.floor(finalTotal * critMult);

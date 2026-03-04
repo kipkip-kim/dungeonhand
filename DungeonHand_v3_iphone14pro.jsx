@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 // === AUDIO ===
 const sfx = (() => {
@@ -9,7 +9,15 @@ const sfx = (() => {
   let mIdx = 0;
 
   function getCtx() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // iOS Safari unlock: 무음 버퍼 재생으로 오디오 잠금 해제
+      var buf = ctx.createBuffer(1, 1, 22050);
+      var src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+    }
     if (ctx.state === "suspended") ctx.resume();
     return ctx;
   }
@@ -78,6 +86,7 @@ const sfx = (() => {
   };
 })();
 
+
 // === DATA ===
 var SUITS = [
   { id: "red", emoji: "🔺", color: "#e64b35" },
@@ -86,14 +95,102 @@ var SUITS = [
 ];
 
 const CLASSES = [
-  { id: "warrior", icon: "⚔️", name: "전사", suits: { red: "강타", blue: "베기", yellow: "함성" } },
-  { id: "ranger", icon: "🗡️", name: "도적", suits: { red: "습격", blue: "연계", yellow: "급소" } },
+  {
+    id: "ranger",
+    icon: "🗡️",
+    name: "도적",
+    suits: { red: "습격", blue: "연계", yellow: "급소" },
+    passive: {
+      name: "그림자",
+      icon: "🌑",
+      desc: "🌑 🔺포함 → 그림자",
+      color: "#7c3aed",
+      suitDescs: ["🔺 그림자+1", "🔷 드로우+1", "⭐ 급소 15%/장"],
+
+      init: function(hasAwakening) {
+        return { stacks: hasAwakening ? 1 : 0 };
+      },
+
+      cardBonus: function(suitId) {
+        return { atk: 0, defReduce: 0 };
+      },
+
+      calcBonus: function(pState, suitBonuses, stealthBonus) {
+        return {
+          evasion: Math.min(50, 10 + stealthBonus + pState.stacks * 5),
+          crit: Math.min(90, suitBonuses.yellow * 15),
+          extraDraw: suitBonuses.blue >= 2 ? (pState.chainBoost ? 2 : 1) : 0,
+        };
+      },
+
+      applyMult: function(mult, pState) {
+        if (pState.stacks > 0) {
+          var perStack = pState.shadowBurst ? 0.8 : 0.5;
+          mult += pState.stacks * perStack;
+        }
+        return mult;
+      },
+
+      onSubmit: function(pState, playedCards) {
+        var perStack = pState.shadowBurst ? 0.8 : 0.5;
+        var hasRed = playedCards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
+        if (hasRed) {
+          var ns = pState.stacks + 1;
+          var evPct = Math.min(50, 10 + ns * 5);
+          return { state: { stacks: ns }, msg: "🌑 그림자 x" + ns + "! 배율+" + (ns * perStack).toFixed(1) + " 회피" + evPct + "%" };
+        }
+        if (pState.stacks > 0) {
+          return { state: { stacks: 0 }, msg: "💨 그림자 소멸... (🔺 포함 필요)" };
+        }
+        return { state: pState };
+      },
+
+      onHit: function(pState) {
+        if (pState.stacks > 0) {
+          return { state: { stacks: 0 }, msg: "💨 피격! 그림자 소멸..." };
+        }
+        return { state: pState };
+      },
+
+      onEvade: function(pState) {
+        var perStack = pState.shadowBurst ? 0.8 : 0.5;
+        var ns = pState.stacks + 1;
+        return { state: { stacks: ns }, msg: "🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * perStack).toFixed(1) + ")" };
+      },
+
+      onCamp: function(pState) {
+        return { state: { stacks: pState.stacks + 1 }, msg: "🌑 그림자 +1!" };
+      },
+
+      suitMessages: function(suitBonuses, critChance, hasRed) {
+        var msgs = [];
+        if (hasRed) msgs.push("🔺포함→그림자+1");
+        if (suitBonuses.blue >= 2) msgs.push("🔷드로우+1");
+        if (suitBonuses.yellow > 0) msgs.push("⭐급소" + critChance + "%");
+        return msgs;
+      },
+
+      renderBadge: function(pState, stealthBonus) {
+        var perStack = pState.shadowBurst ? 0.8 : 0.5;
+        if (pState.stacks > 0) {
+          return {
+            bg: "#7c3aed22", border: "#7c3aed",
+            label: "🌑x" + pState.stacks,
+            detail: "+" + (pState.stacks * perStack).toFixed(1) + " 회피" + Math.min(50, 10 + pState.stacks * 5) + "%",
+          };
+        }
+        return {
+          bg: "#1a1a2e", border: "var(--bd)",
+          label: "🌑회피" + (10 + stealthBonus) + "%",
+        };
+      },
+    },
+  },
 ];
 
 const COMMONS = [
-  { id: "fortress", icon: "🛡️", name: "보루", fx: "fortress" },
   { id: "aimed", icon: "🎯", name: "집중타", fx: "aimed" },
-  { id: "wild", icon: "🃏", name: "변환", fx: "wild" },
+  { id: "glass", icon: "🔮", name: "유리", fx: "glass" },
   { id: "focus", icon: "⚡", name: "기세", fx: "focus" },
 ];
 
@@ -141,16 +238,16 @@ var CAMPFIRE_EVENTS = [
 ];
 
 const RELICS = [
-  { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 } },
-  { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 } },
-  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble" } },
-  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 } },
-  { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 } },
-  { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 } },
-  { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급4↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 4, val: 2 } },
-  { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 } },
-  { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 } },
-  { id: "inf", name: "무한의 덱", emoji: "♾️", desc: "매 턴 드로우 +1", tier: 3, eff: { type: "drawAdd", val: 1 } },
+  { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 }, classId: null },
+  { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 }, classId: null },
+  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble" }, classId: null },
+  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 }, classId: null },
+  { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 }, classId: null },
+  { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 }, classId: null },
+  { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급4↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 4, val: 2 }, classId: null },
+  { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 }, classId: null },
+  { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 }, classId: null },
+  { id: "inf", name: "무한의 덱", emoji: "♾️", desc: "매 턴 드로우 +1", tier: 3, eff: { type: "drawAdd", val: 1 }, classId: null },
 ];
 
 const FLOOR_NAMES = ["", "고블린 소굴", "언데드 묘지", "마법 탑", "심연", "드래곤 둥지"];
@@ -169,6 +266,65 @@ const BOSS_DIALOGUES = {
   "드래곤 로드": ["필멸자여, 나에게 도전하다니!", "이 땅의 최강은 바로 나다!"],
 };
 
+// Keywords that can be attached to cards
+var KEYWORDS = [
+  { id: "poison", icon: "☠️", name: "맹독", desc: "등급만큼 매턴 독 데미지" },
+  { id: "chain", icon: "⛓️", name: "연쇄", desc: "제출 시 드로우 +1" },
+  { id: "growth", icon: "🌱", name: "성장", desc: "제출마다 등급 영구 +1" },
+  { id: "resonance", icon: "🔔", name: "공명", desc: "같은 문양 2장+ 시 배율 +0.5" },
+];
+
+var SKILL_TREES = [
+  {
+    id: "common", name: "공통", icon: "⚔️", classId: null,
+    nodes: [
+      { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2 },
+      { id: "sharp", name: "강화", icon: "🗡️", desc: "시작시 중립카드 등급+1", cost: 4, max: 1 },
+      { id: "merchant", name: "상인", icon: "🏪", desc: "상점 20% 할인", cost: 6, max: 1 },
+      { id: "loot", name: "약탈", icon: "💰", desc: "전투 골드 +3", cost: 6, max: 2 },
+      { id: "tenacity", name: "집념", icon: "💀", desc: "HP 0시 1회 부활", cost: 12, max: 1 },
+      { id: "inventory", name: "유물슬롯", icon: "🎒", desc: "유물 슬롯 +1", cost: 8, max: 2 },
+    ],
+  },
+  {
+    id: "ranger_red", name: "습격", icon: "🔺", classId: "ranger",
+    nodes: [
+      { id: "redCollect", name: "🔺수집", icon: "🔺", desc: "보상시 🔺카드 1장 보장", cost: 4, max: 1 },
+      { id: "awaken", name: "각성", icon: "🌑", desc: "시작시 그림자 x1", cost: 10, max: 1 },
+      { id: "stealth", name: "은신", icon: "🌫️", desc: "기본 회피 +5%", cost: 3, max: 2 },
+      { id: "shadowBurst", name: "그림자폭발", icon: "🌑", desc: "스택당 배율 +0.5→+0.8", cost: 8, max: 1 },
+    ],
+  },
+  {
+    id: "ranger_blue", name: "연계", icon: "🔷", classId: "ranger",
+    nodes: [
+      { id: "blueCollect", name: "🔷수집", icon: "🔷", desc: "보상시 🔷카드 1장 보장", cost: 4, max: 1 },
+      { id: "deft", name: "손재주", icon: "👋", desc: "시작 드로우 +1", cost: 5, max: 1 },
+      { id: "nimble", name: "기민함", icon: "🧤", desc: "버리기 +1", cost: 4, max: 1 },
+      { id: "chainBoost", name: "연쇄강화", icon: "🔗", desc: "🔷2장+ 제출시 드로우+2", cost: 7, max: 1 },
+    ],
+  },
+  {
+    id: "ranger_yellow", name: "급소", icon: "⭐", classId: "ranger",
+    nodes: [
+      { id: "yellowCollect", name: "⭐수집", icon: "⭐", desc: "보상시 ⭐카드 1장 보장", cost: 4, max: 1 },
+      { id: "critMastery", name: "급소숙련", icon: "🗡️", desc: "치명타 +10%", cost: 4, max: 2 },
+      { id: "quickStrike", name: "속전속결", icon: "⚡", desc: "첫턴 치명타 2배", cost: 6, max: 1 },
+      { id: "critDamage", name: "치명타격", icon: "💥", desc: "치명 x1.5→x2.0", cost: 8, max: 1 },
+    ],
+  },
+];
+
+var ULTIMATE_SKILL = {
+  id: "fatedDice", name: "운명의 주사위", icon: "🎲",
+  desc: "제출마다 주사위! 데미지 배율 33% x0.5 / 33% x1.5 / 33% x3",
+  unlockCost: 40,
+};
+
+var BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
+
+
+
 // === UTILS ===
 function shuffle(arr) {
   const a = [...arr];
@@ -182,14 +338,6 @@ function shuffle(arr) {
 function pickN(arr, n) {
   return shuffle(arr).slice(0, Math.min(n, arr.length));
 }
-
-// Keywords that can be attached to cards
-var KEYWORDS = [
-  { id: "poison", icon: "☠️", name: "맹독", desc: "등급만큼 매턴 독 데미지" },
-  { id: "chain", icon: "⛓️", name: "연쇄", desc: "제출 시 드로우 +1" },
-  { id: "growth", icon: "🌱", name: "성장", desc: "제출마다 등급 영구 +1" },
-  { id: "resonance", icon: "🔔", name: "공명", desc: "같은 문양 2장+ 시 배율 +0.5" },
-];
 
 let nextId = 0;
 function makeCard(suitId, grade, classId, common, keyword) {
@@ -230,20 +378,6 @@ function getCardName(card, classData) {
 }
 
 function getEffectiveSuit(card, allCards) {
-  if (card.isCommon && card.common.fx === "wild") {
-    // Conditional wild: only if 2+ same suit among other cards
-    if (allCards) {
-      var otherSuits = {};
-      allCards.forEach(function(c) {
-        if (c.id !== card.id && !c.isCommon) {
-          otherSuits[c.suitId] = (otherSuits[c.suitId] || 0) + 1;
-        }
-      });
-      var hasPair = Object.values(otherSuits).some(function(v) { return v >= 2; });
-      if (hasPair) return "wild";
-    }
-    return card.suitId; // fallback: treated as its base suit
-  }
   return card.suitId;
 }
 
@@ -254,23 +388,19 @@ function detectHand(cards) {
 
   // Use effective grade (grade + growthBonus) for hand detection
   var grades = cards.map(function(c) { return c.grade + (c.growthBonus || 0); }).sort(function(a, b) { return a - b; });
-  // Common cards have NO suit for flush/SF purposes (except wild)
+  // Common cards have NO suit for flush/SF purposes
   var suits = cards.map(function(c) {
-    if (c.isCommon) {
-      if (c.common.fx === "wild") return getEffectiveSuit(c, cards);
-      return "none";
-    }
-    return getEffectiveSuit(c, cards);
+    if (c.isCommon) return "none";
+    return c.suitId;
   });
 
   var gradeCounts = {};
   grades.forEach(function(g) { gradeCounts[g] = (gradeCounts[g] || 0) + 1; });
   var counts = Object.values(gradeCounts).sort(function(a, b) { return b - a; });
 
-  // Flush: ALL cards must be same suit. Common cards (suit "none") break flush.
-  var suitCards = suits.filter(function(s) { return s !== "none" && s !== "wild"; });
-  var wildCount = suits.filter(function(s) { return s === "wild"; }).length;
-  var isFlush = len === 5 && (suitCards.length + wildCount) === 5 && suitCards.length > 0 && new Set(suitCards).size <= 1;
+  // Flush: ALL 5 cards must be same suit. Common cards (suit "none") break flush.
+  var suitCards = suits.filter(function(s) { return s !== "none"; });
+  var isFlush = len === 5 && suitCards.length === 5 && new Set(suitCards).size <= 1;
 
   var uniqueGrades = Array.from(new Set(grades)).sort(function(a, b) { return a - b; });
 
@@ -284,20 +414,16 @@ function detectHand(cards) {
 
   function checkStraightFlush() {
     if (len < 3) return false;
-    // Class cards + wild common cards can form a straight flush
-    var classCards = cards.filter(function(c) { return !c.isCommon || (c.isCommon && c.common.fx === "wild"); });
+    var classCards = cards.filter(function(c) { return !c.isCommon; });
     if (classCards.length < 3) return false;
     var suitGroups = {};
     classCards.forEach(function(c) {
-      var s = getEffectiveSuit(c, cards);
-      if (!suitGroups[s]) suitGroups[s] = [];
-      suitGroups[s].push(c.grade + (c.growthBonus || 0));
+      if (!suitGroups[c.suitId]) suitGroups[c.suitId] = [];
+      suitGroups[c.suitId].push(c.grade + (c.growthBonus || 0));
     });
-    var wilds = suitGroups["wild"] || [];
-    delete suitGroups["wild"];
     var found = false;
     Object.values(suitGroups).forEach(function(gradeArr) {
-      var all = Array.from(new Set(gradeArr.concat(wilds))).sort(function(a, b) { return a - b; });
+      var all = Array.from(new Set(gradeArr)).sort(function(a, b) { return a - b; });
       if (all.length >= 3) {
         for (var i = 0; i <= all.length - 3; i++) {
           if (all[i + 2] - all[i] === 2) found = true;
@@ -320,29 +446,23 @@ function detectHand(cards) {
   return { name: "하이카드", mult: 1, tier: 1, emoji: "👊" };
 }
 
-function calcDamage(cards, hand, relics, passiveState) {
+function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   var atk = 0;
   var extraDraw = 0;
   var hasGrowth = false;
   var suitBonuses = { red: 0, blue: 0, yellow: 0 };
   var dmgReduction = 0;
-  var cid = passiveState ? passiveState.classId : "warrior";
+  var passive = classDef.passive;
 
   cards.forEach(function(c) {
     var a = c.grade + (c.growthBonus || 0);
 
-    // === Class-specific suit bonuses ===
+    // === Class-specific suit bonuses (via passive hook) ===
     if (!c.isCommon) {
-      if (cid === "warrior") {
-        if (c.suitId === "red") { a += 2; suitBonuses.red += 1; }
-        if (c.suitId === "blue") { dmgReduction += 1; suitBonuses.blue += 1; }
-        if (c.suitId === "yellow") { suitBonuses.yellow += 1; } // fury bonus handled below
-      }
-      if (cid === "ranger") {
-        if (c.suitId === "red") { suitBonuses.red += 1; }
-        if (c.suitId === "blue") { suitBonuses.blue += 1; } // draw bonus handled below
-        if (c.suitId === "yellow") { suitBonuses.yellow += 1; } // crit chance
-      }
+      suitBonuses[c.suitId] = (suitBonuses[c.suitId] || 0) + 1;
+      var cb = passive.cardBonus(c.suitId);
+      a += cb.atk;
+      dmgReduction += cb.defReduce;
     }
 
     relics.forEach(function(r) {
@@ -360,28 +480,23 @@ function calcDamage(cards, hand, relics, passiveState) {
 
   var mult = hand.mult;
 
-  // === Rogue: shadow-based evasion (base 10% + stealth upgrade + 5%/stack, cap 50%) ===
-  var evasionChance = 0;
-  if (cid === "ranger") {
-    var baseEvasion = 10 + (passiveState ? (passiveState.stealthBonus || 0) : 0);
-    evasionChance = Math.min(50, baseEvasion + (passiveState ? passiveState.shadow * 5 : 0));
-  }
+  // === Passive: calcBonus (evasion, crit, extraDraw) ===
+  var stealthBonus = pState ? (pState.stealthBonus || 0) : 0;
+  var bonus = passive.calcBonus(pState || { stacks: 0 }, suitBonuses, stealthBonus);
+  var evasionChance = bonus.evasion;
+  var critChance = bonus.crit;
+  if (bonus.extraDraw) extraDraw += bonus.extraDraw;
 
-  // === Rogue: check if 1+ red class card submitted (for shadow stacking) ===
-  var hasRed = false;
-  if (cid === "ranger") {
-    var redClassCards = cards.filter(function(c) { return !c.isCommon && c.suitId === "red"; }).length;
-    hasRed = redClassCards >= 1;
-  }
-
-  // === Rogue 🔷 bonus: draw+1 if 2+ blue cards ===
-  if (cid === "ranger" && suitBonuses.blue >= 2) {
-    extraDraw += 1;
-  }
+  // === Check if 1+ red class card submitted (for shadow stacking) ===
+  var hasRed = cards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
 
   // Common card: focus
   cards.forEach(function(c) {
     if (c.isCommon && c.common.fx === "focus") mult += 0.5;
+  });
+  // Common card: glass
+  cards.forEach(function(c) {
+    if (c.isCommon && c.common.fx === "glass") mult *= 1.5;
   });
   // Keyword: resonance
   cards.forEach(function(c) {
@@ -408,33 +523,34 @@ function calcDamage(cards, hand, relics, passiveState) {
     }
   });
 
-  // === Warrior passive: fury ===
-  if (passiveState && cid === "warrior" && passiveState.fury > 0) {
-    // ⭐ yellow bonus: fury +0.5 per yellow card
-    var furyBonus = passiveState.fury + suitBonuses.yellow * 0.5;
-    mult *= (1 + furyBonus * 0.15);
-  } else if (passiveState && cid === "warrior" && suitBonuses.yellow > 0) {
-    // Even without fury stacks, yellow doesn't do anything yet (needs fury > 0)
-  }
-
-  // === Rogue passive: shadow stacks → mult bonus ===
-  if (passiveState && cid === "ranger" && passiveState.shadow > 0) {
-    mult += passiveState.shadow * 0.5;
-  }
+  // === Passive: apply mult bonus ===
+  mult = passive.applyMult(mult, pState || { stacks: 0 });
 
   // === Gamble relic buff ===
-  if (passiveState && passiveState.gambleBuff) {
-    mult += passiveState.gambleBuff;
+  if (pState && pState.gambleBuff) {
+    mult += pState.gambleBuff;
   }
 
-  // === Ranger ⭐ critical hit ===
-  var critChance = 0;
-  if (cid === "ranger") {
-    critChance = Math.min(90, suitBonuses.yellow * 15); // 15% per ⭐ card, cap 90%
+  // 급소숙련: +10% per level
+  if (pState && pState.critMastery) critChance = Math.min(90, critChance + pState.critMastery * 10);
+  // 속전속결: 첫턴 치명타 2배
+  if (pState && pState.quickStrike && pState.roundNum === 1) critChance = Math.min(90, critChance * 2);
+
+  // 운명의 주사위: 1d6 배율
+  var fatedRoll = 0;
+  var fatedMult = 1;
+  if (pState && pState.fatedDice && !isPreview) {
+    fatedRoll = Math.floor(Math.random() * 6) + 1;
+    if (fatedRoll <= 2) fatedMult = 0.5;
+    else if (fatedRoll <= 4) fatedMult = 1.5;
+    else fatedMult = 3.0;
+    mult *= fatedMult;
   }
-  var isCrit = critChance > 0 && Math.random() * 100 < critChance;
+
+  var isCrit = !isPreview && critChance > 0 && Math.random() * 100 < critChance;
+  var critMult = (pState && pState.critDamage) ? 2.0 : 1.5;
   var finalTotal = Math.floor(atk * mult);
-  if (isCrit) finalTotal = Math.floor(finalTotal * 1.5);
+  if (isCrit) finalTotal = Math.floor(finalTotal * critMult);
 
   return {
     atk: Math.round(atk),
@@ -449,8 +565,11 @@ function calcDamage(cards, hand, relics, passiveState) {
     dmgReduction: dmgReduction,
     evasionChance: evasionChance,
     hasRed: hasRed,
+    fatedRoll: fatedRoll,
+    fatedMult: fatedMult,
   };
 }
+
 
 // === STYLES ===
 var CSS = [
@@ -481,6 +600,8 @@ var CSS = [
   "@keyframes missBounce{0%{transform:translateX(-50%) scale(0) rotate(-20deg)}25%{transform:translateX(-50%) scale(2.2) rotate(8deg)}45%{transform:translateX(-50%) scale(0.7) rotate(-3deg)}65%{transform:translateX(-50%) scale(1.4) rotate(2deg)}100%{transform:translateX(-50%) scale(1) rotate(0)}}",
   "@keyframes encounterIn{0%{opacity:0;transform:scale(0.3)}30%{opacity:1;transform:scale(1.1)}50%{transform:scale(0.95)}100%{transform:scale(1)}}",
 ].join("\n");
+
+
 
 // === COMPONENTS ===
 function CardView(props) {
@@ -534,7 +655,7 @@ function CardView(props) {
   // Effect descriptions for common cards
   var fxText = "";
   if (isC) {
-    var fxMap = { fortress: "방어막+" + (c.grade + (c.growthBonus || 0)), aimed: "다음턴 제출+1", wild: "조건부 와일드", focus: "배율+0.5", reclaim: "회수" + (c.grade + (c.growthBonus || 0)) + "장", gambit: "50% 배율+1/-0.5" };
+    var fxMap = { aimed: "다음턴 제출+1", glass: "x1.5 소멸", focus: "배율+0.5", reclaim: "회수" + (c.grade + (c.growthBonus || 0)) + "장", gambit: "3장 중 1장 선택" };
     fxText = fxMap[c.common.fx] || "";
   }
 
@@ -571,7 +692,7 @@ function CardView(props) {
           fontWeight: 700,
           letterSpacing: 1,
         }}>
-          공용
+          중립
         </div>
       )}
       {/* Keyword badge */}
@@ -828,30 +949,33 @@ function DeckViewer(props) {
   );
 }
 
+
+
 // === MAIN GAME ===
-var UPGRADES = [
-  { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2, tier: "basic" },
-  { id: "sharp", name: "강화", icon: "🗡️", desc: "시작 시 중립카드 전체 등급+1", cost: 4, max: 1, tier: "basic" },
-  { id: "stealth", name: "은신", icon: "🌑", desc: "기본 회피 +5%", cost: 3, max: 2, tier: "basic" },
-  { id: "merchant", name: "노련한 상인", icon: "🏪", desc: "상점 가격 20% 할인", cost: 6, max: 1, tier: "advanced" },
-  { id: "loot", name: "약탈", icon: "💰", desc: "매 전투 승리 골드 +3", cost: 6, max: 2, tier: "advanced" },
-  { id: "awaken", name: "각성", icon: "🌑", desc: "시작 시 그림자 x1", cost: 10, max: 1, tier: "advanced" },
-  { id: "tenacity", name: "집념", icon: "💀", desc: "HP 0 시 1회 HP 1로 부활", cost: 12, max: 1, tier: "advanced" },
-];
-
-var BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
-
 export default function DungeonHand() {
   var s = useState;
   var [screen, setScreen] = s("menu");
   var [classId, setClassId] = s(null);
   var [floor, setFloor] = s(1);
   var [battleNum, setBattleNum] = s(1);
-  var [gold, setGold] = s(0);
+  var [gold, setGold] = s(99999);
   var [hp, setHp] = s(70);
   // Meta progression (persists across runs)
-  var [metaPoints, setMetaPoints] = s(0);
-  var [upgradeLevels, setUpgradeLevels] = s({ hp: 0, sharp: 0, stealth: 0, merchant: 0, loot: 0, awaken: 0, tenacity: 0 });
+  var [metaPoints, setMetaPoints] = s(99999);
+  var [upgradeLevels, setUpgradeLevels] = s({
+    // 공통
+    hp: 0, sharp: 0, merchant: 0, loot: 0, tenacity: 0, inventory: 0,
+    // 습격
+    redCollect: 0, awaken: 0, stealth: 0, shadowBurst: 0,
+    // 연계
+    blueCollect: 0, deft: 0, nimble: 0, chainBoost: 0,
+    // 급소
+    yellowCollect: 0, critMastery: 0, quickStrike: 0, critDamage: 0,
+    // 궁극기
+    fatedDice: 0,
+  });
+  var [resetCount, setResetCount] = s(0);
+  var [skillTab, setSkillTab] = s("common");
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
   var MAX_HP = 70 + upgradeLevels.hp * 5;
   var [relics, setRelics] = s([]);
@@ -883,11 +1007,8 @@ export default function DungeonHand() {
   var [enemyDmgShow, setEnemyDmgShow] = s(null);
   var [audioOn, setAudioOn] = s(false);
   // Passive state
-  var [fury, setFury] = s(0); // warrior: fury stacks
-  var [lastSuit, setLastSuit] = s(null); // warrior: last submitted suit
-  var [shadow, setShadow] = s(0); // rogue: shadow stacks (consecutive evades)
+  var [passiveState, setPassiveState] = s({ stacks: 0 });
   var [aimedBonus, setAimedBonus] = s(0); // aimed shot: next turn submit +1
-  var [shield, setShield] = s(0); // fortress: damage reduction next turn
   var [gambleBuff, setGambleBuff] = s(0); // dice relic: +1 or -0.5 mult
   var [gambleAnim, setGambleAnim] = s(null); // roulette animation text
   var [poison, setPoison] = s(0); // poison on monster: dmg per turn
@@ -897,6 +1018,8 @@ export default function DungeonHand() {
   var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
   var [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
   var [book2Used, setBook2Used] = s(false); // book2: once per battle submit bonus
+  var gambitPendingRef = useRef(false); // gambit: next draw shows 3-pick-1 (ref for setTimeout closure)
+  var [gambitChoices, setGambitChoices] = s([]); // gambit: 3 cards to choose from
   var [splitMon, setSplitMon] = s(null); // split monster waiting
   var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
   var [deckView, setDeckView] = s(false);
@@ -907,11 +1030,26 @@ export default function DungeonHand() {
   var [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
   var [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
 
-  var HAND_SIZE = 5;
-  var RELIC_SLOTS = 3;
+  var HAND_SIZE = 5 + (upgradeLevels.deft || 0);
+  var MAX_HAND = 7;
+  var RELIC_SLOTS = 3 + (upgradeLevels.inventory || 0);
   var BASE_SUBMIT = 3;
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
+
+  function buildPState() {
+    return Object.assign({}, passiveState, {
+      stealthBonus: upgradeLevels.stealth * 5,
+      gambleBuff: gambleBuff,
+      shadowBurst: upgradeLevels.shadowBurst > 0,
+      chainBoost: upgradeLevels.chainBoost > 0,
+      critMastery: upgradeLevels.critMastery || 0,
+      quickStrike: upgradeLevels.quickStrike > 0,
+      critDamage: upgradeLevels.critDamage > 0,
+      fatedDice: upgradeLevels.fatedDice > 0,
+      roundNum: roundNum,
+    });
+  }
   var book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
   var submitLimit = BASE_SUBMIT + aimedBonus + book2Bonus;
 
@@ -935,7 +1073,7 @@ export default function DungeonHand() {
     }
     d = shuffle(d);
     setDeck(d);
-    setGold(0); // 약탈 효과는 매 전투 승리 시 적용
+    setGold(99999); // TEST: 약탈 효과는 매 전투 승리 시 적용
     var maxHp = 70 + upgradeLevels.hp * 5;
     setHp(maxHp);
     setRelics([]);
@@ -945,23 +1083,14 @@ export default function DungeonHand() {
     setFloor(1);
     setBattleNum(1);
     setBossesKilled([]);
-    // 🔥 각성: start with fury/shadow
-    if (upgradeLevels.awaken > 0) {
-      if (cid === "warrior") {
-        setFury(1);
-        setLastSuit(null); // first submit sets lastSuit, fury won't reset if same suit
-      } else {
-        setFury(0);
-      }
-      setShadow(cid === "ranger" ? 1 : 0);
-    } else {
-      setFury(0);
-      setShadow(0);
-    }
-    setLastSuit(null);
+    // 🔥 각성: init passive via hook
+    var cDef = CLASSES.find(function(c) { return c.id === cid; });
+    setPassiveState(cDef.passive.init(upgradeLevels.awaken > 0));
     setPoison(0);
     setErodedIds([]);
     setTenacityUsed(false);
+    gambitPendingRef.current = false;
+    setGambitChoices([]);
     beginBattle(d, [], 1, 1);
     if (sfx.getOn()) sfx.bgmOn();
   }
@@ -980,7 +1109,7 @@ export default function DungeonHand() {
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
     }, 0);
-    setDiscards(2 + discBonus);
+    setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
     setRoundNum(1);
     setDamageInfo(null);
     setCurrentHand(null);
@@ -988,13 +1117,12 @@ export default function DungeonHand() {
     setBusy(false);
     setEnemyDmgShow(null);
     // Reset battle-scoped passives
-    // (fury and lastSuit persist across battles)
+    // (passiveState persists across battles)
     setFrozenIds([]);
     setSplitMon(null);
     setAimedBonus(0);
     setBook2Used(false);
     setBossDialogue(null);
-    setShield(0);
     setPoison(0);
     setErodedIds([]);
     // === 전투 시작 시퀀스: encounter → dialogue → ambush → dice → draw ===
@@ -1115,8 +1243,7 @@ export default function DungeonHand() {
   var preview = previewCards.length > 0 ? detectHand(previewCards) : null;
   var previewDmg = null;
   if (preview && previewCards.length > 0) {
-    var pState2 = { classId: classId, fury: fury, shadow: shadow, stealthBonus: upgradeLevels.stealth * 5, gambleBuff: gambleBuff };
-    previewDmg = calcDamage(previewCards, preview, relics, pState2);
+    previewDmg = calcDamage(previewCards, preview, relics, buildPState(), classData, true);
   }
 
   function showPassive(msg) {
@@ -1187,20 +1314,12 @@ export default function DungeonHand() {
     var h = detectHand(playedClean.length > 0 ? playedClean : played);
 
     // Build passive state for damage calc
-    var pState = { classId: classId, fury: fury, shadow: shadow, stealthBonus: upgradeLevels.stealth * 5, gambleBuff: gambleBuff };
-    var dmg = calcDamage(played, h, relics, pState);
+    var dmg = calcDamage(played, h, relics, buildPState(), classData);
 
-    // === 투기(gambit): 50% 배율+1.0, 50% 배율-0.5 ===
+    // === 투기(gambit): 다음 턴 3장 중 1장 선택 ===
     var gambitPlayed = played.filter(function(c) { return c.isCommon && c.common.fx === "gambit"; });
     if (gambitPlayed.length > 0) {
-      var gambitWin = Math.random() < 0.5;
-      if (gambitWin) {
-        dmg.mult = Math.round((dmg.mult + 1.0) * 10) / 10;
-      } else {
-        dmg.mult = Math.max(1, Math.round((dmg.mult - 0.5) * 10) / 10);
-      }
-      dmg.total = Math.floor(dmg.atk * dmg.mult);
-      if (dmg.isCrit) dmg.total = Math.floor(dmg.total * 1.5);
+      gambitPendingRef.current = true;
     }
 
     // === Apply poison from previous turns ===
@@ -1215,48 +1334,11 @@ export default function DungeonHand() {
       setPoison(function(p) { return p + poisonAmt; });
     }
 
-    // === Update Warrior Passive: Fury ===
-    if (classId === "warrior") {
-      var dominantSuit = null;
-      var suitCounts = {};
-      played.forEach(function(c) {
-        if (!c.isCommon) {
-          suitCounts[c.suitId] = (suitCounts[c.suitId] || 0) + 1;
-          if (!dominantSuit || suitCounts[c.suitId] > suitCounts[dominantSuit]) dominantSuit = c.suitId;
-        }
-      });
-      if (dominantSuit && lastSuit && dominantSuit === lastSuit) {
-        var newFury = fury + 1;
-        setFury(newFury);
-        showPassive("🔥 분노 x" + newFury + "! 데미지 +" + Math.round(newFury * 15) + "%");
-      } else if (dominantSuit && lastSuit) {
-        if (dominantSuit !== lastSuit && fury > 0) {
-          setFury(0);
-          showPassive("💨 분노 초기화...");
-        }
-      }
-      setLastSuit(dominantSuit);
-    }
+    // === Update passive state via hook ===
+    var passiveResult = classData.passive.onSubmit(passiveState, played);
+    setPassiveState(passiveResult.state);
+    if (passiveResult.msg) showPassive(passiveResult.msg);
 
-    // === Rogue: shadow stacking (2+ 🔺) or reset ===
-    if (classId === "ranger") {
-      if (dmg.hasRed) {
-        var newShadow = shadow + 1;
-        setShadow(newShadow);
-        var evPct = Math.min(50, 10 + newShadow * 5);
-        showPassive("🌑 그림자 x" + newShadow + "! 배율+" + (newShadow * 0.5).toFixed(1) + " 회피" + evPct + "%");
-      } else if (shadow > 0) {
-        setShadow(0);
-        showPassive("💨 그림자 소멸... (🔺 포함 필요)");
-      }
-    }
-
-    var fortressAmt = played.reduce(function(sum, c) {
-      if (c.isCommon && c.common.fx === "fortress") return sum + c.grade + (c.growthBonus || 0);
-      return sum;
-    }, 0);
-    // Fortress sets shield for NEXT turn (consumed this turn's shield already in enemyTurn)
-    setShield(fortressAmt);
     setCurrentHand(h);
     setDamageInfo(dmg);
     sfx.hit(h.tier);
@@ -1265,23 +1347,19 @@ export default function DungeonHand() {
       setMonShakeHard(h.tier >= 4 || dmg.isCrit);
     }
 
+    // 운명의 주사위 연출
+    if (dmg.fatedRoll > 0) {
+      var fatedMsg = "🎲 운명의 주사위 [" + dmg.fatedRoll + "] → x" + dmg.fatedMult;
+      showPassive(fatedMsg);
+    }
     // Suit bonus: ⭐ crit
     if (dmg.isCrit) {
-      showPassive("💥 급소! 치명타 x1.5!");
+      var critMultMsg = upgradeLevels.critDamage > 0 ? "x2.0" : "x1.5";
+      showPassive("💥 급소! 치명타 " + critMultMsg + "!");
     }
 
-    // Build suit bonus message (class-specific)
-    var suitMsgs = [];
-    if (classId === "warrior") {
-      if (dmg.suitBonuses.red > 0) suitMsgs.push("🔺공격+" + (dmg.suitBonuses.red * 2));
-      if (dmg.suitBonuses.blue > 0) suitMsgs.push("🔷방어-" + dmg.dmgReduction);
-      if (dmg.suitBonuses.yellow > 0) suitMsgs.push("⭐분노 강화");
-    }
-    if (classId === "ranger") {
-      if (dmg.hasRed) suitMsgs.push("🔺포함→그림자+1");
-      if (dmg.suitBonuses.blue >= 2) suitMsgs.push("🔷드로우+1");
-      if (dmg.suitBonuses.yellow > 0) suitMsgs.push("⭐급소" + dmg.critChance + "%");
-    }
+    // Build suit bonus message (via passive hook)
+    var suitMsgs = classData.passive.suitMessages(dmg.suitBonuses, dmg.critChance, dmg.hasRed);
 
     // Show relic triggers and suit bonuses
     var allTriggers = (dmg.relicTriggers || []).concat(suitMsgs);
@@ -1290,16 +1368,9 @@ export default function DungeonHand() {
         showPassive(allTriggers.join(" | "));
       }, 600);
     }
-    if (fortressAmt > 0) {
-      showPassive("🛡️ 보루! 다음 턴 피격 -" + fortressAmt);
-    }
     // === 투기 결과 표시 ===
     if (gambitPlayed.length > 0) {
-      if (gambitWin) {
-        showPassive("🎰 투기 성공! 배율+1.0");
-      } else {
-        showPassive("🎰 투기 실패... 배율-0.5");
-      }
+      showPassive("🎰 투기! 다음 턴 3장 중 1장 선택");
     }
 
     // === Keyword: Growth - permanently increase grade ===
@@ -1373,13 +1444,6 @@ export default function DungeonHand() {
       atkDmg = Math.max(0, atkDmg - dmgResult.dmgReduction);
     }
 
-    // === 🛡️ Fortress shield ===
-    if (shield > 0) {
-      atkDmg = Math.max(0, atkDmg - shield);
-      showPassive("🛡️ 보루! 피격 -" + shield);
-      setShield(0);
-    }
-
     // === Rogue 🔺 red: evasion ===
     var evaded = false;
     if (dmgResult && dmgResult.evasionChance > 0) {
@@ -1404,18 +1468,15 @@ export default function DungeonHand() {
       if (evaded) {
         setPlayerShake(false);
         setEnemyDmgShow("MISS");
-        setShadow(function(prev) {
-          var ns = prev + 1;
-          showPassive("🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * 0.5).toFixed(1) + ")");
-          return ns;
-        });
+        var evadeResult = classData.passive.onEvade(passiveState);
+        setPassiveState(evadeResult.state);
+        if (evadeResult.msg) showPassive(evadeResult.msg);
       } else {
         setPlayerShake(true);
         setEnemyDmgShow(atkDmg);
-        if (shadow > 0 && classId === "ranger") {
-          setShadow(0);
-          showPassive("💨 피격! 그림자 소멸...");
-        }
+        var hitResult = classData.passive.onHit(passiveState);
+        setPassiveState(hitResult.state);
+        if (hitResult.msg) showPassive(hitResult.msg);
         setHp(function(prev) {
           if (prev - atkDmg <= 0) {
             // 💀 Tenacity: revive once
@@ -1442,6 +1503,13 @@ export default function DungeonHand() {
           if (c.eroded) return Object.assign({}, c, { grade: c.grade + 1, eroded: false });
           return c;
         });
+        // glass 카드 소멸: discardPile로 보내지 않고 덱에서 영구 제거
+        var glassIds = usedClean.filter(function(c) { return c.isCommon && c.common.fx === "glass"; }).map(function(c) { return c.id; });
+        if (glassIds.length > 0) {
+          usedClean = usedClean.filter(function(c) { return glassIds.indexOf(c.id) < 0; });
+          setDeck(function(d) { return d.filter(function(dc) { return glassIds.indexOf(dc.id) < 0; }); });
+          showPassive("🔮 유리 카드 " + glassIds.length + "장 소멸!");
+        }
         var newDisc = discardPile.concat(usedClean);
 
         // === 회수(reclaim): 버린 카드 더미에서 드로우 더미로 복귀 ===
@@ -1471,6 +1539,10 @@ export default function DungeonHand() {
           return r.eff.type === "drawAdd" ? sum + r.eff.val : sum;
         }, 0);
         var needed = selected.length + extraDraw;
+        // MAX_HAND 캡 적용
+        var maxDraw = MAX_HAND - remain.length;
+        if (needed > maxDraw) needed = maxDraw;
+        if (needed < 0) needed = 0;
         var tempDraw = reclaimedCards.concat(drawPile.slice());
         var tempDisc = newDisc.slice();
         var drawn = tempDraw.splice(0, needed);
@@ -1541,13 +1613,36 @@ export default function DungeonHand() {
 
           // === Burn mechanic (드래곤) ===
           var burnCount = monster ? (monster.burn || 0) : 0;
-          if (burnCount > 0 && allNewHand.length < 7) {
+          if (burnCount > 0 && allNewHand.length < MAX_HAND) {
+            var actualBurn = Math.min(burnCount, MAX_HAND - allNewHand.length);
             var burnCards = [];
-            for (var bi = 0; bi < burnCount; bi++) {
+            for (var bi = 0; bi < actualBurn; bi++) {
               burnCards.push({ id: nextId++, suitId: "red", suitColor: "#e64b35", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });
             }
             setHand(function(prev) { return prev.concat(burnCards); });
-            showPassive("🔥 화상! " + burnCount + "장 주입!");
+            showPassive("🔥 화상! " + actualBurn + "장 주입!");
+          }
+
+          // === Gambit: 3장 중 1장 선택 ===
+          if (gambitPendingRef.current) {
+            var gpDraw = tempDraw.slice();
+            var gpDisc = tempDisc.slice();
+            var gpCards = gpDraw.splice(0, 3);
+            if (gpCards.length < 3 && gpDisc.length > 0) {
+              gpDraw = shuffle(gpDisc);
+              gpDisc = [];
+              gpCards = gpCards.concat(gpDraw.splice(0, 3 - gpCards.length));
+            }
+            setDrawPile(gpDraw);
+            setDiscardPile(gpDisc);
+            if (gpCards.length > 0) {
+              setGambitChoices(gpCards);
+              gambitPendingRef.current = false;
+              // busy stays true until player picks
+              setRoundNum(function(r) { return r + 1; });
+              return; // don't setBusy(false) yet
+            }
+            gambitPendingRef.current = false;
           }
 
           setBusy(false);
@@ -1555,6 +1650,20 @@ export default function DungeonHand() {
         }, (drawn.length + 1) * 120 + 100);
       }, 500);
     }, 300);
+  }
+
+  function pickGambitCard(card) {
+    var rejected = gambitChoices.filter(function(c) { return c.id !== card.id; });
+    setDiscardPile(function(d) { return d.concat(rejected); });
+    if (hand.length < MAX_HAND) {
+      setHand(function(h) { return h.concat([card]); });
+      showPassive("🎰 투기! " + getCardName(card, classData) + " 획득");
+    } else {
+      setDiscardPile(function(d) { return d.concat([card]); });
+      showPassive("🎰 투기! 손패 가득 — 버린카드로 이동");
+    }
+    setGambitChoices([]);
+    setBusy(false);
   }
 
   function doDiscard() {
@@ -1599,11 +1708,12 @@ export default function DungeonHand() {
     }
     var isBoss = battleNum === 5;
     var lootBonus = upgradeLevels.loot * 3;
-    var earned = (isBoss ? 15 : battleNum === 4 ? 10 : 6) + Math.floor(Math.random() * 8) + lootBonus;
+    var earned = (isBoss ? 10 : battleNum === 4 ? 7 : 4) + Math.floor(Math.random() * 5) + lootBonus;
     setGold(function(g) { return g + earned; });
     sfx.gold();
     if (isBoss) {
       var avail = RELICS.filter(function(r) {
+        if (r.classId != null && r.classId !== classId) return false;
         if (relics.find(function(o) { return o.id === r.id; })) return false;
         if (discardedRelicIds.indexOf(r.id) >= 0) return false;
         if (r.id === "hero" && Math.random() > 0.5) return false;
@@ -1624,7 +1734,7 @@ export default function DungeonHand() {
   function generateRewardCards() {
     var pool = [];
     var isBoss = battleNum === 5 || battleNum === 4;
-    var kwChance = isBoss ? 0.6 : 0.3;
+    var kwChance = isBoss ? 0.3 : 0.15;
     // Floor-scaled grade with weighted distribution
     // 50% base, 30% base+1, 15% base+2, 5% base+3 (rare)
     function rollGrade() {
@@ -1638,15 +1748,27 @@ export default function DungeonHand() {
       if (isBoss) g += 1;
       return Math.max(1, Math.min(g, 10));
     }
+    // 문양수집: 보장할 문양 목록
+    var collectSuits = [];
+    if (upgradeLevels.redCollect > 0) collectSuits.push("red");
+    if (upgradeLevels.blueCollect > 0) collectSuits.push("blue");
+    if (upgradeLevels.yellowCollect > 0) collectSuits.push("yellow");
     for (var i = 0; i < 2; i++) {
-      var s2 = pickN(SUITS, 1)[0];
+      var s2;
+      if (i < collectSuits.length) {
+        s2 = SUITS.find(function(ss) { return ss.id === collectSuits[i]; });
+      } else {
+        s2 = pickN(SUITS, 1)[0];
+      }
       var g2 = rollGrade();
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
-    var ct = pickN(REWARD_COMMONS, 1)[0];
-    var s3 = pickN(SUITS, 1)[0];
+    var rcPool = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
+    var ct = pickN(rcPool, 1)[0];
+    var s3 = collectSuits.length > 2 ? SUITS.find(function(ss) { return ss.id === collectSuits[2]; }) : pickN(SUITS, 1)[0];
     var g3 = rollGrade();
+    if (ct && (ct.fx === "reclaim" || ct.fx === "gambit") && g3 < 2) g3 = 2;
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
     pool.push(makeCard(s3.id, g3, classId, ct, kw2));
     setRewardCards(pool);
@@ -1737,9 +1859,10 @@ export default function DungeonHand() {
       else if (roll < 0.95) g = base + 2;
       else g = base + 3;
       g = Math.max(1, Math.min(g, 10));
-      var kw = (i < 2 && Math.random() < 0.5) ? pickKw(g) : null;
+      var kw = (i < 2 && Math.random() < 0.25) ? pickKw(g) : null;
       if (Math.random() < 0.3) {
-        pool.push(makeCard(s2.id, g, classId, pickN(REWARD_COMMONS, 1)[0], kw));
+        var shopRc = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
+        pool.push(makeCard(s2.id, g, classId, pickN(shopRc, 1)[0], kw));
       } else {
         pool.push(makeCard(s2.id, g, classId, null, kw));
       }
@@ -1747,6 +1870,7 @@ export default function DungeonHand() {
     setShopCards(pool);
     var rels = currentRelics || relics;
     var avail = RELICS.filter(function(r) {
+      if (r.classId != null && r.classId !== classId) return false;
       if (rels.find(function(o) { return o.id === r.id; })) return false;
       if (discardedRelicIds.indexOf(r.id) >= 0) return false;
       if (r.id === "hero" && Math.random() > 0.5) return false;
@@ -1882,96 +2006,133 @@ export default function DungeonHand() {
 
   // === SCREENS ===
   if (screen === "village") {
+    var totalInvested = 0;
+    SKILL_TREES.forEach(function(tree) {
+      tree.nodes.forEach(function(node) {
+        var lv = upgradeLevels[node.id] || 0;
+        for (var i = 0; i < lv; i++) {
+          totalInvested += node.cost + i * Math.ceil(node.cost * 0.5);
+        }
+      });
+    });
+    var ulUnlocked = totalInvested >= ULTIMATE_SKILL.unlockCost;
+    var ulOwned = upgradeLevels.fatedDice > 0;
+    var visibleTrees = SKILL_TREES.filter(function(t) {
+      return t.classId === null || t.classId === classId || CLASSES.length === 1;
+    });
     return (
       <div style={wrapStyle}>
         <style>{CSS}</style>
         {audioButton}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <h2 style={{ fontSize: 16 }}>🏘️ 마을 상점</h2>
+            <h2 style={{ fontSize: 16 }}>🏘️ 스킬 트리</h2>
             <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
+            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
           </div>
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: 14, color: "var(--dm)", marginBottom: 8 }}>기본 업그레이드</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {UPGRADES.filter(function(u) { return u.tier === "basic"; }).map(function(u) {
-                var lv = upgradeLevels[u.id];
-                var maxed = lv >= u.max;
-                var actualCost = u.cost + lv * Math.ceil(u.cost * 0.5);
-                var canBuy = metaPoints >= actualCost && !maxed;
-                return (
-                  <div key={u.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "8px 12px" }}>
-                    <div>
-                      <span style={{ fontSize: 14 }}>{u.icon}</span>
-                      <span style={{ fontWeight: 700, marginLeft: 6 }}>{u.name}</span>
-                      <span style={{ color: "var(--dm)", fontSize: 13, marginLeft: 8 }}>{u.desc}</span>
-                      <span style={{ color: "#a855f7", fontSize: 14, marginLeft: 8 }}>Lv.{lv}/{u.max}</span>
-                    </div>
-                    {maxed ? (
-                      <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>MAX</span>
-                    ) : (
-                      <Btn
-                        onClick={function() {
-                          if (!canBuy) return;
-                          setMetaPoints(function(p) { return p - actualCost; });
-                          setUpgradeLevels(function(prev) {
-                            var n = Object.assign({}, prev);
-                            n[u.id] = (n[u.id] || 0) + 1;
-                            return n;
-                          });
-                        }}
-                        disabled={!canBuy}
-                        style={{ padding: "4px 12px", fontSize: 13 }}
-                      >
-                        {actualCost}p
-                      </Btn>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap", justifyContent: "center" }}>
+            {visibleTrees.map(function(tree) {
+              var isActive = skillTab === tree.id;
+              var tColor = tree.classId ? (tree.id.indexOf("red") >= 0 ? "#e64b35" : tree.id.indexOf("blue") >= 0 ? "#4e79a7" : "#f0b930") : "#888";
+              return (
+                <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
+                  {tree.icon} {tree.name}
+                </button>
+              );
+            })}
           </div>
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontSize: 14, color: "var(--dm)", marginBottom: 8 }}>고급 업그레이드</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {UPGRADES.filter(function(u) { return u.tier === "advanced"; }).map(function(u) {
-                var lv = upgradeLevels[u.id];
-                var maxed = lv >= u.max;
-                var actualCost = u.cost + lv * Math.ceil(u.cost * 0.5);
-                var canBuy = metaPoints >= actualCost && !maxed;
-                return (
-                  <div key={u.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "8px 12px" }}>
-                    <div>
-                      <span style={{ fontSize: 14 }}>{u.icon}</span>
-                      <span style={{ fontWeight: 700, marginLeft: 6 }}>{u.name}</span>
-                      <span style={{ color: "var(--dm)", fontSize: 13, marginLeft: 8 }}>{u.desc}</span>
-                      <span style={{ color: "#a855f7", fontSize: 14, marginLeft: 8 }}>Lv.{lv}/{u.max}</span>
-                    </div>
-                    {maxed ? (
-                      <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>MAX</span>
-                    ) : (
-                      <Btn
-                        onClick={function() {
-                          if (!canBuy) return;
-                          setMetaPoints(function(p) { return p - actualCost; });
-                          setUpgradeLevels(function(prev) {
-                            var n = Object.assign({}, prev);
-                            n[u.id] = (n[u.id] || 0) + 1;
-                            return n;
-                          });
-                        }}
-                        disabled={!canBuy}
-                        style={{ padding: "4px 12px", fontSize: 13 }}
-                      >
-                        ⭐{actualCost}
-                      </Btn>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          {visibleTrees.filter(function(t) { return t.id === skillTab; }).map(function(tree) {
+            return (
+              <div key={tree.id} style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {tree.nodes.map(function(node) {
+                    var lv = upgradeLevels[node.id] || 0;
+                    var maxed = lv >= node.max;
+                    var actualCost = node.cost + lv * Math.ceil(node.cost * 0.5);
+                    var canBuy = metaPoints >= actualCost && !maxed;
+                    return (
+                      <div key={node.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "6px 10px" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: 13 }}>{node.icon}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 4, fontSize: 13 }}>{node.name}</span>
+                          <span style={{ color: "var(--dm)", fontSize: 12, marginLeft: 6 }}>{node.desc}</span>
+                          <span style={{ color: "#a855f7", fontSize: 12, marginLeft: 6 }}>{lv}/{node.max}</span>
+                        </div>
+                        {maxed ? (
+                          <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>MAX</span>
+                        ) : (
+                          <Btn
+                            onClick={function() {
+                              var nodeId = node.id;
+                              var cost = node.cost + (upgradeLevels[nodeId] || 0) * Math.ceil(node.cost * 0.5);
+                              if (metaPoints < cost) return;
+                              setMetaPoints(function(p) { return p - cost; });
+                              setUpgradeLevels(function(prev) {
+                                var n = Object.assign({}, prev);
+                                n[nodeId] = (n[nodeId] || 0) + 1;
+                                return n;
+                              });
+                            }}
+                            disabled={!canBuy}
+                            style={{ padding: "3px 10px", fontSize: 12, whiteSpace: "nowrap" }}
+                          >
+                            ⭐{actualCost}
+                          </Btn>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ marginBottom: 14, padding: 10, background: ulUnlocked ? "#f59e0b11" : "#1a1a2e", border: "1px solid " + (ulUnlocked ? "#f59e0b44" : "var(--bd)"), borderRadius: 10, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: ulUnlocked ? "#f59e0b" : "var(--dm)" }}>{ULTIMATE_SKILL.icon} {ULTIMATE_SKILL.name}</div>
+            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>{ULTIMATE_SKILL.desc}</div>
+            {ulOwned ? (
+              <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>활성화됨</span>
+            ) : ulUnlocked ? (
+              <Btn
+                onClick={function() {
+                  setUpgradeLevels(function(prev) {
+                    return Object.assign({}, prev, { fatedDice: 1 });
+                  });
+                }}
+                style={{ padding: "4px 14px", fontSize: 13, marginTop: 6 }}
+                color="#f59e0b"
+              >
+                해금
+              </Btn>
+            ) : (
+              <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
+            )}
           </div>
-          <div style={{ textAlign: "center", marginTop: 8 }}>
+          {resetCount < 3 && (function() {
+            var resetCost = [2, 3, 4][resetCount];
+            var canReset = metaPoints >= resetCost && totalInvested > 0;
+            return (
+              <div style={{ textAlign: "center", marginTop: 8, marginBottom: 4 }}>
+                <Btn
+                  onClick={function() {
+                    if (!canReset) return;
+                    setMetaPoints(function(p) { return p + totalInvested - resetCost; });
+                    setUpgradeLevels(function(prev) {
+                      var n = {};
+                      Object.keys(prev).forEach(function(k) { n[k] = 0; });
+                      return n;
+                    });
+                    setResetCount(function(c) { return c + 1; });
+                  }}
+                  disabled={!canReset}
+                  color="#ef4444"
+                  style={{ padding: "6px 18px", fontSize: 12 }}
+                >
+                  🔄 스킬 초기화 ({resetCount + 1}/3회) — ⭐{resetCost}
+                </Btn>
+              </div>
+            );
+          })()}
+          <div style={{ textAlign: "center", marginTop: 4 }}>
             <Btn onClick={function() { setScreen("menu"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
           </div>
         </div>
@@ -1991,11 +2152,11 @@ export default function DungeonHand() {
           </h1>
           <p style={{ color: "var(--dm)", fontSize: 13 }}>도적의 카드로 던전을 정복하라!</p>
           <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <Btn onClick={function() { setScreen("classSelect"); }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
+            <Btn onClick={function() { if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
               ⚔️ 던전 입장
             </Btn>
             <Btn onClick={function() { setScreen("village"); }} color="#22c55e" style={{ fontSize: 14, padding: "14px 32px" }}>
-              🏘️ 마을
+              🌳 스킬 트리
             </Btn>
           </div>
           {metaPoints > 0 && (
@@ -2007,43 +2168,28 @@ export default function DungeonHand() {
   }
 
   if (screen === "classSelect") {
-    var rangerClass = CLASSES.find(function(c) { return c.id === "ranger"; });
     return (
       <div style={wrapStyle}>
         <style>{CSS}</style>
         {audioButton}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-          <h2 style={{ fontSize: 16 }}>🗡️ 도적으로 던전에 입장</h2>
+          <h2 style={{ fontSize: 16 }}>직업을 선택하세요</h2>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
             {CLASSES.map(function(c) {
-              var isLocked = c.id === "warrior";
-              var passiveDesc = { warrior: "🔥 같은 색 연속 → 분노", ranger: "🌑 🔺포함 → 그림자" };
-              var suitLines = {
-                warrior: ["🔺 공격+2", "🔷 방어-1", "⭐ 분노강화"],
-                ranger: ["🔺 그림자+1", "🔷 드로우+1", "⭐ 급소 15%/장"],
-              };
               return (
                 <div
                   key={c.id}
-                  onClick={isLocked ? undefined : function() { startRun(c.id); }}
-                  style={{ width: 200, background: isLocked ? "#1a1a2a" : "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + (isLocked ? "#333" : "var(--bd)"), borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: isLocked ? "not-allowed" : "pointer", opacity: isLocked ? 0.4 : 1, padding: "16px 12px" }}
+                  onClick={function() { startRun(c.id); }}
+                  style={{ width: 200, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
                 >
-                  <span style={{ fontSize: 42 }}>{isLocked ? "🔒" : c.icon}</span>
+                  <span style={{ fontSize: 42 }}>{c.icon}</span>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
-                  {isLocked ? (
-                    <div style={{ fontSize: 14, color: "#666", textAlign: "center" }}>
-                      확장팩에서 해금
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ fontSize: 14, color: "#a855f7", textAlign: "center", lineHeight: 1.4 }}>
-                        {passiveDesc[c.id]}
-                      </div>
-                      <div style={{ fontSize: 13, color: "var(--dm)", textAlign: "center", lineHeight: 1.6 }}>
-                        {suitLines[c.id].join("  ")}
-                      </div>
-                    </>
-                  )}
+                  <div style={{ fontSize: 14, color: "#a855f7", textAlign: "center", lineHeight: 1.4 }}>
+                    {c.passive.desc}
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--dm)", textAlign: "center", lineHeight: 1.6 }}>
+                    {c.passive.suitDescs.join("  ")}
+                  </div>
                 </div>
               );
             })}
@@ -2086,11 +2232,8 @@ export default function DungeonHand() {
       var evtId = campEvent.id;
 
       if (evtId === "fairy") {
-        if (classId === "warrior") {
-          setFury(function(f) { return f + 1; });
-        } else {
-          setShadow(function(s2) { return s2 + 1; });
-        }
+        var campResult = classData.passive.onCamp(passiveState);
+        setPassiveState(campResult.state);
       }
       if (evtId === "rest") {
         setHp(function(h) { return Math.min(MAX_HP, h + 5); });
@@ -2112,7 +2255,7 @@ export default function DungeonHand() {
         var amatk = Math.floor(am.atk * (1 + (floor - 1) * 0.1));
         setMonster({ name: am.name, emoji: am.emoji, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
         var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
-        setDiscards(2 + discBonus);
+        setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
         setRoundNum(1);
         setDamageInfo(null);
         setCurrentHand(null);
@@ -2150,8 +2293,6 @@ export default function DungeonHand() {
       beginBattle(deck.filter(function(c) { return c.id !== card.id; }), relics, floor, nb);
       if (sfx.getOn()) sfx.bgmOn();
     }
-
-    var classData = CLASSES.find(function(c) { return c.id === classId; });
 
     return (
       <div style={wrapStyle}>
@@ -2229,7 +2370,7 @@ export default function DungeonHand() {
                     <br />몸 안에서 힘이 솟아오른다!
                   </p>
                   <div style={{ marginTop: 10, fontSize: 14, color: "#a855f7", fontWeight: 700 }}>
-                    {classId === "warrior" ? "🔥 분노 +1!" : "🌑 그림자 +1!"}
+                    {classData.passive.onCamp(passiveState).msg}
                   </div>
                   <Btn onClick={resolveCampfire} color="#a855f7" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
                     감사히 받다 →
@@ -2352,8 +2493,27 @@ export default function DungeonHand() {
               {encounterOverlay.name}
             </div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
-              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ MINI BOSS ⚔️"}
+              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ 중간보스 ⚔️"}
             </div>
+          </div>
+        )}
+        {gambitChoices.length > 0 && (
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+            background: "rgba(0,0,0,0.85)",
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#fbbf24", marginBottom: 16 }}>🎰 투기 — 1장을 선택하세요</div>
+            <div style={{ display: "flex", gap: 12 }}>
+              {gambitChoices.map(function(c) {
+                return (
+                  <div key={c.id} onClick={function() { pickGambitCard(c); }} style={{ cursor: "pointer", transition: "transform 0.15s" }}>
+                    <CardView card={c} cls={classData} />
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 12 }}>나머지 2장은 버린카드 더미로</div>
           </div>
         )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
@@ -2388,29 +2548,16 @@ export default function DungeonHand() {
           )}
           {/* Passive Status */}
           <div style={{ display: "flex", justifyContent: "center", gap: 4, padding: "2px 0", flexWrap: "wrap", flexShrink: 0 }}>
-            {classId === "warrior" && (
-              <div style={{ background: fury > 0 ? "#ef444422" : "#1a1a2e", border: "1px solid " + (fury > 0 ? "#ef4444" : "var(--bd)"), borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                {fury > 0 ? (
-                  <span>🔥x{fury} <span style={{ color: "var(--dm)", fontSize: 11 }}>+{Math.round(fury * 15)}%</span></span>
-                ) : (
-                  <span style={{ color: "var(--dm)" }}>🔥대기</span>
-                )}
-                {lastSuit && (
-                  <span style={{ background: fury > 0 ? "#ef444433" : "#ffffff0a", borderRadius: 4, padding: "0px 4px", fontSize: 12 }}>
-                    {SUITS.find(function(s2) { return s2.id === lastSuit; }).emoji}→유지
-                  </span>
-                )}
-              </div>
-            )}
-            {classId === "ranger" && (
-              <div style={{ background: shadow > 0 ? "#7c3aed22" : "#1a1a2e", border: "1px solid " + (shadow > 0 ? "#7c3aed" : "var(--bd)"), borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                {shadow > 0 ? (
-                  <span>🌑x{shadow} <span style={{ color: "#a855f7", fontSize: 11 }}>+{(shadow * 0.5).toFixed(1)} 회피{Math.min(50, 10 + shadow * 5)}%</span></span>
-                ) : (
-                  <span style={{ color: "var(--dm)" }}>🌑회피{10 + upgradeLevels.stealth * 5}%</span>
-                )}
-              </div>
-            )}
+            {(function() {
+              var badge = classData.passive.renderBadge(passiveState, upgradeLevels.stealth * 5);
+              if (!badge) return null;
+              return (
+                <div style={{ background: badge.bg, border: "1px solid " + badge.border, borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+                  <span>{badge.label}</span>
+                  {badge.detail && <span style={{ color: classData.passive.color, fontSize: 11 }}>{badge.detail}</span>}
+                </div>
+              );
+            })()}
             {poison > 0 && (
               <div style={{ background: "#a855f722", border: "1px solid #a855f7", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
                 ☠️독{poison}
@@ -2419,11 +2566,6 @@ export default function DungeonHand() {
             {gambleBuff !== 0 && (
               <div style={{ background: gambleBuff > 0 ? "#22c55e22" : "#ef444422", border: "1px solid " + (gambleBuff > 0 ? "#22c55e" : "#ef4444"), borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
                 🎲{gambleBuff > 0 ? "+" : ""}{gambleBuff}
-              </div>
-            )}
-            {shield > 0 && (
-              <div style={{ background: "#3b82f622", border: "1px solid #3b82f6", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-                🛡️{shield}
               </div>
             )}
             {upgradeLevels.tenacity > 0 && !tenacityUsed && (
@@ -2483,7 +2625,7 @@ export default function DungeonHand() {
             </div>
           ) : (
             <div style={{ height: 56, flexShrink: 0 }} />
-          )}}
+          )}
 
           {/* Passive Trigger Message */}
           {passiveMsg && (

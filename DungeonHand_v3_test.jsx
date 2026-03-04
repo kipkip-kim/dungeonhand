@@ -169,6 +169,8 @@ export default function DungeonHand() {
     setSelected([]);
     setBusy(false);
     setEnemyDmgShow(null);
+    setGambleBuff(0);
+    setGambleAnim(null);
     // Reset battle-scoped passives
     // (passiveState persists across battles)
     setFrozenIds([]);
@@ -225,6 +227,7 @@ export default function DungeonHand() {
           if (prev - ambushDmg <= 0) {
             if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
               setTenacityUsed(true);
+              laterTimers.forEach(function(tid) { clearTimeout(tid); });
               showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
               return 1;
             }
@@ -257,7 +260,7 @@ export default function DungeonHand() {
             clearInterval(interval);
             setGambleBuff(roll);
             setGambleAnim(roll > 0 ? "🎲 배율+1! 🎉" : "🎲 배율-0.5... 💀");
-            setTimeout(function() { setGambleAnim(null); }, 1200);
+            laterTimers.push(setTimeout(function() { setGambleAnim(null); }, 1200));
           }
         }, 100);
       }, t));
@@ -1315,6 +1318,11 @@ export default function DungeonHand() {
         setFrozenIds([]);
         setSplitMon(null);
         setBook2Used(false);
+        setAimedBonus(0);
+        setPoison(0);
+        setErodedIds([]);
+        setGambleBuff(0);
+        setGambleAnim(null);
         setNewCardIds([]);
         var shuffled = shuffle(deck);
         setDrawPile(shuffled.slice(HAND_SIZE));

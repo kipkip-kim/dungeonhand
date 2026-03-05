@@ -248,7 +248,7 @@ export function BattleScreen({ game }) {
               {Math.max(0, hp)}/{MAX_HP}
             </span>
             <div style={{ flex: 1, height: "clamp(12px, calc(var(--gw) * 0.024), 20px)", background: "var(--cd)", borderRadius: 6, overflow: "hidden", border: "1px solid var(--bd)", boxShadow: "inset 0 2px 4px rgba(0,0,0,0.5)" }}>
-              <div style={{ width: hpPct + "%", height: "100%", background: "linear-gradient(180deg, " + hpColor + "cc, " + hpColor + ", " + hpColor + "88)", borderRadius: 6, transition: "width 0.5s ease", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)" }} />
+              <div style={{ width: hpPct + "%", height: "100%", background: hpColor, borderRadius: 6, transition: "width 0.5s ease", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)" }} />
             </div>
             <span style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)", color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
           </div>

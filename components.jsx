@@ -183,10 +183,10 @@ function HpBar(props) {
         <div style={{
           width: pct + "%",
           height: "100%",
-          background: "linear-gradient(180deg, " + barColor + "cc, " + barColor + ", " + barColor + "88)",
+          background: barColor,
           borderRadius: 7,
           transition: "width 0.5s ease",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)",
         }} />
       </div>
       <div style={{
@@ -218,7 +218,7 @@ function Btn(props) {
       onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
       style={Object.assign({
         padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(16px, calc(var(--gw) * 0.032), 28px)",
-        background: isDisabled ? "#1a1810" : "linear-gradient(180deg, " + color + ", " + color + "bb)",
+        background: isDisabled ? "#1a1810" : color,
         border: "none",
         borderRadius: 10,
         color: "var(--tx)",

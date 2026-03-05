@@ -239,7 +239,7 @@ const SCREEN_BG = {
   village: "/images/bg/village.webp",
   shop: "/images/bg/shop.webp",
   campfire: "/images/bg/campfire.webp",
-  battle: "/images/bg/battle.webp",
+  battle: "/images/bg/battle.png",
 };
 
 export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG };

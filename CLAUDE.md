@@ -5,7 +5,8 @@
 | 파일 | 설명 |
 |------|------|
 | `DungeonHand_v3.jsx` | 메인 게임 컴포넌트 (~1,998줄) |
-| `audio.js` | sfx 오디오 객체 |
+| `audio.js` | sfx 오디오 객체 (HTMLAudioElement 기반, public/audio/ 참조) |
+| `public/audio/` | BGM 3종 + SFX 9종 오디오 파일 |
 | `data.js` | 상수/배열 (SUITS, CLASSES, MONSTERS 등) |
 | `utils.js` | 순수 함수 (shuffle, detectHand, calcDamage 등) |
 | `styles.js` | CSS 문자열 |
@@ -167,6 +168,12 @@
 - 캠프파이어/상점 진입 시 각각 campfire/shop BGM ✅
 - sfx.dmg()→monHit(), sfx.enemy()→playerHit() 교체 ✅
 
+### ~~세션 19: 오디오 시스템 마이그레이션~~ ✅ 완료
+- audio.js: 오실레이터 합성음 → HTMLAudioElement(실제 파일) 전면 교체 ✅
+- public/audio/bgm/ (battle/campfire/shop.mp3) + sfx/ (9종) 폴더 구조 ✅
+- sfx API 인터페이스 100% 유지 (DungeonHand_v3.jsx/components.jsx 변경 없음) ✅
+- iOS 오디오 잠금 해제 유지, 재생 실패 무음 처리 ✅
+
 ---
 
 ## 기능 추가 체크리스트
@@ -200,7 +207,7 @@
 
 ### 현재 구조 (멀티 파일)
 ```
-audio.js          (87줄)  — sfx 객체
+audio.js          (97줄)  — sfx 객체 (HTMLAudioElement 기반)
 data.js           (240줄) — SUITS, CLASSES, MONSTERS, RELICS, SKILL_TREES 등 모든 상수
 utils.js          (247줄) — shuffle, makeDeck, detectHand, calcDamage 등
 styles.js         (31줄)  — CSS 문자열

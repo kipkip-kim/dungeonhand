@@ -100,20 +100,21 @@
 | 성장 캡 | 5 |
 | 족보 배율 | 하이카드1 / 원페어2 / 투페어3 / 트리플4 / S3 4 / 플러시5 / S4 6 / 풀하우스6 / S5 8 / 포카8 / SF 12 |
 
-### 효과음
-| 이름 | 설명 |
-|------|------|
-| battle BGM | 전투 (triangle, 250ms) |
-| campfire BGM | 캠프파이어 (sine, 400ms) |
-| shop BGM | 상점 (triangle, 300ms) |
-| click | 버튼 클릭 (고음 sine) |
-| card | 카드 선택 |
-| hit | 카드 제출 (티어별) |
-| dmg | 몬스터 피격 (noise) |
-| enemy | 적 공격 (sawtooth) |
-| win/lose | 승리/패배 팡파레 |
-| gold | 골드 획득 |
-| heal | 회복 |
+### 효과음 (파일 기반)
+| 이름 | 파일 | 설명 |
+|------|------|------|
+| battle BGM | bgm/battle.mp3 | 전투 루프 |
+| campfire BGM | bgm/campfire.mp3 | 캠프파이어 루프 |
+| shop BGM | bgm/shop.mp3 | 상점 루프 |
+| click | sfx/click.mp3 | 버튼 클릭 |
+| card | sfx/card.mp3 | 카드 선택/드로우 |
+| hit | sfx/hit.mp3 | 카드 제출 |
+| dmg | sfx/dmg.mp3 | 몬스터 피격 |
+| enemy | sfx/enemy.mp3 | 적 공격 |
+| win | sfx/win.mp3 | 승리 팡파레 |
+| lose | sfx/lose.mp3 | 패배 징글 |
+| gold | sfx/gold.mp3 | 골드 획득 |
+| heal | sfx/heal.mp3 | 회복 |
 
 ---
 
@@ -452,13 +453,53 @@
 
 ---
 
-## 다음 세션 TODO (세션 19)
+## 세션 19 (2026-03-05) — 오디오 시스템 마이그레이션
+
+### 완료
+- [x] public/audio/ 폴더 구조 생성 (bgm/ + sfx/)
+- [x] audio.js 전면 리라이트: 오실레이터 합성음 → HTMLAudioElement (실제 파일)
+  - SFX 9종 프리로드 (click/card/hit/dmg/enemy/win/lose/gold/heal)
+  - BGM 3종 온디맨드 로드 + loop (battle/campfire/shop)
+  - `import.meta.env.BASE_URL` 사용 (Vite base path `/dungeonhand/` 자동 대응)
+  - iOS 오디오 잠금 해제 유지 (AudioContext silent buffer trick)
+  - `.play().catch(()=>{})` 로 재생 실패 무음 처리
+  - sfx API 인터페이스 100% 유지 (다른 파일 변경 없음)
+
+### 오디오 파일 배치 가이드
+```
+public/audio/
+  bgm/
+    battle.mp3      (~100-150KB, 루핑 전투 칩튠)
+    campfire.mp3    (~80-120KB, 잔잔한 휴식 테마)
+    shop.mp3        (~80-120KB, 밝은 상점 테마)
+  sfx/
+    click.mp3       (~5-15KB, UI 클릭)
+    card.mp3        (~5-15KB, 카드 선택/드로우)
+    hit.mp3         (~10-20KB, 공격/제출)
+    dmg.mp3         (~10-20KB, 몬스터 피격)
+    enemy.mp3       (~10-20KB, 적 공격)
+    win.mp3         (~20-40KB, 승리 팡파레)
+    lose.mp3        (~20-40KB, 패배 징글)
+    gold.mp3        (~5-15KB, 골드 획득)
+    heal.mp3        (~10-20KB, 회복)
+```
+
+추천 소스:
+- BGM: OpenGameArt CC0 8bit Chiptune / CC0 Retro Music
+- SFX: Kenney RPG Audio, UI Audio, Impact Sounds
+- 목표 총 용량: ~400-600KB (1MB 이내)
+
+### 검증
+- 빌드 성공 (217.12 kB)
+- dist/audio/ 폴더 정상 복사 확인
+
+---
+
+## 다음 세션 TODO (세션 20)
 
 ### 게임 UI 전반 개선
 - 전반적인 게임 UI를 보기 좋고 사용하기 좋게 만들기
 - 레이아웃, 색상, 타이포그래피, 인터랙션 등 전체적인 UX 검토 및 개선
 
-### 음악/효과음 개선 논의
-- 세션18에서 시도한 엘리트/보스 BGM, 몬스터/유저 피격음, 승리 효과음이 만족스럽지 않아 되돌림
-- 어떤 방향으로 다시 만들면 마음에 들지 논의 필요
-- 현재 유지 중: battle/campfire/shop BGM 3종, dmg/enemy/win/lose/click 효과음
+### 오디오 파일 배치
+- public/audio/ 에 실제 CC0 오디오 파일 배치 후 테스트

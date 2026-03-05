@@ -196,6 +196,10 @@
 - data.js var→const 통일 (6곳) ✅
 - relicBorderColor utils.js→components.jsx 이동 ✅
 
+### ~~세션 23B: 코드 정리 추가~~ ✅ 완료
+- rcPool 필터링 중복 → getRewardPool() 헬퍼 추출 ✅
+- components.jsx var→const/let 통일 (34개) ✅
+
 ---
 
 ## 기능 추가 체크리스트

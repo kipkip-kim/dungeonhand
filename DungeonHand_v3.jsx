@@ -96,6 +96,10 @@ export default function DungeonHand() {
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
 
+  function getRewardPool() {
+    return floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
+  }
+
   function buildPState() {
     return Object.assign({}, passiveState, {
       stealthBonus: upgradeLevels.stealth * 5,
@@ -819,8 +823,7 @@ export default function DungeonHand() {
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
-    var rcPool = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
-    var ct = pickN(rcPool, 1)[0];
+    var ct = pickN(getRewardPool(), 1)[0];
     var s3 = collectSuits.length > 2 ? SUITS.find(function(ss) { return ss.id === collectSuits[2]; }) : pickN(SUITS, 1)[0];
     var g3 = rollGrade();
     if (ct && (ct.fx === "reclaim" || ct.fx === "gambit") && g3 < 2) g3 = 2;
@@ -916,8 +919,7 @@ export default function DungeonHand() {
       g = Math.max(1, Math.min(g, 10));
       var kw = (i < 2 && Math.random() < 0.25) ? pickKw(g) : null;
       if (Math.random() < 0.3) {
-        var shopRc = floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
-        pool.push(makeCard(s2.id, g, classId, pickN(shopRc, 1)[0], kw));
+        pool.push(makeCard(s2.id, g, classId, pickN(getRewardPool(), 1)[0], kw));
       } else {
         pool.push(makeCard(s2.id, g, classId, null, kw));
       }

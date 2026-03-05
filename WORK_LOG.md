@@ -542,6 +542,17 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 23B: 코드 정리 추가 (2026-03-05)
+
+### 완료 내역
+1. **rcPool 필터링 중복 제거** — getRewardPool() 헬퍼 추출, 822줄/919줄 2곳 교체
+2. **components.jsx var→const/let 통일** — 34개 var 선언 → const 31개 + let 3개
+
+### 검증
+- 빌드 성공 (220.89 kB)
+
+---
+
 ## 다음 세션 TODO
 
 ### 게임 UI 전반 개선

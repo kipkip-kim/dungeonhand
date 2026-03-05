@@ -4,17 +4,17 @@ import { sfx } from "./audio.js";
 
 // === COMPONENTS ===
 function CardView(props) {
-  var c = props.card;
-  var cls = props.cls;
-  var selected = props.selected;
-  var small = props.small;
-  var disabled = props.disabled;
-  var onClick = props.onClick;
+  const c = props.card;
+  const cls = props.cls;
+  const selected = props.selected;
+  const small = props.small;
+  const disabled = props.disabled;
+  const onClick = props.onClick;
 
   // Burn card special render
   if (c.burning) {
-    var bw = small ? 55 : 70;
-    var bh = small ? 77 : 98;
+    const bw = small ? 55 : 70;
+    const bh = small ? 77 : 98;
     return (
       <div
         onClick={disabled ? undefined : onClick}
@@ -37,24 +37,24 @@ function CardView(props) {
     );
   }
 
-  var nm = getCardName(c, cls);
-  var w = small ? 55 : 70;
-  var h = small ? 77 : 98;
+  const nm = getCardName(c, cls);
+  const w = small ? 55 : 70;
+  const h = small ? 77 : 98;
 
   // Common cards get distinct styling
-  var isC = c.isCommon;
-  var commonBg = isC
+  const isC = c.isCommon;
+  const commonBg = isC
     ? (selected ? "linear-gradient(145deg,#2d1f5e44,#1a1040)" : "linear-gradient(145deg,#1e1545,#120e2a)")
     : (selected ? "linear-gradient(145deg," + c.suitColor + "22," + c.suitColor + "11)" : "linear-gradient(145deg,var(--cd),#12121f)");
 
-  var borderColor = c.keyword ? "var(--ac)" : isC ? "var(--pu)" : (selected ? c.suitColor : "var(--bd)");
-  var transform = selected ? "translateY(-12px) scale(1.04)" : "none";
-  var shadow = selected ? "0 10px 22px " + (isC ? "#a855f733" : c.suitColor + "33") : "0 2px 6px rgba(0,0,0,0.4)";
+  const borderColor = c.keyword ? "var(--ac)" : isC ? "var(--pu)" : (selected ? c.suitColor : "var(--bd)");
+  const transform = selected ? "translateY(-12px) scale(1.04)" : "none";
+  const shadow = selected ? "0 10px 22px " + (isC ? "#a855f733" : c.suitColor + "33") : "0 2px 6px rgba(0,0,0,0.4)";
 
   // Effect descriptions for common cards
-  var fxText = "";
+  let fxText = "";
   if (isC) {
-    var fxMap = { aimed: "다음턴 제출+1", glass: "x1.5 소멸", focus: "배율+0.5", reclaim: "회수" + (c.grade + (c.growthBonus || 0)) + "장", gambit: "3장 중 1장 선택" };
+    const fxMap = { aimed: "다음턴 제출+1", glass: "x1.5 소멸", focus: "배율+0.5", reclaim: "회수" + (c.grade + (c.growthBonus || 0)) + "장", gambit: "3장 중 1장 선택" };
     fxText = fxMap[c.common.fx] || "";
   }
 
@@ -145,13 +145,13 @@ function CardView(props) {
 }
 
 function HpBar(props) {
-  var pct = Math.max(0, (props.current / props.max) * 100);
-  var barColor = pct > 50 ? "var(--gn)" : pct > 25 ? "#f59e0b" : "var(--rd)";
-  var anim = props.shaking ? (props.hardShake ? "shakeHard 0.5s ease" : "shake 0.4s ease") : props.enemyAttacking ? "enemyAtk 0.5s ease" : "none";
-  var barWidth = props.isPlayer ? 200 : 240;
-  var barHeight = props.isPlayer ? 14 : 16;
-  var emojiSize = props.boss ? 48 : props.isPlayer ? 32 : 40;
-  var nameSize = props.boss ? 18 : props.isPlayer ? 14 : 16;
+  const pct = Math.max(0, (props.current / props.max) * 100);
+  const barColor = pct > 50 ? "var(--gn)" : pct > 25 ? "#f59e0b" : "var(--rd)";
+  const anim = props.shaking ? (props.hardShake ? "shakeHard 0.5s ease" : "shake 0.4s ease") : props.enemyAttacking ? "enemyAtk 0.5s ease" : "none";
+  const barWidth = props.isPlayer ? 200 : 240;
+  const barHeight = props.isPlayer ? 14 : 16;
+  const emojiSize = props.boss ? 48 : props.isPlayer ? 32 : 40;
+  const nameSize = props.boss ? 18 : props.isPlayer ? 14 : 16;
 
   return (
     <div style={{ textAlign: "center", animation: anim }}>
@@ -202,8 +202,8 @@ function HpBar(props) {
 }
 
 function Btn(props) {
-  var isDisabled = props.disabled;
-  var color = props.color || "var(--bd)";
+  const isDisabled = props.disabled;
+  const color = props.color || "var(--bd)";
   return (
     <button
       onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
@@ -228,22 +228,22 @@ function Btn(props) {
 }
 
 function DeckViewer(props) {
-  var dk = props.deck;
-  var cls = props.cls;
-  var show = props.show;
-  var onClose = props.onClose;
-  var sortMode = props.sortMode;
-  var onSort = props.onSort;
+  const dk = props.deck;
+  const cls = props.cls;
+  const show = props.show;
+  const onClose = props.onClose;
+  const sortMode = props.sortMode;
+  const onSort = props.onSort;
 
   if (!show) return null;
 
-  var suitOrder = { red: 0, blue: 1, yellow: 2 };
-  var sorted = dk.slice();
+  const suitOrder = { red: 0, blue: 1, yellow: 2 };
+  const sorted = dk.slice();
 
   if (sortMode === "grade") {
     sorted.sort(function(a, b) {
-      var ga = a.grade + (a.growthBonus || 0);
-      var gb = b.grade + (b.growthBonus || 0);
+      const ga = a.grade + (a.growthBonus || 0);
+      const gb = b.grade + (b.growthBonus || 0);
       if (gb !== ga) return gb - ga;
       return (suitOrder[a.suitId] || 0) - (suitOrder[b.suitId] || 0);
     });
@@ -264,13 +264,13 @@ function DeckViewer(props) {
   }
 
   // Group cards for display
-  var groups = [];
-  var curGroup = null;
+  const groups = [];
+  let curGroup = null;
   sorted.forEach(function(c) {
-    var key = "";
-    var label = "";
+    let key = "";
+    let label = "";
     if (sortMode === "grade") {
-      var g = c.grade + (c.growthBonus || 0);
+      const g = c.grade + (c.growthBonus || 0);
       key = "g" + g;
       label = "등급 " + g;
     } else {
@@ -279,7 +279,7 @@ function DeckViewer(props) {
         label = c.common.icon + " " + c.common.name;
       } else {
         key = "suit-" + c.suitId;
-        var suit = SUITS.find(function(s) { return s.id === c.suitId; });
+        const suit = SUITS.find(function(s) { return s.id === c.suitId; });
         label = suit.emoji + " " + cls.suits[c.suitId];
       }
     }

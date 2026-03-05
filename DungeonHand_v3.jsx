@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, BOSS_POINTS } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS } from "./data.js";
 import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
@@ -10,6 +10,9 @@ import { VillageScreen } from "./screens/VillageScreen.jsx";
 import { BattleScreen } from "./screens/BattleScreen.jsx";
 import { ShopScreen } from "./screens/ShopScreen.jsx";
 
+const BASE_HP = 70;
+const SHOP_MAX_REMOVE = 2;
+
 // === MAIN GAME ===
 export default function DungeonHand() {
   var s = useState;
@@ -18,25 +21,17 @@ export default function DungeonHand() {
   var [floor, setFloor] = s(1);
   var [battleNum, setBattleNum] = s(1);
   var [gold, setGold] = s(0);
-  var [hp, setHp] = s(70);
+  var [hp, setHp] = s(BASE_HP);
   // Meta progression (persists across runs)
   var [metaPoints, setMetaPoints] = s(0);
-  var [upgradeLevels, setUpgradeLevels] = s({
-    // 공통
-    hp: 0, sharp: 0, merchant: 0, loot: 0, tenacity: 0, inventory: 0,
-    // 습격
-    redCollect: 0, awaken: 0, stealth: 0, shadowBurst: 0,
-    // 연계
-    blueCollect: 0, deft: 0, nimble: 0, chainBoost: 0,
-    // 급소
-    yellowCollect: 0, critMastery: 0, quickStrike: 0, critDamage: 0,
-    // 궁극기
-    fatedDice: 0,
-  });
+  var initUpgrades = {};
+  SKILL_TREES.forEach(function(t) { t.nodes.forEach(function(n) { initUpgrades[n.id] = 0; }); });
+  initUpgrades[ULTIMATE_SKILL.id] = 0;
+  var [upgradeLevels, setUpgradeLevels] = s(initUpgrades);
   var [resetCount, setResetCount] = s(0);
   var [skillTab, setSkillTab] = s("common");
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
-  const MAX_HP = 70 + upgradeLevels.hp * 5;
+  const MAX_HP = BASE_HP + upgradeLevels.hp * 5;
   var [relics, setRelics] = s([]);
   var [deck, setDeck] = s([]);
   var [drawPile, setDrawPile] = s([]);
@@ -67,6 +62,8 @@ export default function DungeonHand() {
   var [audioOn, setAudioOn] = s(false);
   // Passive state
   var [passiveState, setPassiveState] = s({ stacks: 0 });
+  var passiveStateRef = useRef(passiveState);
+  passiveStateRef.current = passiveState;
   var [aimedBonus, setAimedBonus] = s(0); // aimed shot: next turn submit +1
   var [gambleBuff, setGambleBuff] = s(0); // dice relic: +1 or -0.5 mult
   var [gambleAnim, setGambleAnim] = s(null); // roulette animation text
@@ -549,13 +546,13 @@ export default function DungeonHand() {
       if (evaded) {
         setPlayerShake(false);
         setEnemyDmgShow("MISS");
-        var evadeResult = classData.passive.onEvade(passiveState);
+        var evadeResult = classData.passive.onEvade(passiveStateRef.current);
         setPassiveState(evadeResult.state);
         if (evadeResult.msg) showPassive(evadeResult.msg);
       } else {
         setPlayerShake(true);
         setEnemyDmgShow(atkDmg);
-        var hitResult = classData.passive.onHit(passiveState);
+        var hitResult = classData.passive.onHit(passiveStateRef.current);
         setPassiveState(hitResult.state);
         if (hitResult.msg) showPassive(hitResult.msg);
         setHp(function(prev) {
@@ -962,7 +959,7 @@ export default function DungeonHand() {
   }
 
   function removeCard(card, cost) {
-    if (gold < cost || deck.length <= 10 || shopRemoved >= 2) return;
+    if (gold < cost || deck.length <= 10 || shopRemoved >= SHOP_MAX_REMOVE) return;
     setGold(function(g) { return g - cost; });
     setDeck(function(d) { return d.filter(function(x) { return x.id !== card.id; }); });
     setShopRemoved(function(n) { return n + 1; });
@@ -1019,7 +1016,7 @@ export default function DungeonHand() {
     var evtId = campEvent.id;
 
     if (evtId === "fairy") {
-      var campResult = classData.passive.onCamp(passiveState);
+      var campResult = classData.passive.onCamp(passiveStateRef.current);
       setPassiveState(campResult.state);
     }
     if (evtId === "rest") {
@@ -1158,7 +1155,7 @@ export default function DungeonHand() {
     monShake: monShake, monShakeHard: monShakeHard,
     playerShake: playerShake, enemyAttacking: enemyAttacking, busy: busy,
     rewardCards: rewardCards, rewardRelics: rewardRelics,
-    shopCards: shopCards, shopRelic: shopRelic, shopHealed: shopHealed, shopRemoved: shopRemoved,
+    shopCards: shopCards, shopRelic: shopRelic, shopHealed: shopHealed, shopRemoved: shopRemoved, SHOP_MAX_REMOVE: SHOP_MAX_REMOVE,
     campEvent: campEvent, stolenCard: stolenCard, campPhase: campPhase,
     overlay: overlay, enemyDmgShow: enemyDmgShow,
     passiveState: passiveState, gambleBuff: gambleBuff, gambleAnim: gambleAnim,

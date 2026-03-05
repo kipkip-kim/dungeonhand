@@ -580,11 +580,22 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 26: 유지보수 치명 이슈 해결 (2026-03-05)
+
+### 완료 내역
+1. **passiveState stale closure 버그 수정** — useRef로 최신 passiveState 추적, enemyTurn onEvade/onHit + campfire onCamp에서 passiveStateRef.current 사용
+2. **upgradeLevels 자동 초기화** — SKILL_TREES+ULTIMATE_SKILL에서 initUpgrades 자동 생성 (수동 키 나열 제거)
+3. **BASE_HP 상수 추출** — 70 하드코딩 2곳 → 모듈 레벨 BASE_HP 상수 참조
+4. **fxMap → COMMONS desc 필드 통합** — data.js COMMONS/REWARD_COMMONS에 desc 추가, components.jsx fxMap 삭제 (reclaim은 동적 인라인)
+5. **SHOP_MAX_REMOVE 상수 추출** — 상점 카드 제거 횟수 하드코딩 3곳 → 모듈 레벨 상수 + game props 전달
+
+### 검증
+- 매 수정 후 빌드 성공
+
+---
+
 ## 다음 세션 TODO
 
 ### 게임 UI 전반 개선
 - 전반적인 게임 UI를 보기 좋고 사용하기 좋게 만들기
 - 레이아웃, 색상, 타이포그래피, 인터랙션 등 전체적인 UX 검토 및 개선
-
-### 오디오 파일 배치
-- public/audio/ 에 실제 CC0 오디오 파일 배치 후 테스트

@@ -6,7 +6,7 @@ export function ShopScreen({ game }) {
   var {
     wrapStyle, CSS, audioButton,
     hp, MAX_HP, gold, deck, classData, relics, floor,
-    shopCards, shopRelic, shopHealed, shopRemoved,
+    shopCards, shopRelic, shopHealed, shopRemoved, SHOP_MAX_REMOVE,
     upgradeLevels, deckView, deckSort,
     buyCard, buyRelic, removeCard, leaveShop,
     setGold, setHp, setShopHealed, setDeckView, setDeckSort,
@@ -93,7 +93,7 @@ export function ShopScreen({ game }) {
         ); })()}
         {(function() { var removeCost = Math.floor(10 * discount); return (
         <div>
-          <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {2 - shopRemoved}회 남음)</h3>
+          <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {SHOP_MAX_REMOVE - shopRemoved}회 남음)</h3>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {deck.slice().sort(function(a, b) {
               var suitOrd = { red: 0, blue: 1, yellow: 2 };
@@ -105,7 +105,7 @@ export function ShopScreen({ game }) {
               if (a.isCommon && b.isCommon) return a.common.id.localeCompare(b.common.id);
               return 0;
             }).map(function(c) {
-              var canRemove = gold >= removeCost && deck.length > 10 && shopRemoved < 2;
+              var canRemove = gold >= removeCost && deck.length > 10 && shopRemoved < SHOP_MAX_REMOVE;
               return (
                 <div
                   key={c.id}

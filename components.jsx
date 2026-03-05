@@ -54,8 +54,7 @@ function CardView(props) {
   // Effect descriptions for common cards
   let fxText = "";
   if (isC) {
-    const fxMap = { aimed: "다음턴 제출+1", glass: "x1.5 소멸", focus: "배율+0.5", reclaim: "회수" + (c.grade + (c.growthBonus || 0)) + "장", gambit: "3장 중 1장 선택" };
-    fxText = fxMap[c.common.fx] || "";
+    fxText = c.common.fx === "reclaim" ? "회수" + (c.grade + (c.growthBonus || 0)) + "장" : (c.common.desc || "");
   }
 
   return (

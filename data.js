@@ -100,15 +100,15 @@ const CLASSES = [
 ];
 
 const COMMONS = [
-  { id: "aimed", icon: "🎯", name: "집중타", fx: "aimed" },
-  { id: "glass", icon: "🔮", name: "유리", fx: "glass" },
-  { id: "focus", icon: "⚡", name: "기세", fx: "focus" },
+  { id: "aimed", icon: "🎯", name: "집중타", fx: "aimed", desc: "다음턴 제출+1" },
+  { id: "glass", icon: "🔮", name: "유리", fx: "glass", desc: "x1.5 소멸" },
+  { id: "focus", icon: "⚡", name: "기세", fx: "focus", desc: "배율+0.5" },
 ];
 
 // Reward-only commons (not in starting deck)
 const REWARD_COMMONS = COMMONS.concat([
-  { id: "reclaim", icon: "🔁", name: "회수", fx: "reclaim" },
-  { id: "gambit", icon: "🎰", name: "투기", fx: "gambit" },
+  { id: "reclaim", icon: "🔁", name: "회수", fx: "reclaim", desc: "회수" },
+  { id: "gambit", icon: "🎰", name: "투기", fx: "gambit", desc: "3장 중 1장 선택" },
 ]);
 
 const MONSTERS = [

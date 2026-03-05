@@ -213,16 +213,22 @@
 - 파생 상수 7개 var→const ✅
 - gamble relic eff에 win/lose 값 추가 (데이터 기반화) ✅
 
+### ~~세션 26: 유지보수 치명 이슈 해결~~ ✅ 완료
+- passiveState stale closure 버그 수정 (useRef 추적) ✅
+- upgradeLevels 자동 초기화 (SKILL_TREES 기반) ✅
+- BASE_HP 상수 추출 (70 하드코딩 제거) ✅
+- fxMap → COMMONS desc 필드 통합 (fxMap 삭제) ✅
+- SHOP_MAX_REMOVE 상수 추출 ✅
+
 ---
 
 ## 기능 추가 체크리스트
 
-### 카드 효과 추가 시 (5곳, 3개 파일)
-1. `data.js` — **COMMONS 또는 REWARD_COMMONS** 배열에 카드 데이터 추가
-2. `components.jsx` — **fxMap** 객체에 UI 설명 텍스트 추가
-3. `DungeonHand_v3.jsx` — **submitCards()** 함수에 전투 로직 분기 추가
-4. `utils.js` — **calcDamage()** 에 데미지 관련 효과 반영 (해당 시)
-5. `DungeonHand_v3.jsx` — **enemyTurn() 또는 draw()** 에 턴 종료 로직 추가 (해당 시)
+### 카드 효과 추가 시 (4곳, 3개 파일)
+1. `data.js` — **COMMONS 또는 REWARD_COMMONS** 배열에 카드 데이터 추가 (desc 필드 포함)
+2. `DungeonHand_v3.jsx` — **submitCards()** 함수에 전투 로직 분기 추가
+3. `utils.js` — **calcDamage()** 에 데미지 관련 효과 반영 (해당 시)
+4. `DungeonHand_v3.jsx` — **enemyTurn() 또는 draw()** 에 턴 종료 로직 추가 (해당 시)
 
 ### 유물 추가 시 (3곳, 2개 파일)
 1. `data.js` — **RELICS** 배열에 유물 데이터 추가

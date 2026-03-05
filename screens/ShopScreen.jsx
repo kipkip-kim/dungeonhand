@@ -38,7 +38,7 @@ export function ShopScreen({ game }) {
           <span style={{ color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
           <button
             onClick={function() { setDeckView(true); }}
-            style={{ background: "var(--bd)", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 13, color: "var(--tx)", cursor: "pointer", fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700 }}
+            style={{ background: "var(--bd)", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 14, color: "var(--tx)", cursor: "pointer", fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700 }}
           >
             📦덱
           </button>

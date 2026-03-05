@@ -692,3 +692,14 @@ public/audio/          총 1.54MB
 - [x] tenacityUsed stale closure → useRef 추적 (setHp 콜백 내 이중 발동 방지)
 - [x] dead comment 정리 ("Warrior 🔷 blue" → "passive hook")
 - [x] ShopScreen IIFE 3개 → 렌더 전 변수 추출 (relicCost/healCost/removeCost/sortedDeck)
+
+---
+
+## 세션 32 (2026-03-05) — 모바일 가독성 개선 5건
+
+### 완료
+- [x] VillageScreen 터치 타겟 확대 (탭/노드/구매/궁극기/리셋 버튼 padding 증가)
+- [x] VillageScreen 12px→13px, 11px→12px 폰트 상향 (모바일 가독성)
+- [x] BattleScreen 유물 이모지 터치 영역 확대 (padding 4px 2px → 6px 4px)
+- [x] BattleScreen 하단바 프리뷰 textOverflow: "ellipsis" 추가
+- [x] ShopScreen 덱 버튼 터치 타겟 확대 (padding 4px 10px → 6px 12px, fontSize 13→14)

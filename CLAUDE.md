@@ -244,6 +244,13 @@
 - dead comment 정리 ("Warrior" → "passive hook") ✅
 - ShopScreen IIFE 3개 → 렌더 전 변수 추출 ✅
 
+### ~~세션 32: 모바일 가독성 개선 5건~~ ✅ 완료
+- VillageScreen 터치 타겟 확대 (탭/노드/구매/궁극기/리셋 버튼 padding 증가) ✅
+- VillageScreen fontSize 12→13, 11→12 일괄 상향 ✅
+- BattleScreen 유물 이모지 터치 영역 확대 (padding 6px 4px) ✅
+- BattleScreen 하단바 프리뷰 textOverflow: "ellipsis" 추가 ✅
+- ShopScreen 덱 버튼 터치 타겟 확대 (padding/fontSize 증가) ✅
+
 ---
 
 ## 기능 추가 체크리스트

@@ -223,7 +223,7 @@ export function BattleScreen({ game }) {
                 return (
                   <span key={r.id}
                     onClick={function() { setRelicTip(relicTip === r.id ? null : r.id); }}
-                    style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative", padding: "4px 2px" }}>
+                    style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative", padding: "6px 4px" }}>
                     {r.emoji}
                     {relicTip === r.id && (
                       <span style={{
@@ -290,7 +290,7 @@ export function BattleScreen({ game }) {
         </div>
 
         <div style={{ padding: "clamp(6px, calc(var(--gw) * 0.012), 10px) clamp(10px, calc(var(--gw) * 0.02), 18px) clamp(8px, calc(var(--gw) * 0.016), 14px)", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0 }}>
-          <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
             {preview ? (
               <span>
                 {preview.emoji}{" "}

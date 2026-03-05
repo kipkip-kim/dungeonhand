@@ -94,6 +94,15 @@ export function ShopScreen({ game }) {
         {(function() { var removeCost = Math.floor(10 * discount); return (
         <div>
           <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {SHOP_MAX_REMOVE - shopRemoved}회 남음)</h3>
+          {deck.length <= 10 && (
+            <div style={{ fontSize: 12, color: "var(--rd)", marginBottom: 6 }}>덱 10장 이하 — 제거 불가</div>
+          )}
+          {shopRemoved >= SHOP_MAX_REMOVE && (
+            <div style={{ fontSize: 12, color: "var(--rd)", marginBottom: 6 }}>제거 횟수 소진</div>
+          )}
+          {deck.length > 10 && shopRemoved < SHOP_MAX_REMOVE && gold < removeCost && (
+            <div style={{ fontSize: 12, color: "var(--rd)", marginBottom: 6 }}>골드 부족</div>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {deck.slice().sort(function(a, b) {
               var suitOrd = { red: 0, blue: 1, yellow: 2 };

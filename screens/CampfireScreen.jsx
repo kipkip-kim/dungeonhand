@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { FLOOR_NAMES } from "../data.js";
 import { CardView, Btn } from "../components.jsx";
 
 export function CampfireScreen({ game }) {
   var { wrapStyle, CSS, audioButton, campPhase, campEvent, hp, MAX_HP, floor, classData, passiveState, stolenCard, deck, enterPhase2, enterPhase3, leaveCampfire, resolveCampfire, sellCard } = game;
+  var [pendingSell, setPendingSell] = useState(null);
 
   return (
     <div style={wrapStyle}>
@@ -153,11 +155,12 @@ export function CampfireScreen({ game }) {
                 <p style={{ color: "#d4d4d8", fontSize: 16, lineHeight: 1.6, margin: 0 }}>
                   "좋은 카드가 있으면 제값에 사겠소."
                 </p>
-                <div style={{ fontSize: 14, color: "var(--dm)", margin: "6px 0" }}>탭하여 판매 (등급×3 골드)</div>
-                <div style={{ maxHeight: 280, overflow: "auto", display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", padding: "4px 0" }}>
+                <div style={{ fontSize: 14, color: "var(--dm)", margin: "6px 0" }}>탭하여 선택 → 확인 후 판매 (등급×3 골드)</div>
+                <div style={{ maxHeight: 220, overflow: "auto", display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", padding: "4px 0" }}>
                   {deck.map(function(c) {
+                    var isSelected = pendingSell && pendingSell.id === c.id;
                     return (
-                      <div key={c.id} onClick={function() { sellCard(c); }} style={{ cursor: "pointer", position: "relative" }}>
+                      <div key={c.id} onClick={function() { setPendingSell(isSelected ? null : c); }} style={{ cursor: "pointer", position: "relative", border: isSelected ? "2px solid #fbbf24" : "2px solid transparent", borderRadius: 8 }}>
                         <CardView card={c} cls={classData} small={true} />
                         <div style={{ position: "absolute", bottom: 2, right: 2, background: "#fbbf24", color: "#000", borderRadius: 4, padding: "1px 4px", fontSize: 11, fontWeight: 700 }}>
                           💰{c.grade * 3}
@@ -166,7 +169,22 @@ export function CampfireScreen({ game }) {
                     );
                   })}
                 </div>
-                <Btn onClick={function() { leaveCampfire(); }} style={{ marginTop: 8, fontSize: 16, padding: "8px 20px" }}>
+                {pendingSell && (
+                  <div style={{ marginTop: 8, padding: "8px 12px", background: "#fbbf2411", border: "1px solid #fbbf2444", borderRadius: 8, textAlign: "center" }}>
+                    <div style={{ fontSize: 13, color: "#fbbf24", fontWeight: 700, marginBottom: 6 }}>
+                      {pendingSell.isCommon ? pendingSell.common.name : (pendingSell.suitId + " " + pendingSell.grade)} 판매? 💰{pendingSell.grade * 3}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                      <Btn onClick={function() { sellCard(pendingSell); setPendingSell(null); }} color="#fbbf24" style={{ padding: "5px 16px", fontSize: 12 }}>
+                        판매 확인
+                      </Btn>
+                      <Btn onClick={function() { setPendingSell(null); }} color="var(--dm)" style={{ padding: "5px 16px", fontSize: 12 }}>
+                        취소
+                      </Btn>
+                    </div>
+                  </div>
+                )}
+                <Btn onClick={function() { setPendingSell(null); leaveCampfire(); }} style={{ marginTop: 8, fontSize: 16, padding: "8px 20px" }}>
                   안 팔고 진행 →
                 </Btn>
               </div>

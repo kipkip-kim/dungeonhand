@@ -107,7 +107,14 @@ export function VillageScreen({ game }) {
             <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
           )}
         </div>
-        {resetCount < 3 && (function() {
+        {(function() {
+          if (resetCount >= 3) {
+            return (
+              <div style={{ textAlign: "center", marginTop: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 12, color: "var(--dm)" }}>🔄 초기화 3회 모두 사용</span>
+              </div>
+            );
+          }
           var resetCost = [2, 3, 4][resetCount];
           var canReset = metaPoints >= resetCost && totalInvested > 0;
           return (
@@ -129,6 +136,12 @@ export function VillageScreen({ game }) {
               >
                 🔄 스킬 초기화 ({resetCount + 1}/3회) — ⭐{resetCost}
               </Btn>
+              {!canReset && totalInvested === 0 && (
+                <div style={{ fontSize: 11, color: "var(--dm)", marginTop: 4 }}>투자한 스킬 없음</div>
+              )}
+              {!canReset && totalInvested > 0 && metaPoints < resetCost && (
+                <div style={{ fontSize: 11, color: "var(--dm)", marginTop: 4 }}>⭐ 부족 (필요: {resetCost})</div>
+              )}
             </div>
           );
         })()}

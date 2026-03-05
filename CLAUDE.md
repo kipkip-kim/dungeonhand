@@ -225,6 +225,13 @@
 - 상점 카드 제거 불가 사유 표시 (덱 10장 이하/횟수 소진/골드 부족) ✅
 - 캠프 상인 판매 확인 UI (pendingSell 로컬 state + 확인/취소) ✅
 
+### ~~세션 29B: 정적 분석 버그 수정 5건~~ ✅ 완료
+- burn 카드 레드 문양 판정 오류 수정 (`!c.burning` 조건) ✅
+- initUpgrades lazy initializer 적용 ✅
+- poison stale closure 수정 (enemyTurn poisonOverride 파라미터) ✅
+- splitMon stale closure 수정 (splitMonRef useRef) ✅
+- monster stale closure 수정 (monsterRef useRef, freeze/erode/burn) ✅
+
 ---
 
 ## 기능 추가 체크리스트

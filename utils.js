@@ -173,7 +173,7 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   if (bonus.extraDraw) extraDraw += bonus.extraDraw;
 
   // === Check if 1+ red class card submitted (for shadow stacking) ===
-  var hasRed = cards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
+  var hasRed = cards.some(function(c) { return !c.isCommon && c.suitId === "red" && !c.burning; });
 
   // Common card: focus
   cards.forEach(function(c) {

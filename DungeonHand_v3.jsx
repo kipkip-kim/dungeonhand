@@ -24,10 +24,12 @@ export default function DungeonHand() {
   var [hp, setHp] = s(BASE_HP);
   // Meta progression (persists across runs)
   var [metaPoints, setMetaPoints] = s(0);
-  var initUpgrades = {};
-  SKILL_TREES.forEach(function(t) { t.nodes.forEach(function(n) { initUpgrades[n.id] = 0; }); });
-  initUpgrades[ULTIMATE_SKILL.id] = 0;
-  var [upgradeLevels, setUpgradeLevels] = s(initUpgrades);
+  var [upgradeLevels, setUpgradeLevels] = s(function() {
+    var init = {};
+    SKILL_TREES.forEach(function(t) { t.nodes.forEach(function(n) { init[n.id] = 0; }); });
+    init[ULTIMATE_SKILL.id] = 0;
+    return init;
+  });
   var [resetCount, setResetCount] = s(0);
   var [skillTab, setSkillTab] = s("common");
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
@@ -38,7 +40,15 @@ export default function DungeonHand() {
   var [hand, setHand] = s([]);
   var [discardPile, setDiscardPile] = s([]);
   var [selected, setSelected] = s([]);
-  var [monster, setMonster] = s(null);
+  var [monster, setMonster_] = s(null);
+  var monsterRef = useRef(null);
+  function setMonster(val) {
+    if (typeof val === "function") {
+      setMonster_(function(prev) { var next = val(prev); monsterRef.current = next; return next; });
+    } else {
+      monsterRef.current = val; setMonster_(val);
+    }
+  }
   var [discards, setDiscards] = s(2);
   var [roundNum, setRoundNum] = s(1);
   var [damageInfo, setDamageInfo] = s(null);
@@ -76,7 +86,9 @@ export default function DungeonHand() {
   var [book2Used, setBook2Used] = s(false); // book2: once per battle submit bonus
   var gambitPendingRef = useRef(false); // gambit: next draw shows 3-pick-1 (ref for setTimeout closure)
   var [gambitChoices, setGambitChoices] = s([]); // gambit: 3 cards to choose from
-  var [splitMon, setSplitMon] = s(null); // split monster waiting
+  var [splitMon, setSplitMon_] = s(null); // split monster waiting
+  var splitMonRef = useRef(null);
+  function setSplitMon(val) { splitMonRef.current = val; setSplitMon_(val); }
   var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
   var [deckView, setDeckView] = s(false);
   var [deckSort, setDeckSort] = s("type");
@@ -413,8 +425,9 @@ export default function DungeonHand() {
       if (c.keyword && c.keyword.id === "poison") return sum + c.grade + (c.growthBonus || 0);
       return sum;
     }, 0);
+    var newPoison = poison + poisonAmt;
     if (poisonAmt > 0) {
-      setPoison(function(p) { return p + poisonAmt; });
+      setPoison(newPoison);
     }
 
     // === Update passive state via hook ===
@@ -478,41 +491,43 @@ export default function DungeonHand() {
           var spawnHp = Math.floor(prev.maxHp * 0.4);
           setSplitMon({ name: "마법 골렘", emoji: "🗿", hp: spawnHp, maxHp: spawnHp, atk: Math.floor(prev.atk * 0.6), freeze: 1 });
           showPassive("💥 분열! 마법 골렘 출현!");
-          setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: splitHp, hasSplit: true }), played, dmg); }, 800);
+          setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: splitHp, hasSplit: true }), played, dmg, newPoison); }, 800);
           return Object.assign({}, prev, { hp: splitHp, hasSplit: true });
         }
 
         // Monster killed
         if (newHp <= 0) {
           // Check if split monster is waiting
-          if (splitMon) {
-            setMonster(splitMon);
+          if (splitMonRef.current) {
+            var sm = splitMonRef.current;
+            setMonster(sm);
             setSplitMon(null);
-            showPassive("⚔️ " + splitMon.name + " 등장!");
-            setTimeout(function() { enemyTurn(splitMon, played, dmg); }, 800);
-            return splitMon;
+            showPassive("⚔️ " + sm.name + " 등장!");
+            setTimeout(function() { enemyTurn(sm, played, dmg, newPoison); }, 800);
+            return sm;
           }
           setTimeout(function() { onMonsterDied(); }, 400);
           return Object.assign({}, prev, { hp: 0 });
         }
-        setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: newHp }), played, dmg); }, 800);
+        setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: newHp }), played, dmg, newPoison); }, 800);
         return Object.assign({}, prev, { hp: newHp });
       });
     }, 700);
   }
 
-  function enemyTurn(mon, played, dmgResult) {
+  function enemyTurn(mon, played, dmgResult, poisonOverride) {
     // === ☠️ Poison tick ===
-    if (poison > 0) {
+    var effectivePoison = poisonOverride !== undefined ? poisonOverride : poison;
+    if (effectivePoison > 0) {
       setMonster(function(prev) {
-        var newHp = Math.max(0, prev.hp - poison);
+        var newHp = Math.max(0, prev.hp - effectivePoison);
         if (newHp <= 0) {
           setTimeout(function() { onMonsterDied(); }, 300);
           return Object.assign({}, prev, { hp: 0 });
         }
         return Object.assign({}, prev, { hp: newHp });
       });
-      showPassive("☠️ 독 데미지 " + poison + "!");
+      showPassive("☠️ 독 데미지 " + effectivePoison + "!");
     }
 
     var atkDmg = rollEnemyDmg(mon.atk);
@@ -652,7 +667,8 @@ export default function DungeonHand() {
           setNewCardIds([]);
 
           // === Freeze mechanic ===
-          var freezeCount = monster ? (monster.freeze || 0) : 0;
+          var mon = monsterRef.current;
+          var freezeCount = mon ? (mon.freeze || 0) : 0;
           if (freezeCount > 0) {
             var freezable = allNewHand.filter(function(c) { return selected.indexOf(c.id) < 0; });
             var toFreeze = pickN(freezable, freezeCount);
@@ -666,7 +682,7 @@ export default function DungeonHand() {
           }
 
           // === Erode mechanic (심연) ===
-          var erodeCount = monster ? (monster.erode || 0) : 0;
+          var erodeCount = mon ? (mon.erode || 0) : 0;
           if (erodeCount > 0) {
             var erodable = allNewHand.filter(function(c) { return !c.isCommon; });
             var toErode = pickN(erodable, erodeCount);
@@ -689,7 +705,7 @@ export default function DungeonHand() {
           }
 
           // === Burn mechanic (드래곤) ===
-          var burnCount = monster ? (monster.burn || 0) : 0;
+          var burnCount = mon ? (mon.burn || 0) : 0;
           if (burnCount > 0 && allNewHand.length < MAX_HAND) {
             var actualBurn = Math.min(burnCount, MAX_HAND - allNewHand.length);
             var burnCards = [];

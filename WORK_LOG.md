@@ -626,6 +626,20 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 29B (2026-03-05) — 정적 분석 버그 수정 5건
+
+### 완료
+- [x] #1 burn 카드 레드 문양 판정 오류: `!c.burning` 조건 추가 (utils.js)
+- [x] #2 initUpgrades lazy initializer: `useState(() => {...})` 패턴 적용 (DungeonHand_v3.jsx)
+- [x] #3 poison stale closure: enemyTurn에 poisonOverride 파라미터 추가 (DungeonHand_v3.jsx)
+- [x] #4 splitMon stale closure: splitMonRef(useRef) 추가 + setMonster updater 내 참조 교체 (DungeonHand_v3.jsx)
+- [x] #5 monster stale closure: monsterRef(useRef) 추가 + freeze/erode/burn에서 참조 교체 (DungeonHand_v3.jsx)
+
+### 검증
+- 매 수정 후 빌드 성공
+
+---
+
 ## 다음 세션 TODO (우선순위순)
 
 ### 🔴 P0: UI/UX 전반 개선 (다음 세션)
@@ -649,7 +663,7 @@ public/audio/          총 1.54MB
 - [ ] 난이도 설정 (스케일링 계수 분기)
 
 ### 🟢 P3: 코드 품질
-- [ ] initUpgrades lazy initializer (`useState(() => {...})`) — 매 렌더 불필요 연산 제거
+- [x] initUpgrades lazy initializer (`useState(() => {...})`) — 세션29B 완료
 - [ ] 캠프 기습 ambush 코드 beginBattle과 통합 (laterTimers 미적용 문제 포함)
 - [ ] dead comment 정리 ("Warrior 🔷" 주석 등)
 - [ ] tenacityUsed stale closure → useRef 패턴 적용

@@ -3,6 +3,7 @@ const sfx = (() => {
   const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
   let isOn = false;
   let currentBgm = null;
+  let currentBgmType = null;
   let iosUnlocked = false;
 
   // --- iOS Audio Unlock ---
@@ -64,7 +65,7 @@ const sfx = (() => {
       isOn = !isOn;
       if (isOn) {
         unlockIOS();
-        sfx.bgmOn("battle");
+        sfx.bgmOn(currentBgmType || "home");
       } else {
         sfx.bgmOff();
       }
@@ -72,8 +73,9 @@ const sfx = (() => {
     },
     bgmOn: function (type) {
       sfx.bgmOff();
-      if (!isOn) return;
       var t = type || "battle";
+      currentBgmType = t;
+      if (!isOn) return;
       try {
         var a = getBgm(t);
         currentBgm = a;

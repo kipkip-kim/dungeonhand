@@ -1184,7 +1184,7 @@ export default function DungeonHand() {
             );
           })()}
           <div style={{ textAlign: "center", marginTop: 4 }}>
-            <Btn onClick={function() { setScreen("menu"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
+            <Btn onClick={function() { setScreen("menu"); sfx.bgmOn("home"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
           </div>
         </div>
       </div>
@@ -2074,6 +2074,7 @@ export default function DungeonHand() {
     }
     setBossesKilled([]);
     setScreen(dest);
+    if (dest === "menu") sfx.bgmOn("home");
   }
 
   if (screen === "victory") {

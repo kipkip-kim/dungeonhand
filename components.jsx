@@ -348,4 +348,8 @@ function DeckViewer(props) {
   );
 }
 
-export { CardView, HpBar, Btn, DeckViewer };
+function relicBorderColor(tier) {
+  return tier >= 3 ? "var(--gd)" : tier >= 2 ? "var(--ac)" : "var(--bd)";
+}
+
+export { CardView, HpBar, Btn, DeckViewer, relicBorderColor };

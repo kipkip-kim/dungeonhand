@@ -1,5 +1,5 @@
-import { CLASSES, SKILL_TREES, ULTIMATE_SKILL } from "../data.js";
-import { relicBorderColor } from "../utils.js";
+import { CLASSES } from "../data.js";
+import { relicBorderColor } from "../components.jsx";
 import { CardView, Btn, DeckViewer } from "../components.jsx";
 
 // === RELIC SWAP OVERLAY ===

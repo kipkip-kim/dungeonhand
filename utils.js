@@ -242,8 +242,4 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   };
 }
 
-function relicBorderColor(tier) {
-  return tier >= 3 ? "var(--gd)" : tier >= 2 ? "var(--ac)" : "var(--bd)";
-}
-
-export { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage, relicBorderColor };
+export { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage };

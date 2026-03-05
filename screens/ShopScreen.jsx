@@ -1,5 +1,5 @@
 import { sfx } from "../audio.js";
-import { relicBorderColor } from "../utils.js";
+import { relicBorderColor } from "../components.jsx";
 import { CardView, Btn, DeckViewer } from "../components.jsx";
 
 export function ShopScreen({ game }) {

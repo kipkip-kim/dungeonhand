@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, BOSS_POINTS } from "./data.js";
 import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";

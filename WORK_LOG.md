@@ -530,6 +530,18 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 23: 빠른 코드 정리 (2026-03-05)
+
+### 완료 내역
+1. **미사용 import 제거** — DungeonHand_v3.jsx에서 FLOOR_NAMES/SKILL_TREES/ULTIMATE_SKILL, SmallScreens.jsx에서 SKILL_TREES/ULTIMATE_SKILL 제거
+2. **data.js var→const 통일** — SUITS, CAMPFIRE_EVENTS, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS 6곳
+3. **relicBorderColor 이동** — utils.js→components.jsx (UI 헬퍼이므로), SmallScreens/ShopScreen import 경로 변경
+
+### 검증
+- 빌드 성공 (220.95 kB)
+
+---
+
 ## 다음 세션 TODO
 
 ### 게임 UI 전반 개선

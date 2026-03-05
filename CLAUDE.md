@@ -191,6 +191,11 @@
 - relicBorderColor 헬퍼 추출 + 4곳 교체 (ShopScreen tier-3 버그 수정 포함) ✅
 - CSS 변수 --ac/--pu/--or 추가 + 6개 파일 리터럴 교체 ✅
 
+### ~~세션 23: 빠른 코드 정리~~ ✅ 완료
+- 미사용 import 제거 (FLOOR_NAMES/SKILL_TREES/ULTIMATE_SKILL) ✅
+- data.js var→const 통일 (6곳) ✅
+- relicBorderColor utils.js→components.jsx 이동 ✅
+
 ---
 
 ## 기능 추가 체크리스트

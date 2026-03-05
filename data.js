@@ -1,5 +1,5 @@
 // === DATA ===
-var SUITS = [
+const SUITS = [
   { id: "red", emoji: "🔺", color: "#e64b35" },
   { id: "blue", emoji: "🔷", color: "#4e79a7" },
   { id: "yellow", emoji: "⭐", color: "#f0b930" },
@@ -140,7 +140,7 @@ const MONSTERS = [
 ];
 
 // Campfire events
-var CAMPFIRE_EVENTS = [
+const CAMPFIRE_EVENTS = [
   { id: "fairy", name: "🧚 요정", desc: "요정이 축복을 내렸다!", good: true },
   { id: "merchant", name: "🏪 떠돌이 상인", desc: "카드를 팔아 골드를 얻자", good: true },
   { id: "rest", name: "😴 평온한 휴식", desc: "깊은 잠에 빠졌다...", good: true },
@@ -178,14 +178,14 @@ const BOSS_DIALOGUES = {
 };
 
 // Keywords that can be attached to cards
-var KEYWORDS = [
+const KEYWORDS = [
   { id: "poison", icon: "☠️", name: "맹독", desc: "등급만큼 매턴 독 데미지" },
   { id: "chain", icon: "⛓️", name: "연쇄", desc: "제출 시 드로우 +1" },
   { id: "growth", icon: "🌱", name: "성장", desc: "제출마다 등급 영구 +1" },
   { id: "resonance", icon: "🔔", name: "공명", desc: "같은 문양 2장+ 시 배율 +0.5" },
 ];
 
-var SKILL_TREES = [
+const SKILL_TREES = [
   {
     id: "common", name: "공통", icon: "⚔️", classId: null, color: "#888",
     nodes: [
@@ -226,12 +226,12 @@ var SKILL_TREES = [
   },
 ];
 
-var ULTIMATE_SKILL = {
+const ULTIMATE_SKILL = {
   id: "fatedDice", name: "운명의 주사위", icon: "🎲",
   desc: "제출마다 주사위! 데미지 배율 33% x0.5 / 33% x1.5 / 33% x3",
   unlockCost: 40,
 };
 
-var BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
+const BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
 
 export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS };

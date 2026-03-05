@@ -78,13 +78,13 @@ export function BattleScreen({ game }) {
         <div style={{ display: "flex", alignItems: "center", gap: "clamp(5px, calc(var(--gw) * 0.01), 10px)" }}>
           <div
             onClick={function() { setOverlay("hands"); }}
-            style={{ background: "var(--bd)", borderRadius: 6, padding: "clamp(4px, calc(var(--gw) * 0.008), 7px) clamp(8px, calc(var(--gw) * 0.016), 14px)", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", cursor: "pointer", color: "var(--dm)", fontWeight: 700 }}
+            style={{ background: "var(--bd)", borderRadius: 6, padding: "clamp(8px, calc(var(--gw) * 0.016), 12px) clamp(10px, calc(var(--gw) * 0.02), 16px)", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", cursor: "pointer", color: "var(--dm)", fontWeight: 700 }}
           >
             족보
           </div>
           <div
             onClick={function() { setOverlay("deck"); }}
-            style={{ background: "var(--bd)", borderRadius: 6, padding: "clamp(4px, calc(var(--gw) * 0.008), 7px) clamp(8px, calc(var(--gw) * 0.016), 14px)", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", cursor: "pointer", color: "var(--dm)", fontWeight: 700 }}
+            style={{ background: "var(--bd)", borderRadius: 6, padding: "clamp(8px, calc(var(--gw) * 0.016), 12px) clamp(10px, calc(var(--gw) * 0.02), 16px)", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", cursor: "pointer", color: "var(--dm)", fontWeight: 700 }}
           >
             덱{deck.length}
           </div>
@@ -114,7 +114,7 @@ export function BattleScreen({ game }) {
                   <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 2s ease infinite" }}>
                     ⚔️{monster.atk}~{monster.atk + 2}
                   </span>
-                  {monster.freeze > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#60a5fa", fontWeight: 700 }}>❄️{monster.freeze}</span>}
+                  {monster.freeze > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--fr)", fontWeight: 700 }}>❄️{monster.freeze}</span>}
                   {monster.erode > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--ac)", fontWeight: 700 }}>🌑{monster.erode}</span>}
                   {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
                   {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
@@ -218,20 +218,21 @@ export function BattleScreen({ game }) {
                 </div>
               )}
             </div>
-            <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
               {relics.map(function(r) {
                 return (
                   <span key={r.id}
                     onClick={function() { setRelicTip(relicTip === r.id ? null : r.id); }}
-                    style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative" }}>
+                    style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative", padding: "4px 2px" }}>
                     {r.emoji}
                     {relicTip === r.id && (
                       <span style={{
-                        position: "absolute", bottom: "120%", left: "50%",
+                        position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
                         transform: "translateX(-50%)",
                         background: "var(--cd)", border: "1px solid var(--bd)",
                         borderRadius: 8, padding: "5px 10px",
-                        fontSize: 12, color: "var(--tx)", whiteSpace: "nowrap",
+                        fontSize: 12, color: "var(--tx)",
+                        maxWidth: "80vw", whiteSpace: "normal", wordBreak: "keep-all",
                         zIndex: 50, boxShadow: "0 4px 12px rgba(0,0,0,0.6)",
                         pointerEvents: "none", fontWeight: 700,
                       }}>
@@ -256,7 +257,7 @@ export function BattleScreen({ game }) {
         </div>
 
         {/* === 손패 고정 영역 === */}
-        <div style={{ padding: "10px 6px 2px", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, minHeight: "clamp(100px, calc(var(--gw) * 0.2), 184px)" }}>
+        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(4px, calc(var(--gw) * 0.008), 8px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, minHeight: "clamp(100px, calc(var(--gw) * 0.2), 184px)" }}>
           {hand.map(function(c, idx) {
             var isNew = newCardIds.indexOf(c.id) >= 0;
             var isFrozen = frozenIds.indexOf(c.id) >= 0;

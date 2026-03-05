@@ -232,6 +232,13 @@
 - splitMon stale closure 수정 (splitMonRef useRef) ✅
 - monster stale closure 수정 (monsterRef useRef, freeze/erode/burn) ✅
 
+### ~~세션 30: 전투화면 UI 점검 P0+P1~~ ✅ 완료
+- CSS 변수 --fr/--bn/--er 추가 + 하드코딩 색상 3곳 교체 ✅
+- 상단바 족보/덱 버튼 터치 타겟 확대 (패딩 4→8px) ✅
+- 유물 이모지 터치 영역 확대 (gap+padding) ✅
+- 유물 툴팁 잘림 수정 (calc+maxWidth+whiteSpace) ✅
+- 손패 padding 하드코딩 → clamp() 반응형 ✅
+
 ---
 
 ## 기능 추가 체크리스트

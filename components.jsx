@@ -33,7 +33,7 @@ function CardView(props) {
         }}
       >
         <span style={{ fontSize: "clamp(" + (small ? "20px, calc(var(--gw) * 0.04), 36px)" : "24px, calc(var(--gw) * 0.048), 44px)") }}>🔥</span>
-        <span style={{ fontSize: "clamp(" + (small ? "9px, calc(var(--gw) * 0.018), 16px)" : "11px, calc(var(--gw) * 0.022), 20px)"), color: "#fca5a5", fontWeight: 700 }}>화상</span>
+        <span style={{ fontSize: "clamp(" + (small ? "9px, calc(var(--gw) * 0.018), 16px)" : "11px, calc(var(--gw) * 0.022), 20px)"), color: "var(--bn)", fontWeight: 700 }}>화상</span>
         <span style={{ fontSize: "clamp(" + (small ? "8px, calc(var(--gw) * 0.016), 14px)" : "10px, calc(var(--gw) * 0.02), 18px)"), color: "#ef4444" }}>제출시 -3HP</span>
       </div>
     );
@@ -89,7 +89,7 @@ function CardView(props) {
           top: small ? 2 : 4,
           left: small ? 3 : 5,
           fontSize: "clamp(" + (small ? "8px, calc(var(--gw) * 0.016), 14px)" : "10px, calc(var(--gw) * 0.02), 18px)"),
-          color: "#a78bfa",
+          color: "var(--er)",
           fontWeight: 700,
           letterSpacing: 1,
         }}>

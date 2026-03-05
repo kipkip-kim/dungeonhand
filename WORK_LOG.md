@@ -669,6 +669,15 @@ public/audio/          총 1.54MB
 - [ ] tenacityUsed stale closure → useRef 패턴 적용
 - [ ] ShopScreen IIFE → 렌더 전 계산 변수로 추출
 
+## 세션 30 (2026-03-05) — 전투화면 UI 점검 P0+P1
+
+### 완료
+- [x] CSS 변수 --fr/#60a5fa, --bn/#fca5a5, --er/#a78bfa 추가 + 하드코딩 색상 3곳 교체
+- [x] 상단바 족보/덱 버튼 터치 타겟 확대 (최소 패딩 4→8px)
+- [x] 유물 이모지 터치 영역 확대 (gap 2→4, padding 추가)
+- [x] 유물 툴팁 잘림 수정 (bottom calc(100%+8px), maxWidth 80vw, whiteSpace normal)
+- [x] 손패 영역 padding 하드코딩 → clamp() 반응형
+
 ### 🔵 P4: 밸런스 점검
 - [ ] runPoints 승리 보너스 +3 vs 보스 킬 포인트 비율 검토
 - [ ] stealth 투자 대비 효율 vs critMastery 비교

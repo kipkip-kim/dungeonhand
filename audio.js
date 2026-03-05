@@ -23,10 +23,12 @@ const sfx = (() => {
   // --- SFX preload ---
   const sfxNames = ["click", "card", "hit", "dmg", "enemy", "win", "lose", "gold", "heal"];
   const sounds = {};
+  const sfxVolume = { click: 0.3, card: 0.3, win: 0.75, heal: 0.5 };
   sfxNames.forEach(function (name) {
     const a = new Audio();
     a.preload = "auto";
     a.src = BASE + "/audio/sfx/" + name + ".ogg";
+    if (sfxVolume[name]) a.volume = sfxVolume[name];
     sounds[name] = a;
   });
 

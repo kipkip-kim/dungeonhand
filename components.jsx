@@ -170,7 +170,7 @@ function HpBar(props) {
       }}>
         {props.name}
         {props.boss && <span style={{ color: "var(--gd)", fontSize: 13, marginLeft: 4 }}>BOSS</span>}
-        {props.miniboss && <span style={{ color: "#f97316", fontSize: 13, marginLeft: 4 }}>중간보스</span>}
+        {props.miniboss && <span style={{ color: "#f97316", fontSize: 13, marginLeft: 4 }}>엘리트</span>}
       </div>
       <div style={{
         width: barWidth,

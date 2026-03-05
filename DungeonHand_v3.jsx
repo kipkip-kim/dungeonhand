@@ -272,7 +272,6 @@ export default function DungeonHand() {
     // Phase 5: Draw cards
     initialHand.forEach(function(card, idx) {
       laterTimers.push(setTimeout(function() {
-        sfx.card();
         setHand(function(prev) { return prev.concat([card]); });
         setNewCardIds(function(prev) { return prev.concat([card.id]); });
       }, t + (idx + 1) * 150));
@@ -616,7 +615,6 @@ export default function DungeonHand() {
         var ids = drawn.map(function(c) { return c.id; });
         drawn.forEach(function(card, idx) {
           setTimeout(function() {
-            sfx.card();
             setHand(function(prev) { return prev.concat([card]); });
             setNewCardIds(function(prev) { return prev.concat([card.id]); });
           }, (idx + 1) * 120);
@@ -763,7 +761,6 @@ export default function DungeonHand() {
     var lootBonus = upgradeLevels.loot * 3;
     var earned = (isBoss ? 10 : battleNum === 4 ? 7 : 4) + Math.floor(Math.random() * 5) + lootBonus;
     setGold(function(g) { return g + earned; });
-    sfx.gold();
     if (isBoss) {
       var avail = RELICS.filter(function(r) {
         if (r.classId != null && r.classId !== classId) return false;
@@ -1080,7 +1077,7 @@ export default function DungeonHand() {
         {audioButton}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
           <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <h2 style={{ fontSize: 16 }}>🏘️ 스킬 트리</h2>
+            <h2 style={{ fontSize: 16 }}>🌟 스킬 트리</h2>
             <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
             <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
           </div>
@@ -1330,6 +1327,32 @@ export default function DungeonHand() {
         setDiscardPile([]);
         setScreen("battle");
         if (sfx.getOn()) sfx.bgmOn("battle");
+        // 화톳불 습격: 100% 기습 (선제 공격)
+        var ambushDmg = amatk + Math.floor(Math.random() * 3);
+        setTimeout(function() {
+          showPassive("⚡ 기습! " + am.name + "의 선제 공격!");
+          sfx.enemy();
+          setEnemyAttacking(true);
+          setPlayerShake(true);
+          setEnemyDmgShow(ambushDmg);
+          setHp(function(prev) {
+            if (prev - ambushDmg <= 0) {
+              if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
+                setTenacityUsed(true);
+                showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
+                return 1;
+              }
+              setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
+              return 0;
+            }
+            return prev - ambushDmg;
+          });
+          setTimeout(function() {
+            setEnemyAttacking(false);
+            setPlayerShake(false);
+            setEnemyDmgShow(null);
+          }, 800);
+        }, 600);
         return;
       }
       if (evtId === "merchant") {
@@ -1550,7 +1573,7 @@ export default function DungeonHand() {
               {encounterOverlay.name}
             </div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
-              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ 중간보스 ⚔️"}
+              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ 엘리트 ⚔️"}
             </div>
           </div>
         )}
@@ -2078,7 +2101,7 @@ export default function DungeonHand() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <Btn onClick={function() { claimAndGo("village"); }} color="#22c55e">🏘️ 마을</Btn>
+            <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>
             <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
           </div>
         </div>
@@ -2099,7 +2122,7 @@ export default function DungeonHand() {
             <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <Btn onClick={function() { claimAndGo("village"); }} color="#22c55e">🏘️ 마을</Btn>
+            <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>
             <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
           </div>
         </div>

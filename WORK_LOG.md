@@ -677,14 +677,12 @@ public/audio/          총 1.54MB
 > 에셋 방식: PNG/SVG 이미지 파일 (무료 소스에서 확보)
 > 배경 범위: 모든 화면 (메뉴/마을/상점/캠프/전투)
 
-#### Phase 1: 레이아웃/색상/타이포그래피 리디자인
-- [ ] 전체 색상 테마 개선
-- [ ] 화면별 레이아웃 정리
-- [ ] 카드/버튼/패널 디자인 개선
+#### ~~Phase 1: 레이아웃/색상/타이포그래피 리디자인~~ ✅ 완료 (세션 34~37)
 
-#### Phase 2: 배경 이미지 도입
-- [ ] 무료 배경 에셋 확보 (CC0/무료 라이센스)
-- [ ] 화면별 배경 적용 (메뉴/마을/상점/캠프/전투 층별)
+#### Phase 2: 배경 이미지 도입 (진행중)
+- [x] 배경 코드 구조 완성 (SCREEN_BG + gradient 오버레이 + BASE_URL)
+- [x] 전투 배경 (battle.png) 적용 + 확인 완료
+- [ ] 나머지 4종 배경 에셋 확보 및 배치 (menu/village/shop/campfire)
 
 #### Phase 3: 캐릭터(몬스터) 이미지 도입
 - [ ] 무료 몬스터/캐릭터 에셋 확보
@@ -819,6 +817,8 @@ public/audio/          총 1.54MB
 - [x] data.js: SCREEN_BG 상수 추가 (menu/village/shop/campfire/battle 5종 경로)
 - [x] DungeonHand_v3.jsx: screen→bgKey 매핑 + wrapStyle background 멀티레이어화 (gradient 오버레이 + url)
 - [x] DungeonHand_v3.jsx: imageRendering: "pixelated" 추가 (픽셀아트 배경 선명 표시)
+- [x] 배경 이미지 경로 버그 수정: BASE_URL 누락 → bgUrl에 import.meta.env.BASE_URL 접두사 추가 + SCREEN_BG 경로 선행 `/` 제거
+- [x] battle.png 배경 실제 표시 확인 완료
 
 ### 화면→배경 매핑
 | bgKey | 적용 화면 |
@@ -829,12 +829,12 @@ public/audio/          총 1.54MB
 | campfire | campfire |
 | battle | battle, reward, enhance, relicReward |
 
-### 이미지 배치 안내
-`public/images/bg/` 에 아래 파일 배치:
-- menu.webp — 메뉴/직업선택/승리/패배 배경
-- village.webp — 마을 배경
-- shop.webp — 상점 배경
-- campfire.webp — 캠프파이어 배경
-- battle.webp — 전투/보상/강화 배경
+### 이미지 배치 현황
+`public/images/bg/` 에 배치:
+- [x] battle.png — 전투/보상/강화 배경 ✅ 표시 확인
+- [ ] menu.webp — 메뉴/직업선택/승리/패배 배경
+- [ ] village.webp — 마을 배경
+- [ ] shop.webp — 상점 배경
+- [ ] campfire.webp — 캠프파이어 배경
 
-이미지 없이도 기존 gradient fallback으로 정상 표시됨.
+이미지 없는 화면은 기존 gradient fallback으로 정상 표시됨.

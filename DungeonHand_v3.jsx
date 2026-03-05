@@ -1120,7 +1120,7 @@ export default function DungeonHand() {
     : screen === "reward" || screen === "enhance" || screen === "relicReward" ? "battle"
     : screen === "victory" || screen === "defeat" ? "menu"
     : screen;
-  var bgUrl = SCREEN_BG[bgKey] || SCREEN_BG.menu;
+  var bgUrl = import.meta.env.BASE_URL + (SCREEN_BG[bgKey] || SCREEN_BG.menu);
 
   var wrapStyle = {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",

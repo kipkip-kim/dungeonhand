@@ -47,9 +47,9 @@ function CardView(props) {
     ? (selected ? "linear-gradient(145deg,#2d1f5e44,#1a1040)" : "linear-gradient(145deg,#1e1545,#120e2a)")
     : (selected ? "linear-gradient(145deg," + c.suitColor + "22," + c.suitColor + "11)" : "linear-gradient(145deg,var(--cd),#12121f)");
 
-  var borderColor = c.keyword ? "#a855f7" : isC ? "#7c3aed" : (selected ? c.suitColor : "var(--bd)");
+  var borderColor = c.keyword ? "var(--ac)" : isC ? "var(--pu)" : (selected ? c.suitColor : "var(--bd)");
   var transform = selected ? "translateY(-12px) scale(1.04)" : "none";
-  var shadow = selected ? "0 10px 22px " + (isC ? "#a855f7" : c.suitColor) + "33" : "0 2px 6px rgba(0,0,0,0.4)";
+  var shadow = selected ? "0 10px 22px " + (isC ? "#a855f733" : c.suitColor + "33") : "0 2px 6px rgba(0,0,0,0.4)";
 
   // Effect descriptions for common cards
   var fxText = "";
@@ -170,7 +170,7 @@ function HpBar(props) {
       }}>
         {props.name}
         {props.boss && <span style={{ color: "var(--gd)", fontSize: 13, marginLeft: 4 }}>BOSS</span>}
-        {props.miniboss && <span style={{ color: "#f97316", fontSize: 13, marginLeft: 4 }}>엘리트</span>}
+        {props.miniboss && <span style={{ color: "var(--or)", fontSize: 13, marginLeft: 4 }}>엘리트</span>}
       </div>
       <div style={{
         width: barWidth,
@@ -307,7 +307,7 @@ function DeckViewer(props) {
               style={{
                 padding: "5px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
                 fontFamily: "'Noto Sans KR', sans-serif",
-                background: sortMode === "type" ? "#7c3aed" : "var(--bd)",
+                background: sortMode === "type" ? "var(--pu)" : "var(--bd)",
                 color: "var(--tx)",
               }}
             >
@@ -318,7 +318,7 @@ function DeckViewer(props) {
               style={{
                 padding: "5px 12px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
                 fontFamily: "'Noto Sans KR', sans-serif",
-                background: sortMode === "grade" ? "#7c3aed" : "var(--bd)",
+                background: sortMode === "grade" ? "var(--pu)" : "var(--bd)",
                 color: "var(--tx)",
               }}
             >

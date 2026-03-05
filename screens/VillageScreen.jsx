@@ -27,13 +27,13 @@ export function VillageScreen({ game }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <h2 style={{ fontSize: 16 }}>🌟 스킬 트리</h2>
-          <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
+          <div style={{ fontSize: 14, color: "var(--or)", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
           <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
         </div>
         <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap", justifyContent: "center" }}>
           {visibleTrees.map(function(tree) {
             var isActive = skillTab === tree.id;
-            var tColor = tree.classId ? (tree.id.indexOf("red") >= 0 ? "#e64b35" : tree.id.indexOf("blue") >= 0 ? "#4e79a7" : "#f0b930") : "#888";
+            var tColor = tree.color || "#888";
             return (
               <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
                 {tree.icon} {tree.name}
@@ -56,7 +56,7 @@ export function VillageScreen({ game }) {
                         <span style={{ fontSize: 13 }}>{node.icon}</span>
                         <span style={{ fontWeight: 700, marginLeft: 4, fontSize: 13 }}>{node.name}</span>
                         <span style={{ color: "var(--dm)", fontSize: 12, marginLeft: 6 }}>{node.desc}</span>
-                        <span style={{ color: "#a855f7", fontSize: 12, marginLeft: 6 }}>{lv}/{node.max}</span>
+                        <span style={{ color: "var(--ac)", fontSize: 12, marginLeft: 6 }}>{lv}/{node.max}</span>
                       </div>
                       {maxed ? (
                         <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>MAX</span>

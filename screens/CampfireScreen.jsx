@@ -15,7 +15,7 @@ export function CampfireScreen({ game }) {
           <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
             <div style={{ fontSize: 56, marginBottom: 12 }}>🔥</div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginBottom: 4 }}>{floor}층 {FLOOR_NAMES[floor]}</div>
-            <h2 style={{ fontSize: 15, color: "#f97316", marginBottom: 12 }}>화톳불을 발견했다</h2>
+            <h2 style={{ fontSize: 15, color: "var(--or)", marginBottom: 12 }}>화톳불을 발견했다</h2>
             <div style={{ background: "#ffffff08", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
               <p style={{ color: "var(--dm)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                 저 앞에 따뜻한 빛이 보인다.
@@ -23,7 +23,7 @@ export function CampfireScreen({ game }) {
               </p>
             </div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginBottom: 8 }}>❤️ {hp}/{MAX_HP}</div>
-            <Btn onClick={enterPhase2} color="#f97316" style={{ padding: "10px 28px", fontSize: 13 }}>
+            <Btn onClick={enterPhase2} color="var(--or)" style={{ padding: "10px 28px", fontSize: 13 }}>
               불 옆에 앉다 →
             </Btn>
           </div>
@@ -33,7 +33,7 @@ export function CampfireScreen({ game }) {
         {campPhase === 2 && (
           <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
             <div style={{ fontSize: 48, marginBottom: 12, animation: "victBounce 2s ease infinite" }}>🔥</div>
-            <h2 style={{ fontSize: 15, color: "#f97316", marginBottom: 12 }}>휴식</h2>
+            <h2 style={{ fontSize: 15, color: "var(--or)", marginBottom: 12 }}>휴식</h2>
             <div style={{ background: "#22c55e11", border: "1px solid #22c55e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
               <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                 따뜻한 불빛이 몸을 감싼다.
@@ -46,7 +46,7 @@ export function CampfireScreen({ game }) {
                 {hp}/{MAX_HP}
               </div>
             </div>
-            <Btn onClick={enterPhase3} color="#f97316" style={{ padding: "10px 28px", fontSize: 13 }}>
+            <Btn onClick={enterPhase3} color="var(--or)" style={{ padding: "10px 28px", fontSize: 13 }}>
               눈을 뜨다 →
             </Btn>
           </div>
@@ -64,7 +64,7 @@ export function CampfireScreen({ game }) {
                   고요한 밤이었다.
                   <br />충분히 쉬었으니 발걸음을 옮긴다.
                 </p>
-                <Btn onClick={leaveCampfire} color="#f97316" style={{ marginTop: 14, padding: "10px 28px", fontSize: 13 }}>
+                <Btn onClick={leaveCampfire} color="var(--or)" style={{ marginTop: 14, padding: "10px 28px", fontSize: 13 }}>
                   출발 →
                 </Btn>
               </div>
@@ -72,17 +72,17 @@ export function CampfireScreen({ game }) {
 
             {/* Fairy */}
             {campEvent.id === "fairy" && (
-              <div style={{ background: "#a855f722", border: "1px solid #a855f7", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+              <div style={{ background: "#a855f722", border: "1px solid var(--ac)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🧚</div>
                 <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                   잠에서 깨니 작은 빛이 주위를 맴돌고 있다.
                   <br />요정이 손끝으로 이마를 어루만졌다.
                   <br />몸 안에서 힘이 솟아오른다!
                 </p>
-                <div style={{ marginTop: 10, fontSize: 14, color: "#a855f7", fontWeight: 700 }}>
+                <div style={{ marginTop: 10, fontSize: 14, color: "var(--ac)", fontWeight: 700 }}>
                   {classData.passive.onCamp(passiveState).msg}
                 </div>
-                <Btn onClick={resolveCampfire} color="#a855f7" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
+                <Btn onClick={resolveCampfire} color="var(--ac)" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
                   감사히 받다 →
                 </Btn>
               </div>

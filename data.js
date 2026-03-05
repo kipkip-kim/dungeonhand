@@ -187,7 +187,7 @@ var KEYWORDS = [
 
 var SKILL_TREES = [
   {
-    id: "common", name: "공통", icon: "⚔️", classId: null,
+    id: "common", name: "공통", icon: "⚔️", classId: null, color: "#888",
     nodes: [
       { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2 },
       { id: "sharp", name: "강화", icon: "🗡️", desc: "시작시 중립카드 등급+1", cost: 4, max: 1 },
@@ -198,7 +198,7 @@ var SKILL_TREES = [
     ],
   },
   {
-    id: "ranger_red", name: "습격", icon: "🔺", classId: "ranger",
+    id: "ranger_red", name: "습격", icon: "🔺", classId: "ranger", color: "#e64b35",
     nodes: [
       { id: "redCollect", name: "🔺수집", icon: "🔺", desc: "보상시 🔺카드 1장 보장", cost: 4, max: 1 },
       { id: "awaken", name: "각성", icon: "🌑", desc: "시작시 그림자 x1", cost: 10, max: 1 },
@@ -207,7 +207,7 @@ var SKILL_TREES = [
     ],
   },
   {
-    id: "ranger_blue", name: "연계", icon: "🔷", classId: "ranger",
+    id: "ranger_blue", name: "연계", icon: "🔷", classId: "ranger", color: "#4e79a7",
     nodes: [
       { id: "blueCollect", name: "🔷수집", icon: "🔷", desc: "보상시 🔷카드 1장 보장", cost: 4, max: 1 },
       { id: "deft", name: "손재주", icon: "👋", desc: "시작 드로우 +1", cost: 5, max: 1 },
@@ -216,7 +216,7 @@ var SKILL_TREES = [
     ],
   },
   {
-    id: "ranger_yellow", name: "급소", icon: "⭐", classId: "ranger",
+    id: "ranger_yellow", name: "급소", icon: "⭐", classId: "ranger", color: "#f0b930",
     nodes: [
       { id: "yellowCollect", name: "⭐수집", icon: "⭐", desc: "보상시 ⭐카드 1장 보장", cost: 4, max: 1 },
       { id: "critMastery", name: "급소숙련", icon: "🗡️", desc: "치명타 +10%", cost: 4, max: 2 },

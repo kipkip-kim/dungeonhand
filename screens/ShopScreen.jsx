@@ -1,4 +1,5 @@
 import { sfx } from "../audio.js";
+import { relicBorderColor } from "../utils.js";
 import { CardView, Btn, DeckViewer } from "../components.jsx";
 
 export function ShopScreen({ game }) {
@@ -54,12 +55,12 @@ export function ShopScreen({ game }) {
               var relicCost = Math.floor((shopRelic.tier === 1 ? 30 : shopRelic.tier === 2 ? 50 : 75) * discount);
               return (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + (shopRelic.tier >= 3 ? "#f97316" : shopRelic.tier >= 2 ? "#a855f7" : "var(--bd)"), textAlign: "center" }}>
+                  <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + relicBorderColor(shopRelic.tier), textAlign: "center" }}>
                     <div style={{ fontSize: 20 }}>{shopRelic.emoji}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>{shopRelic.name}</div>
                     <div style={{ fontSize: 16, color: "var(--dm)" }}>{shopRelic.desc}</div>
                   </div>
-                  <Btn onClick={function() { buyRelic(shopRelic, relicCost); }} disabled={gold < relicCost} color="#7c3aed">💰{relicCost}</Btn>
+                  <Btn onClick={function() { buyRelic(shopRelic, relicCost); }} disabled={gold < relicCost} color="var(--pu)">💰{relicCost}</Btn>
                 </div>
               );
             })()}

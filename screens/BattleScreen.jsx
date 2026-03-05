@@ -36,7 +36,7 @@ export function BattleScreen({ game }) {
           <div style={{ fontSize: 72, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
             {encounterOverlay.emoji}
           </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "#fbbf24" : "#a855f7", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "#fbbf24" : "var(--ac)", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
             {encounterOverlay.name}
           </div>
           <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
@@ -106,7 +106,7 @@ export function BattleScreen({ game }) {
             );
           })()}
           {poison > 0 && (
-            <div style={{ background: "#a855f722", border: "1px solid #a855f7", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
+            <div style={{ background: "#a855f722", border: "1px solid var(--ac)", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
               ☠️독{poison}
             </div>
           )}
@@ -132,9 +132,9 @@ export function BattleScreen({ game }) {
                     ⚔️{monster.atk}~{monster.atk + 2}
                   </span>
                   {monster.freeze > 0 && <span style={{ fontSize: 12, color: "#60a5fa" }}>❄️{monster.freeze}</span>}
-                  {monster.erode > 0 && <span style={{ fontSize: 12, color: "#a855f7" }}>🌑{monster.erode}</span>}
-                  {monster.burn > 0 && <span style={{ fontSize: 12, color: "#f97316" }}>🔥{monster.burn}</span>}
-                  {monster.split && !monster.hasSplit && <span style={{ fontSize: 12, color: "#f97316" }}>💥분열</span>}
+                  {monster.erode > 0 && <span style={{ fontSize: 12, color: "var(--ac)" }}>🌑{monster.erode}</span>}
+                  {monster.burn > 0 && <span style={{ fontSize: 12, color: "var(--or)" }}>🔥{monster.burn}</span>}
+                  {monster.split && !monster.hasSplit && <span style={{ fontSize: 12, color: "var(--or)" }}>💥분열</span>}
                 </div>
               )}
               {splitMon && (
@@ -148,7 +148,7 @@ export function BattleScreen({ game }) {
 
         {bossDialogue && (
           <div style={{ textAlign: "center", padding: "4px 0", flexShrink: 0, animation: "slideUp 0.4s ease" }}>
-            <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid #a855f7", borderRadius: 8, padding: "4px 14px", fontSize: 13, fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
+            <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid var(--ac)", borderRadius: 8, padding: "4px 14px", fontSize: 13, fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
               "{bossDialogue}"
             </span>
           </div>
@@ -182,7 +182,7 @@ export function BattleScreen({ game }) {
         {/* Passive Trigger Message */}
         {passiveMsg && (
           <div style={{ textAlign: "center", flexShrink: 0, animation: "passivePop 0.4s ease, passiveFade 2s ease forwards" }}>
-            <span style={{ display: "inline-block", background: "#a855f733", border: "1px solid #a855f7", borderRadius: 6, padding: "2px 10px", fontSize: 12, fontWeight: 700, color: "#e0d0ff" }}>
+            <span style={{ display: "inline-block", background: "#a855f733", border: "1px solid var(--ac)", borderRadius: 6, padding: "2px 10px", fontSize: 12, fontWeight: 700, color: "#e0d0ff" }}>
               {passiveMsg}
             </span>
           </div>
@@ -246,7 +246,7 @@ export function BattleScreen({ game }) {
                   <span style={{ marginLeft: 4 }}>
                     <span style={{ color: "#3b82f6" }}>{previewDmg.atk}</span>
                     <span style={{ color: "var(--dm)" }}>×</span>
-                    <span style={{ color: "#f97316" }}>{previewDmg.mult}</span>
+                    <span style={{ color: "var(--or)" }}>{previewDmg.mult}</span>
                     <span style={{ color: "var(--dm)" }}>=</span>
                     <span style={{ color: "var(--rd)", fontWeight: 700, fontSize: 14 }}>{previewDmg.total}</span>
                     {previewDmg.critChance > 0 && (

@@ -184,6 +184,13 @@
 - game 단일 props 객체로 화면 라우팅 ✅
 - DungeonHand_v3.jsx 2,140줄 → 1,215줄 ✅
 
+### ~~세션 22: 코드 품질 정리~~ ✅ 완료
+- Google Fonts 이중 로딩 제거 (styles.js @import 삭제 + index.html 보정) ✅
+- SKILL_TREES에 color 필드 추가 ✅
+- VillageScreen 탭 색상 → tree.color 사용 ✅
+- relicBorderColor 헬퍼 추출 + 4곳 교체 (ShopScreen tier-3 버그 수정 포함) ✅
+- CSS 변수 --ac/--pu/--or 추가 + 6개 파일 리터럴 교체 ✅
+
 ---
 
 ## 기능 추가 체크리스트

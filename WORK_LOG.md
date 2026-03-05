@@ -516,6 +516,20 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 22: 코드 품질 정리 (2026-03-05)
+
+### 완료 내역
+1. **Google Fonts 이중 로딩 제거** — styles.js @import 삭제, index.html에 wght@400;700;900 보정
+2. **SKILL_TREES에 color 필드 추가** — common:#888, ranger_red:#e64b35, ranger_blue:#4e79a7, ranger_yellow:#f0b930
+3. **VillageScreen 탭 색상 → tree.color** — tree.id.indexOf(...) ternary 제거
+4. **relicBorderColor 헬퍼 추출** — utils.js에 함수 추가, SmallScreens(3곳)+ShopScreen(1곳) 교체, tier-3 `#f97316`→`var(--gd)` 버그 수정
+5. **CSS 변수 --ac/--pu/--or 추가** — :root에 추가, 6개 파일에서 리터럴→var() 교체 (alpha 변형 제외)
+
+### 검증
+- 빌드 성공 (220.98 kB)
+
+---
+
 ## 다음 세션 TODO
 
 ### 게임 UI 전반 개선

@@ -1,10 +1,11 @@
 import { CLASSES, SKILL_TREES, ULTIMATE_SKILL } from "../data.js";
+import { relicBorderColor } from "../utils.js";
 import { CardView, Btn, DeckViewer } from "../components.jsx";
 
 // === RELIC SWAP OVERLAY ===
 export function PendingRelicOverlay({ game }) {
   var { wrapStyle, CSS, pendingRelic, relics, swapRelic, discardPendingRelic } = game;
-  var prBorder = pendingRelic.tier >= 3 ? "var(--gd)" : pendingRelic.tier >= 2 ? "#a855f7" : "var(--bd)";
+  var prBorder = relicBorderColor(pendingRelic.tier);
   return (
     <div style={wrapStyle}>
       <style>{CSS}</style>
@@ -21,7 +22,7 @@ export function PendingRelicOverlay({ game }) {
           <div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>교체할 유물을 선택하세요:</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             {relics.map(function(r) {
-              var bCol = r.tier >= 3 ? "var(--gd)" : r.tier >= 2 ? "#a855f7" : "var(--bd)";
+              var bCol = relicBorderColor(r.tier);
               return (
                 <div
                   key={r.id}
@@ -64,7 +65,7 @@ export function MenuScreen({ game }) {
           </Btn>
         </div>
         {metaPoints > 0 && (
-          <div style={{ color: "#f97316", fontSize: 14 }}>⭐ {metaPoints} 포인트 보유</div>
+          <div style={{ color: "var(--or)", fontSize: 14 }}>⭐ {metaPoints} 포인트 보유</div>
         )}
       </div>
     </div>
@@ -90,7 +91,7 @@ export function ClassSelectScreen({ game }) {
               >
                 <span style={{ fontSize: 42 }}>{c.icon}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
-                <div style={{ fontSize: 14, color: "#a855f7", textAlign: "center", lineHeight: 1.4 }}>
+                <div style={{ fontSize: 14, color: "var(--ac)", textAlign: "center", lineHeight: 1.4 }}>
                   {c.passive.desc}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--dm)", textAlign: "center", lineHeight: 1.6 }}>
@@ -121,7 +122,7 @@ export function RewardScreen({ game }) {
               <div key={c.id} style={{ cursor: "pointer", textAlign: "center" }} onClick={function() { addCardToDeck(c); }}>
                 <CardView card={c} cls={classData} />
                 {c.keyword && (
-                  <div style={{ fontSize: 14, color: "#a855f7", marginTop: 4 }}>
+                  <div style={{ fontSize: 14, color: "var(--ac)", marginTop: 4 }}>
                     {c.keyword.icon} {c.keyword.name}
                   </div>
                 )}
@@ -130,7 +131,7 @@ export function RewardScreen({ game }) {
           })}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Btn onClick={function() { setScreen("enhance"); }} color="#7c3aed">⬆️강화</Btn>
+          <Btn onClick={function() { setScreen("enhance"); }} color="var(--pu)">⬆️강화</Btn>
           <Btn onClick={function() { setDeckView(true); }}>📦덱 보기</Btn>
           <Btn onClick={skipReward}>건너뛰기</Btn>
         </div>
@@ -213,7 +214,7 @@ export function RelicRewardScreen({ game }) {
         <h3 style={{ fontSize: 15 }}>유물 선택</h3>
         <div style={{ display: "flex", gap: 10 }}>
           {rewardRelics.map(function(r) {
-            var borderCol = r.tier >= 3 ? "var(--gd)" : r.tier >= 2 ? "#a855f7" : "var(--bd)";
+            var borderCol = relicBorderColor(r.tier);
             return (
               <div
                 key={r.id}
@@ -252,11 +253,11 @@ export function VictoryScreen({ game }) {
             <div style={{ fontSize: 14, color: "var(--dm)" }}>골드</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#a855f7" }}>{relics.length}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ac)" }}>{relics.length}</div>
             <div style={{ fontSize: 14, color: "var(--dm)" }}>유물</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#f97316" }}>+{runPoints}⭐</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--or)" }}>+{runPoints}⭐</div>
             <div style={{ fontSize: 14, color: "var(--dm)" }}>포인트</div>
           </div>
         </div>
@@ -281,7 +282,7 @@ export function DefeatScreen({ game }) {
         <h1 style={{ fontSize: 18, fontFamily: "'Silkscreen', cursive", color: "var(--rd)" }}>DEFEAT</h1>
         <p style={{ color: "var(--dm)" }}>{floor}층에서 쓰러졌습니다...</p>
         {runPoints > 0 && (
-          <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>
+          <div style={{ fontSize: 14, color: "var(--or)", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>

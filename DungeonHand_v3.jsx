@@ -1120,7 +1120,7 @@ export default function DungeonHand() {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",
     height: "min(100vh, calc(min(100vw, 960px) * 16 / 9))",
     margin: "auto",
-    background: "var(--bg)",
+    background: "radial-gradient(ellipse at 50% 30%, #1a1510 0%, var(--bg) 70%)",
     color: "var(--tx)",
     fontFamily: "'Noto Sans KR', sans-serif",
     fontSize: "clamp(15px, calc(var(--gw) * 0.025 + 5px), 22px)",

@@ -31,7 +31,7 @@ export function ShopScreen({ game }) {
     <div style={wrapStyle}>
       <style>{CSS}</style>
       {audioButton}
-      <div style={{ padding: "12px 14px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ padding: "12px 14px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
         <h2 style={{ fontSize: 16 }}>🏪 대장간</h2>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <span style={{ fontSize: 14 }}>❤️{hp}/{MAX_HP}</span>

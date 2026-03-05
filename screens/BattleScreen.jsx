@@ -71,7 +71,7 @@ export function BattleScreen({ game }) {
         </div>
       )}
       {/* === 상단바 (간소화: 층 정보 + 덱) === */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(5px, calc(var(--gw) * 0.01), 8px) clamp(10px, calc(var(--gw) * 0.02), 16px)", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(5px, calc(var(--gw) * 0.01), 8px) clamp(10px, calc(var(--gw) * 0.02), 16px)", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
         <div style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)" }}>
           <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>
           <span style={{ color: "var(--dm)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", marginLeft: 6 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
@@ -186,7 +186,7 @@ export function BattleScreen({ game }) {
         </div>
 
         {/* === 1인칭 하단 상태창 (패시브 + HP + 유물 + 골드) === */}
-        <div style={{ flexShrink: 0, padding: "5px 10px", borderTop: "1px solid var(--bd)", background: "linear-gradient(180deg, var(--pn), var(--bg))", animation: playerShake ? "playerHit 0.5s ease" : "none" }}>
+        <div style={{ flexShrink: 0, padding: "5px 10px", borderTop: "1px solid var(--bd)", background: "linear-gradient(180deg, var(--pn), var(--bg))", animation: playerShake ? "playerHit 0.5s ease" : "none", boxShadow: "0 -2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
           {/* 패시브 뱃지 (HP 바 위) */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginBottom: 4 }}>
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap", flex: 1, minHeight: "clamp(24px, calc(var(--gw) * 0.048), 36px)" }}>
@@ -247,8 +247,8 @@ export function BattleScreen({ game }) {
             <span style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)", fontWeight: 700, fontFamily: "'Silkscreen', cursive", color: hpColor, minWidth: "clamp(65px, calc(var(--gw) * 0.13), 110px)" }}>
               {Math.max(0, hp)}/{MAX_HP}
             </span>
-            <div style={{ flex: 1, height: "clamp(12px, calc(var(--gw) * 0.024), 20px)", background: "var(--cd)", borderRadius: 6, overflow: "hidden", border: "1px solid var(--bd)" }}>
-              <div style={{ width: hpPct + "%", height: "100%", background: hpColor, borderRadius: 6, transition: "width 0.5s ease" }} />
+            <div style={{ flex: 1, height: "clamp(12px, calc(var(--gw) * 0.024), 20px)", background: "var(--cd)", borderRadius: 6, overflow: "hidden", border: "1px solid var(--bd)", boxShadow: "inset 0 2px 4px rgba(0,0,0,0.5)" }}>
+              <div style={{ width: hpPct + "%", height: "100%", background: "linear-gradient(180deg, " + hpColor + "cc, " + hpColor + ", " + hpColor + "88)", borderRadius: 6, transition: "width 0.5s ease", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)" }} />
             </div>
             <span style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)", color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
           </div>
@@ -287,7 +287,7 @@ export function BattleScreen({ game }) {
           })}
         </div>
 
-        <div style={{ padding: "clamp(6px, calc(var(--gw) * 0.012), 10px) clamp(10px, calc(var(--gw) * 0.02), 18px) clamp(8px, calc(var(--gw) * 0.016), 14px)", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0 }}>
+        <div style={{ padding: "clamp(6px, calc(var(--gw) * 0.012), 10px) clamp(10px, calc(var(--gw) * 0.02), 18px) clamp(8px, calc(var(--gw) * 0.016), 14px)", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0, boxShadow: "0 -2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
           <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
             {preview ? (
               <span>

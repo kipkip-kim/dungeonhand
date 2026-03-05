@@ -18,7 +18,7 @@ export function CampfireScreen({ game }) {
             <div style={{ fontSize: 56, marginBottom: 12 }}>🔥</div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginBottom: 4 }}>{floor}층 {FLOOR_NAMES[floor]}</div>
             <h2 style={{ fontSize: 15, color: "var(--or)", marginBottom: 12 }}>화톳불을 발견했다</h2>
-            <div style={{ background: "#ffffff06", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+            <div style={{ background: "#ffffff06", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
               <p style={{ color: "var(--dm)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                 저 앞에 따뜻한 빛이 보인다.
                 <br />지친 몸을 이끌고 불 옆에 다가간다.
@@ -36,7 +36,7 @@ export function CampfireScreen({ game }) {
           <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
             <div style={{ fontSize: 48, marginBottom: 12, animation: "victBounce 2s ease infinite" }}>🔥</div>
             <h2 style={{ fontSize: 15, color: "var(--or)", marginBottom: 12 }}>휴식</h2>
-            <div style={{ background: "#2d9b4e11", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+            <div style={{ background: "#2d9b4e11", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
               <p style={{ color: "var(--sb)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                 따뜻한 불빛이 몸을 감싼다.
                 <br />잠시 눈을 감고 상처를 돌본다.
@@ -61,7 +61,7 @@ export function CampfireScreen({ game }) {
 
             {/* No event */}
             {campEvent.id === "none" && (
-              <div style={{ background: "#ffffff06", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+              <div style={{ background: "#ffffff06", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <p style={{ color: "var(--sb)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                   고요한 밤이었다.
                   <br />충분히 쉬었으니 발걸음을 옮긴다.
@@ -74,7 +74,7 @@ export function CampfireScreen({ game }) {
 
             {/* Fairy */}
             {campEvent.id === "fairy" && (
-              <div style={{ background: "#9b59b622", border: "1px solid var(--ac)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+              <div style={{ background: "#9b59b622", border: "1px solid var(--ac)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🧚</div>
                 <p style={{ color: "var(--sb)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                   잠에서 깨니 작은 빛이 주위를 맴돌고 있다.
@@ -92,7 +92,7 @@ export function CampfireScreen({ game }) {
 
             {/* Rest */}
             {campEvent.id === "rest" && (
-              <div style={{ background: "#2d9b4e11", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+              <div style={{ background: "#2d9b4e11", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>😴</div>
                 <p style={{ color: "var(--sb)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                   깊고 편안한 잠에 빠졌다.
@@ -109,7 +109,7 @@ export function CampfireScreen({ game }) {
 
             {/* Ambush */}
             {campEvent.id === "ambush" && (
-              <div style={{ background: "#c0392b22", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+              <div style={{ background: "#c0392b22", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🐺</div>
                 <p style={{ color: "var(--sb)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                   갑자기 덤불에서 바스락거리는 소리가 들린다!
@@ -126,7 +126,7 @@ export function CampfireScreen({ game }) {
 
             {/* Thief */}
             {campEvent.id === "thief" && (
-              <div style={{ background: "#c0392b22", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
+              <div style={{ background: "#c0392b22", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🤡</div>
                 <p style={{ color: "var(--sb)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
                   잠에서 깨니 뭔가 허전하다...
@@ -150,7 +150,7 @@ export function CampfireScreen({ game }) {
 
             {/* Merchant */}
             {campEvent.id === "merchant" && (
-              <div style={{ background: "#e8a82022", border: "1px solid #fbbf24", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16 }}>
+              <div style={{ background: "#e8a82022", border: "1px solid #fbbf24", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 22, marginBottom: 6 }}>🏪</div>
                 <p style={{ color: "var(--sb)", fontSize: 16, lineHeight: 1.6, margin: 0 }}>
                   "좋은 카드가 있으면 제값에 사겠소."

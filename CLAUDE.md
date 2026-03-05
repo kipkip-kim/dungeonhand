@@ -251,6 +251,13 @@
 - BattleScreen 하단바 프리뷰 textOverflow: "ellipsis" 추가 ✅
 - ShopScreen 덱 버튼 터치 타겟 확대 (padding/fontSize 증가) ✅
 
+### ~~세션 35: 깊이감(Depth) UI 개선 5건~~ ✅ 완료
+- 앱 배경 radial-gradient 비네트 효과 ✅
+- 주요 패널 box-shadow 추가 (BattleScreen/ShopScreen/CampfireScreen/DeckViewer) ✅
+- HP 바 광택 효과 (트랙 inset shadow + fill gradient) ✅
+- 버튼 그라디언트 + hover glow (Btn + styles.js) ✅
+- 카드 drop shadow + 선택 시 문양색 glow 강화 (CardView) ✅
+
 ---
 
 ## 기능 추가 체크리스트

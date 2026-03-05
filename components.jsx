@@ -27,7 +27,7 @@ function CardView(props) {
           cursor: disabled ? "default" : "pointer",
           transform: selected ? "translateY(-12px) scale(1.04)" : "none",
           transition: "transform 0.12s ease, box-shadow 0.12s ease",
-          boxShadow: selected ? "0 10px 22px #c0392b33" : "0 0 8px #c0392b22",
+          boxShadow: selected ? "0 4px 16px #c0392b44, 0 0 0 1px #c0392b66, inset 0 1px 0 rgba(255,255,255,0.06)" : "0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
           userSelect: "none",
           WebkitTapHighlightColor: "transparent",
         }}
@@ -51,7 +51,10 @@ function CardView(props) {
 
   const borderColor = c.keyword ? "var(--ac)" : isC ? "var(--pu)" : (selected ? c.suitColor : "var(--bd)");
   const transform = selected ? "translateY(-12px) scale(1.04)" : "none";
-  const shadow = selected ? "0 10px 22px " + (isC ? "#9b59b633" : c.suitColor + "33") : "0 2px 6px rgba(0,0,0,0.4)";
+  const sColor = isC ? "#9b59b6" : c.suitColor;
+  const shadow = selected
+    ? "0 4px 16px " + sColor + "44, 0 0 0 1px " + sColor + "66, inset 0 1px 0 rgba(255,255,255,0.06)"
+    : "0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)";
 
   // Effect descriptions for common cards
   let fxText = "";
@@ -175,13 +178,15 @@ function HpBar(props) {
         overflow: "hidden",
         margin: "0 auto",
         border: "1px solid var(--bd)",
+        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.5)",
       }}>
         <div style={{
           width: pct + "%",
           height: "100%",
-          background: barColor,
+          background: "linear-gradient(180deg, " + barColor + "cc, " + barColor + ", " + barColor + "88)",
           borderRadius: 7,
           transition: "width 0.5s ease",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
         }} />
       </div>
       <div style={{
@@ -213,7 +218,7 @@ function Btn(props) {
       onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
       style={Object.assign({
         padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(16px, calc(var(--gw) * 0.032), 28px)",
-        background: isDisabled ? "#1a1810" : color,
+        background: isDisabled ? "#1a1810" : "linear-gradient(180deg, " + color + ", " + color + "bb)",
         border: "none",
         borderRadius: 10,
         color: "var(--tx)",
@@ -222,7 +227,7 @@ function Btn(props) {
         fontFamily: "'Noto Sans KR', sans-serif",
         cursor: isDisabled ? "default" : "pointer",
         opacity: isDisabled ? 0.3 : 1,
-        boxShadow: isDisabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+        boxShadow: isDisabled ? "none" : "0 3px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
       }, props.style || {})}
     >
       {props.children}
@@ -299,7 +304,7 @@ function DeckViewer(props) {
       onClick={onClose}
     >
       <div
-        style={{ background: "var(--pn)", borderRadius: 14, padding: 22, maxWidth: 860, width: "94%", maxHeight: "85vh", overflow: "auto", border: "1px solid var(--bd)" }}
+        style={{ background: "var(--pn)", borderRadius: 14, padding: 22, maxWidth: 860, width: "94%", maxHeight: "85vh", overflow: "auto", border: "1px solid var(--bd)", boxShadow: "0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03)" }}
         onClick={function(e) { e.stopPropagation(); }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>

@@ -780,3 +780,16 @@ public/audio/          총 1.54MB
 - [x] VillageScreen.jsx 스킬트리/궁극기/리셋 색상 교체
 - [x] ShopScreen.jsx 회복 버튼 색상 교체
 - [x] DungeonHand_v3.jsx 화상카드 suitColor 교체
+
+## 세션 35 (2026-03-05) — 깊이감(Depth) UI 개선
+
+### 완료
+- [x] DungeonHand_v3.jsx: wrapStyle background → radial-gradient 비네트 효과
+- [x] BattleScreen: 상단바/하단상태창/하단액션바 boxShadow 추가
+- [x] ShopScreen: 상단 헤더 boxShadow 추가
+- [x] CampfireScreen: 8개 이벤트 박스 boxShadow 추가
+- [x] DeckViewer: 메인 패널 boxShadow 추가
+- [x] HpBar: 트랙 inset shadow + fill gradient + inset highlight (컴포넌트+배틀 인라인)
+- [x] Btn: flat color → linear-gradient + 강화된 boxShadow
+- [x] styles.js: .btn-base:hover 규칙 추가
+- [x] CardView: 기본 drop shadow + inset highlight, 선택 시 문양색 glow 강화, 화상 카드 동일 적용

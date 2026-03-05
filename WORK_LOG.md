@@ -594,6 +594,27 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 27 (2026-03-05) — UI/UX 개선
+
+### 완료
+- [x] #5 CardView 트랜지션 최적화: `all 0.15s` → `transform/box-shadow` 타겟 + WebkitTapHighlightColor 추가 (번카드 포함)
+- [x] #2 HpBar 반응형 너비: 200/240px 고정 → `min(200px,56vw)`/`min(240px,64vw)` + 트랙 배경 `var(--cd)` 토큰화
+- [x] #1 Btn 3D 외관 + 누르기 피드백: `.btn-base` CSS 룰 추가 (border-bottom 3D + :active 눌림), transition 제거
+- [x] #3 전투 액션바 높이 확대: height:38 삭제 → 패딩 확대 + borderTop/background 시각 분리, 버튼 탭 타겟 확대
+- [x] #4 유물 탭 인스펙터: BattleScreen relicTip 로컬 state + 유물 이모지 탭 → 툴팁 토글
+
+### 수정 파일
+| 파일 | 수정 건 |
+|------|---------|
+| styles.js | #1 (.btn-base 2줄 추가) |
+| components.jsx | #1, #2, #5 |
+| screens/BattleScreen.jsx | #3, #4 |
+
+### 검증
+- 매 수정 후 빌드 성공
+
+---
+
 ## 다음 세션 TODO (우선순위순)
 
 ### 🔴 P0: UI/UX 전반 개선 (다음 세션)

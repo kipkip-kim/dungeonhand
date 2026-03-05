@@ -25,6 +25,8 @@ var CSS = [
   "@keyframes missFlash{0%{opacity:0}15%{opacity:0.4}30%{opacity:0}100%{opacity:0}}",
   "@keyframes missBounce{0%{transform:translateX(-50%) scale(0) rotate(-20deg)}25%{transform:translateX(-50%) scale(2.2) rotate(8deg)}45%{transform:translateX(-50%) scale(0.7) rotate(-3deg)}65%{transform:translateX(-50%) scale(1.4) rotate(2deg)}100%{transform:translateX(-50%) scale(1) rotate(0)}}",
   "@keyframes encounterIn{0%{opacity:0;transform:scale(0.3)}30%{opacity:1;transform:scale(1.1)}50%{transform:scale(0.95)}100%{transform:scale(1)}}",
+  ".btn-base{border-bottom:3px solid rgba(0,0,0,0.35);transition:transform 0.08s,border-bottom 0.08s,box-shadow 0.08s}",
+  ".btn-base:active{transform:translateY(2px)!important;border-bottom:1px solid rgba(0,0,0,0.2)!important;box-shadow:none!important}",
 ].join("\n");
 
 export { CSS };

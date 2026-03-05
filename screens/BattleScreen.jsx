@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FLOOR_NAMES } from "../data.js";
 import { CardView, HpBar, Btn, DeckViewer } from "../components.jsx";
 
@@ -15,6 +16,8 @@ export function BattleScreen({ game }) {
     toggleCard, submitCards, doDiscard, pickGambitCard,
     setOverlay, setDeckSort,
   } = game;
+
+  var [relicTip, setRelicTip] = useState(null);
 
   var handTierColor = "var(--tx)";
   if (currentHand && currentHand.tier >= 4) handTierColor = "var(--gd)";
@@ -72,7 +75,26 @@ export function BattleScreen({ game }) {
           <span style={{ fontSize: 14, color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
           <div style={{ display: "flex", gap: 1 }}>
             {relics.map(function(r) {
-              return <span key={r.id} title={r.name + ": " + r.desc} style={{ fontSize: 16 }}>{r.emoji}</span>;
+              return (
+                <span key={r.id}
+                  onClick={function() { setRelicTip(relicTip === r.id ? null : r.id); }}
+                  style={{ fontSize: 18, cursor: "pointer", position: "relative" }}>
+                  {r.emoji}
+                  {relicTip === r.id && (
+                    <span style={{
+                      position: "absolute", bottom: "120%", left: "50%",
+                      transform: "translateX(-50%)",
+                      background: "var(--cd)", border: "1px solid var(--bd)",
+                      borderRadius: 8, padding: "5px 10px",
+                      fontSize: 11, color: "var(--tx)", whiteSpace: "nowrap",
+                      zIndex: 50, boxShadow: "0 4px 12px rgba(0,0,0,0.6)",
+                      pointerEvents: "none", fontWeight: 700,
+                    }}>
+                      {r.name}: {r.desc}
+                    </span>
+                  )}
+                </span>
+              );
             })}
           </div>
           <div
@@ -235,7 +257,7 @@ export function BattleScreen({ game }) {
           })}
         </div>
 
-        <div style={{ padding: "2px 8px 4px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 38, flexShrink: 0 }}>
+        <div style={{ padding: "6px 10px 8px", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0 }}>
           <div style={{ fontSize: 12, overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
             {preview ? (
               <span>
@@ -260,10 +282,10 @@ export function BattleScreen({ game }) {
             )}
           </div>
           <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-            <Btn onClick={doDiscard} disabled={discards <= 0 || selected.length === 0 || busy} style={{ padding: "4px 10px", fontSize: 13 }}>
+            <Btn onClick={doDiscard} disabled={discards <= 0 || selected.length === 0 || busy} style={{ padding: "8px 12px", fontSize: 13 }}>
               🔄{discards}
             </Btn>
-            <Btn onClick={submitCards} disabled={selected.length === 0 || busy} color="var(--rd)" style={{ padding: "6px 16px", fontSize: 15 }}>
+            <Btn onClick={submitCards} disabled={selected.length === 0 || busy} color="var(--rd)" style={{ padding: "10px 20px", fontSize: 15 }}>
               ⚡제출
             </Btn>
           </div>

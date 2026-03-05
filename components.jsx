@@ -26,8 +26,10 @@ function CardView(props) {
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
           cursor: disabled ? "default" : "pointer",
           transform: selected ? "translateY(-12px) scale(1.04)" : "none",
+          transition: "transform 0.12s ease, box-shadow 0.12s ease",
           boxShadow: selected ? "0 10px 22px #ef444433" : "0 0 8px #ef444422",
           userSelect: "none",
+          WebkitTapHighlightColor: "transparent",
         }}
       >
         <span style={{ fontSize: small ? 20 : 24 }}>🔥</span>
@@ -72,8 +74,9 @@ function CardView(props) {
         justifyContent: "center",
         gap: small ? 2 : 4,
         cursor: disabled ? "default" : "pointer",
-        transition: "all 0.15s",
+        transition: "transform 0.12s ease, box-shadow 0.12s ease",
         transform: transform,
+        WebkitTapHighlightColor: "transparent",
         boxShadow: c.keyword ? "0 0 10px #a855f733, " + shadow : shadow,
         userSelect: "none",
         position: "relative",
@@ -147,7 +150,7 @@ function HpBar(props) {
   const pct = Math.max(0, (props.current / props.max) * 100);
   const barColor = pct > 50 ? "var(--gn)" : pct > 25 ? "#f59e0b" : "var(--rd)";
   const anim = props.shaking ? (props.hardShake ? "shakeHard 0.5s ease" : "shake 0.4s ease") : props.enemyAttacking ? "enemyAtk 0.5s ease" : "none";
-  const barWidth = props.isPlayer ? 200 : 240;
+  const barWidth = props.isPlayer ? "min(200px, 56vw)" : "min(240px, 64vw)";
   const barHeight = props.isPlayer ? 14 : 16;
   const emojiSize = props.boss ? 48 : props.isPlayer ? 32 : 40;
   const nameSize = props.boss ? 18 : props.isPlayer ? 14 : 16;
@@ -174,7 +177,7 @@ function HpBar(props) {
       <div style={{
         width: barWidth,
         height: barHeight,
-        background: "#1a1a30",
+        background: "var(--cd)",
         borderRadius: 7,
         overflow: "hidden",
         margin: "0 auto",
@@ -205,6 +208,7 @@ function Btn(props) {
   const color = props.color || "var(--bd)";
   return (
     <button
+      className="btn-base"
       onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
       style={Object.assign({
         padding: "8px 16px",
@@ -217,7 +221,6 @@ function Btn(props) {
         fontFamily: "'Noto Sans KR', sans-serif",
         cursor: isDisabled ? "default" : "pointer",
         opacity: isDisabled ? 0.3 : 1,
-        transition: "all 0.15s",
         boxShadow: isDisabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
       }, props.style || {})}
     >

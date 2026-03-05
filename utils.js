@@ -53,10 +53,6 @@ function getCardName(card, classData) {
   return classData.suits[card.suitId];
 }
 
-function getEffectiveSuit(card, allCards) {
-  return card.suitId;
-}
-
 function detectHand(cards) {
   var len = cards.length;
   if (len === 0) return null;
@@ -250,4 +246,4 @@ function relicBorderColor(tier) {
   return tier >= 3 ? "var(--gd)" : tier >= 2 ? "var(--ac)" : "var(--bd)";
 }
 
-export { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, getEffectiveSuit, detectHand, calcDamage, relicBorderColor };
+export { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage, relicBorderColor };

@@ -85,7 +85,7 @@ const CLASSES = [
         var perStack = pState.shadowBurst ? 0.8 : 0.5;
         if (pState.stacks > 0) {
           return {
-            bg: "#7c3aed22", border: "#7c3aed",
+            bg: "#7c3aed22", border: "var(--pu)",
             label: "🌑x" + pState.stacks,
             detail: "+" + (pState.stacks * perStack).toFixed(1) + " 회피" + Math.min(50, 10 + pState.stacks * 5) + "%",
           };

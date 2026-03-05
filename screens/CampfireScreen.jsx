@@ -169,21 +169,19 @@ export function CampfireScreen({ game }) {
                     );
                   })}
                 </div>
-                {pendingSell && (
-                  <div style={{ marginTop: 8, padding: "8px 12px", background: "#fbbf2411", border: "1px solid #fbbf2444", borderRadius: 8, textAlign: "center" }}>
-                    <div style={{ fontSize: 13, color: "#fbbf24", fontWeight: 700, marginBottom: 6 }}>
-                      {pendingSell.isCommon ? pendingSell.common.name : (pendingSell.suitId + " " + pendingSell.grade)} 판매? 💰{pendingSell.grade * 3}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                      <Btn onClick={function() { sellCard(pendingSell); setPendingSell(null); }} color="#fbbf24" style={{ padding: "5px 16px", fontSize: 12 }}>
-                        판매 확인
-                      </Btn>
-                      <Btn onClick={function() { setPendingSell(null); }} color="var(--dm)" style={{ padding: "5px 16px", fontSize: 12 }}>
-                        취소
-                      </Btn>
-                    </div>
+                <div style={{ marginTop: 8, padding: "8px 12px", background: pendingSell ? "#fbbf2411" : "transparent", border: pendingSell ? "1px solid #fbbf2444" : "1px solid transparent", borderRadius: 8, textAlign: "center", visibility: pendingSell ? "visible" : "hidden" }}>
+                  <div style={{ fontSize: 13, color: "#fbbf24", fontWeight: 700, marginBottom: 6 }}>
+                    {pendingSell ? (pendingSell.isCommon ? pendingSell.common.name : (pendingSell.suitId + " " + pendingSell.grade)) + " 판매? 💰" + (pendingSell.grade * 3) : "\u00A0"}
                   </div>
-                )}
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    <Btn onClick={function() { if (pendingSell) { sellCard(pendingSell); setPendingSell(null); } }} color="#fbbf24" style={{ padding: "5px 16px", fontSize: 12 }}>
+                      판매 확인
+                    </Btn>
+                    <Btn onClick={function() { setPendingSell(null); }} color="var(--dm)" style={{ padding: "5px 16px", fontSize: 12 }}>
+                      취소
+                    </Btn>
+                  </div>
+                </div>
                 <Btn onClick={function() { setPendingSell(null); leaveCampfire(); }} style={{ marginTop: 8, fontSize: 16, padding: "8px 20px" }}>
                   안 팔고 진행 →
                 </Btn>

@@ -640,10 +640,55 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 33 (2026-03-05) — 전투화면 레이아웃 시프트 수정 + UI 개선
+
+### 완료
+- [x] bossDialogue absolute 위치 변경 (몬스터 컨테이너 기준 top:100%)
+- [x] 데미지 그룹 bottom 조정 + column-reverse (passiveMsg 소멸 시 시프트 방지)
+- [x] 손패 영역 높이 증가 (선택 카드 상단 가림 해소)
+- [x] MISS 위치 플레이어 쪽(65%)으로 분기
+- [x] encounterOverlay 배경/콘텐츠 분리 (scale 시 배경 노출 방지)
+- [x] 몬스터 표시 순서 변경: 이름→HP바→공격력→캐릭터(이모지)
+- [x] 몬스터 shake/attack 애니메이션 이모지로 이동
+- [x] gambleAnim absolute 위치 변경 (몬스터 시프트 방지)
+- [x] DefeatScreen "마을"→"홈으로" + "다시 도전" 바로 던전 재입장
+- [x] 레이아웃 시프트 전수 조사 및 수정 4건 (splitMon/상태줄/배지영역/캠프판매확인)
+- [x] dead props 정리 (HpBar emoji/shaking/hardShake/enemyAttacking)
+- [x] HpBar emojiSize boss 분기 dead code 제거
+
+### 수정 파일
+| 파일 | 변경 |
+|------|------|
+| screens/BattleScreen.jsx | 레이아웃 시프트 수정, 몬스터 순서/애니메이션, encounterOverlay, gambleAnim |
+| components.jsx | HpBar 이모지/애니메이션 분리, dead code 제거 |
+| screens/SmallScreens.jsx | DefeatScreen 버튼 변경 |
+| screens/CampfireScreen.jsx | pendingSell visibility 처리 |
+| DungeonHand_v3.jsx | claimAndGo restart 분기 추가 |
+
+### 검증
+- 매 수정 후 빌드 성공
+
+---
+
 ## 다음 세션 TODO (우선순위순)
 
-### 🔴 P0: UI/UX 전반 개선 (다음 세션)
-- [ ] 전반적인 게임 UI 리디자인 — 레이아웃/색상/타이포그래피/인터랙션
+### 🔴 P0: UI 리디자인 + 에셋 도입 (순차 진행)
+> 전체 계획: 레이아웃/색상 → 배경 이미지 → 캐릭터(몬스터) 이미지 순서로 진행
+> 에셋 방식: PNG/SVG 이미지 파일 (무료 소스에서 확보)
+> 배경 범위: 모든 화면 (메뉴/마을/상점/캠프/전투)
+
+#### Phase 1: 레이아웃/색상/타이포그래피 리디자인
+- [ ] 전체 색상 테마 개선
+- [ ] 화면별 레이아웃 정리
+- [ ] 카드/버튼/패널 디자인 개선
+
+#### Phase 2: 배경 이미지 도입
+- [ ] 무료 배경 에셋 확보 (CC0/무료 라이센스)
+- [ ] 화면별 배경 적용 (메뉴/마을/상점/캠프/전투 층별)
+
+#### Phase 3: 캐릭터(몬스터) 이미지 도입
+- [ ] 무료 몬스터/캐릭터 에셋 확보
+- [ ] 이모지 → 이미지 교체 (몬스터 20종 + 플레이어)
 - [x] 모바일 유물 탭 인스펙터 (세션27 완료)
 - [x] 상점 카드 제거 불가 사유 표시 (세션28 완료)
 - [x] 캠프 상인 판매 확인 UI (세션28 완료)

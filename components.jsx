@@ -149,21 +149,14 @@ function CardView(props) {
 function HpBar(props) {
   const pct = Math.max(0, (props.current / props.max) * 100);
   const barColor = pct > 50 ? "var(--gn)" : pct > 25 ? "#f59e0b" : "var(--rd)";
-  const anim = props.shaking ? (props.hardShake ? "shakeHard 0.6s ease" : "shake 0.4s ease") : props.enemyAttacking ? "enemyAtk 0.5s ease" : "none";
+  const anim = props.isPlayer ? (props.shaking ? (props.hardShake ? "shakeHard 0.6s ease" : "shake 0.4s ease") : "none") : "none";
   const barWidth = props.isPlayer ? "clamp(200px, calc(var(--gw) * 0.4), 380px)" : "clamp(240px, calc(var(--gw) * 0.48), 460px)";
   const barHeight = props.isPlayer ? "clamp(14px, calc(var(--gw) * 0.028), 24px)" : "clamp(16px, calc(var(--gw) * 0.032), 28px)";
-  const emojiSize = props.boss ? "clamp(48px, calc(var(--gw) * 0.096), 88px)" : props.isPlayer ? "clamp(32px, calc(var(--gw) * 0.064), 58px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)";
+  const emojiSize = props.isPlayer ? "clamp(32px, calc(var(--gw) * 0.064), 58px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)";
   const nameSize = props.boss ? "clamp(18px, calc(var(--gw) * 0.036), 32px)" : props.isPlayer ? "clamp(14px, calc(var(--gw) * 0.028), 24px)" : "clamp(16px, calc(var(--gw) * 0.032), 28px)";
 
   return (
     <div style={{ textAlign: "center", animation: anim }}>
-      <div style={{
-        fontSize: emojiSize,
-        marginBottom: 3,
-        animation: props.isPlayer ? "none" : "floatY 3s ease infinite",
-      }}>
-        {props.emoji}
-      </div>
       <div style={{
         fontSize: nameSize,
         fontWeight: 700,
@@ -199,6 +192,14 @@ function HpBar(props) {
       }}>
         {Math.max(0, props.current)}/{props.max}
       </div>
+      {props.isPlayer && (
+        <div style={{
+          fontSize: emojiSize,
+          marginTop: 3,
+        }}>
+          {props.emoji}
+        </div>
+      )}
     </div>
   );
 }

@@ -1157,6 +1157,10 @@ export default function DungeonHand() {
       setMetaPoints(function(p) { return p + runPoints; });
     }
     setBossesKilled([]);
+    if (dest === "restart") {
+      startRun(classId);
+      return;
+    }
     setScreen(dest);
     if (dest === "menu") sfx.bgmOn("home");
   }

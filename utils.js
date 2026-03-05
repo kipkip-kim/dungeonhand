@@ -70,6 +70,17 @@ function detectHand(cards) {
   grades.forEach(function(g) { gradeCounts[g] = (gradeCounts[g] || 0) + 1; });
   var counts = Object.values(gradeCounts).sort(function(a, b) { return b - a; });
 
+  // Perfect: same suit + same grade (class cards only)
+  var perfectCounts = {};
+  cards.forEach(function(c) {
+    if (!c.isCommon) {
+      var key = c.suitId + "_" + (c.grade + (c.growthBonus || 0));
+      perfectCounts[key] = (perfectCounts[key] || 0) + 1;
+    }
+  });
+  var maxPerfect = 0;
+  Object.values(perfectCounts).forEach(function(v) { if (v > maxPerfect) maxPerfect = v; });
+
   // Flush: ALL 5 cards must be same suit. Common cards (suit "none") break flush.
   var suitCards = suits.filter(function(s) { return s !== "none"; });
   var isFlush = len === 5 && suitCards.length === 5 && new Set(suitCards).size <= 1;
@@ -106,11 +117,13 @@ function detectHand(cards) {
   }
 
   if (checkStraightFlush()) return { name: "스트레이트 플러시", mult: 12, tier: 5, emoji: "🌟" };
+  if (maxPerfect >= 4) return { name: "퍼펙트 포카", mult: 9, tier: 4, emoji: "👑" };
   if (counts[0] >= 4) return { name: "포카", mult: 8, tier: 4, emoji: "👑" };
   if (len === 5 && uniqueGrades.length === 5 && hasConsecutive(5)) return { name: "스트레이트5", mult: 8, tier: 4, emoji: "⛓️" };
   if (counts[0] === 3 && counts[1] >= 2) return { name: "풀하우스", mult: 6, tier: 4, emoji: "🏠" };
   if (len >= 4 && hasConsecutive(4)) return { name: "스트레이트4", mult: 6, tier: 4, emoji: "🔗" };
   if (isFlush) return { name: "플러시", mult: 5, tier: 3, emoji: "💎" };
+  if (maxPerfect >= 3) return { name: "퍼펙트 트리플", mult: 4.5, tier: 3, emoji: "🔺" };
   if (counts[0] >= 3) return { name: "트리플", mult: 4, tier: 3, emoji: "🔺" };
   if (len >= 3 && hasConsecutive(3)) return { name: "스트레이트3", mult: 4, tier: 3, emoji: "🔗" };
   if (counts[0] >= 2 && counts[1] >= 2) return { name: "투페어", mult: 3, tier: 2, emoji: "✌️" };

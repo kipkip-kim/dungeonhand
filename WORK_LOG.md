@@ -615,6 +615,17 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 29 (2026-03-05) — 강한 공격 시 몬스터 넉백 효과
+
+### 완료
+- [x] styles.js: shakeHard 키프레임에 translateY 추가 — 10%에서 -12px(최대 넉백) → 점진적 0 복귀
+- [x] components.jsx: shakeHard 애니메이션 duration 0.5s → 0.6s (넉백 복귀 느낌 강조)
+
+### 검증
+- 빌드 성공
+
+---
+
 ## 다음 세션 TODO (우선순위순)
 
 ### 🔴 P0: UI/UX 전반 개선 (다음 세션)

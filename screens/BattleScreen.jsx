@@ -23,6 +23,9 @@ export function BattleScreen({ game }) {
   if (currentHand && currentHand.tier >= 4) handTierColor = "var(--gd)";
   else if (currentHand && currentHand.tier >= 3) handTierColor = "var(--rd)";
 
+  var hpPct = Math.max(0, (hp / MAX_HP) * 100);
+  var hpColor = hpPct > 50 ? "var(--gn)" : hpPct > 25 ? "#f59e0b" : "var(--rd)";
+
   return (
     <div style={Object.assign({}, wrapStyle, { minHeight: "auto", overflow: "hidden", position: "relative" })}>
       <style>{CSS}</style>
@@ -66,103 +69,59 @@ export function BattleScreen({ game }) {
           <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 12 }}>나머지 2장은 버린카드 더미로</div>
         </div>
       )}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
-        <div style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 22px)" }}>
+      {/* === 상단바 (간소화: 층 정보 + 덱) === */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(5px, calc(var(--gw) * 0.01), 8px) clamp(10px, calc(var(--gw) * 0.02), 16px)", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
+        <div style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)" }}>
           <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>
-          <span style={{ color: "var(--dm)", fontSize: "clamp(12px, calc(var(--gw) * 0.024), 20px)", marginLeft: 4 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
+          <span style={{ color: "var(--dm)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", marginLeft: 6 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "clamp(6px, calc(var(--gw) * 0.012), 10px)" }}>
-          <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 24px)", color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
-          <div style={{ display: "flex", gap: 1 }}>
-            {relics.map(function(r) {
-              return (
-                <span key={r.id}
-                  onClick={function() { setRelicTip(relicTip === r.id ? null : r.id); }}
-                  style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative" }}>
-                  {r.emoji}
-                  {relicTip === r.id && (
-                    <span style={{
-                      position: "absolute", bottom: "120%", left: "50%",
-                      transform: "translateX(-50%)",
-                      background: "var(--cd)", border: "1px solid var(--bd)",
-                      borderRadius: 8, padding: "5px 10px",
-                      fontSize: 11, color: "var(--tx)", whiteSpace: "nowrap",
-                      zIndex: 50, boxShadow: "0 4px 12px rgba(0,0,0,0.6)",
-                      pointerEvents: "none", fontWeight: 700,
-                    }}>
-                      {r.name}: {r.desc}
-                    </span>
-                  )}
-                </span>
-              );
-            })}
+        <div style={{ display: "flex", alignItems: "center", gap: "clamp(5px, calc(var(--gw) * 0.01), 10px)" }}>
+          <div
+            onClick={function() { setOverlay("hands"); }}
+            style={{ background: "var(--bd)", borderRadius: 6, padding: "clamp(4px, calc(var(--gw) * 0.008), 7px) clamp(8px, calc(var(--gw) * 0.016), 14px)", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", cursor: "pointer", color: "var(--dm)", fontWeight: 700 }}
+          >
+            족보
           </div>
           <div
             onClick={function() { setOverlay("deck"); }}
-            style={{ background: "var(--bd)", borderRadius: 4, padding: "1px 5px", fontSize: 13, cursor: "pointer", color: "var(--dm)" }}
+            style={{ background: "var(--bd)", borderRadius: 6, padding: "clamp(4px, calc(var(--gw) * 0.008), 7px) clamp(8px, calc(var(--gw) * 0.016), 14px)", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", cursor: "pointer", color: "var(--dm)", fontWeight: 700 }}
           >
             덱{deck.length}
           </div>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "6px 0", overflow: "hidden" }}>
-        {/* === 전투 그룹 (중앙 정렬 + clamp gap) === */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", gap: "clamp(4px, 1.5vh, 12px)", overflow: "hidden" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* === 1인칭 뷰: 몬스터(상) + 데미지(하) === */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-evenly", alignItems: "stretch", overflow: "hidden", position: "relative" }}>
+        {/* --- 몬스터 그룹 (위쪽) --- */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: "clamp(4px, 1vh, 8px)" }}>
         {/* Gamble Roulette Animation */}
         {gambleAnim && (
           <div style={{ textAlign: "center", padding: "4px 0", animation: "popIn 0.2s ease" }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: gambleAnim.includes("🎉") ? "#22c55e" : gambleAnim.includes("💀") ? "#ef4444" : "#fbbf24", background: "rgba(0,0,0,0.6)", borderRadius: 8, padding: "4px 16px" }}>
+            <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", fontWeight: 700, color: gambleAnim.includes("🎉") ? "#22c55e" : gambleAnim.includes("💀") ? "#ef4444" : "#fbbf24", background: "rgba(0,0,0,0.6)", borderRadius: 8, padding: "4px 16px" }}>
               {gambleAnim}
             </span>
           </div>
         )}
-        {/* Passive Status */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 4, padding: "2px 0", flexWrap: "wrap", flexShrink: 0 }}>
-          {(function() {
-            var badge = classData.passive.renderBadge(passiveState, upgradeLevels.stealth * 5);
-            if (!badge) return null;
-            return (
-              <div style={{ background: badge.bg, border: "1px solid " + badge.border, borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                <span>{badge.label}</span>
-                {badge.detail && <span style={{ color: classData.passive.color, fontSize: 11 }}>{badge.detail}</span>}
-              </div>
-            );
-          })()}
-          {poison > 0 && (
-            <div style={{ background: "#a855f722", border: "1px solid var(--ac)", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-              ☠️독{poison}
-            </div>
-          )}
-          {gambleBuff !== 0 && (
-            <div style={{ background: gambleBuff > 0 ? "#22c55e22" : "#ef444422", border: "1px solid " + (gambleBuff > 0 ? "#22c55e" : "#ef4444"), borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-              🎲{gambleBuff > 0 ? "+" : ""}{gambleBuff}
-            </div>
-          )}
-          {upgradeLevels.tenacity > 0 && !tenacityUsed && (
-            <div style={{ background: "#78716c22", border: "1px solid #78716c", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-              💀집념
-            </div>
-          )}
-        </div>
 
         <div style={{ textAlign: "center", padding: "2px 0", flexShrink: 0 }}>
           {monster && (
             <div>
               <HpBar current={monster.hp} max={monster.maxHp} name={monster.name} emoji={monster.emoji} boss={monster.boss} miniboss={monster.miniboss} shaking={monShake} hardShake={monShakeHard} enemyAttacking={enemyAttacking} />
               {monster.hp > 0 && (
-                <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 2 }}>
-                  <span style={{ fontSize: 13, color: "var(--rd)", animation: "intentPulse 2s ease infinite" }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 3 }}>
+                  <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 2s ease infinite" }}>
                     ⚔️{monster.atk}~{monster.atk + 2}
                   </span>
-                  {monster.freeze > 0 && <span style={{ fontSize: 12, color: "#60a5fa" }}>❄️{monster.freeze}</span>}
-                  {monster.erode > 0 && <span style={{ fontSize: 12, color: "var(--ac)" }}>🌑{monster.erode}</span>}
-                  {monster.burn > 0 && <span style={{ fontSize: 12, color: "var(--or)" }}>🔥{monster.burn}</span>}
-                  {monster.split && !monster.hasSplit && <span style={{ fontSize: 12, color: "var(--or)" }}>💥분열</span>}
+                  {monster.freeze > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#60a5fa", fontWeight: 700 }}>❄️{monster.freeze}</span>}
+                  {monster.erode > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--ac)", fontWeight: 700 }}>🌑{monster.erode}</span>}
+                  {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
+                  {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
                 </div>
               )}
               {splitMon && (
-                <div style={{ marginTop: 2, fontSize: 12, color: "var(--dm)", background: "var(--cd)", borderRadius: 4, padding: "1px 6px", display: "inline-block" }}>
+                <div style={{ marginTop: 3, fontSize: "clamp(12px, calc(var(--gw) * 0.024), 18px)", color: "var(--dm)", background: "var(--cd)", borderRadius: 4, padding: "2px 8px", display: "inline-block" }}>
                   대기: {splitMon.emoji} HP{splitMon.hp}
                 </div>
               )}
@@ -172,65 +131,132 @@ export function BattleScreen({ game }) {
 
         {bossDialogue && (
           <div style={{ textAlign: "center", padding: "4px 0", flexShrink: 0, animation: "slideUp 0.4s ease" }}>
-            <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid var(--ac)", borderRadius: 8, padding: "4px 14px", fontSize: 13, fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
+            <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid var(--ac)", borderRadius: 8, padding: "5px 16px", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
               "{bossDialogue}"
             </span>
           </div>
         )}
-
+        </div>
+        {/* --- 데미지 그룹 (아래쪽) --- */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: "clamp(2px, 0.5vh, 6px)", minHeight: "clamp(50px, 10vh, 80px)" }}>
+        {/* === 데미지 정보 영역 === */}
         {damageInfo && currentHand ? (
-          <div style={{ height: damageInfo.fatedRoll > 0 ? 72 : 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, flexShrink: 0 }}>
-            <div style={{ fontSize: currentHand.tier >= 4 ? 18 : 16, fontWeight: 900, color: handTierColor, animation: "popIn 0.4s ease" }}>
+          <div style={{ flexShrink: 0, textAlign: "center", padding: "4px 0" }}>
+            <div style={{ fontSize: "clamp(16px, calc(var(--gw) * 0.032), 24px)", fontWeight: 900, color: handTierColor, animation: "popIn 0.4s ease", marginBottom: 2 }}>
               {currentHand.emoji} {currentHand.name}! {currentHand.emoji}
             </div>
             {damageInfo.fatedRoll > 0 && (
-              <div style={{ fontSize: 13, fontWeight: 700, color: damageInfo.fatedMult <= 0.5 ? "#e64b35" : damageInfo.fatedMult <= 1.5 ? "#4e79a7" : "#f0b930", animation: "dmgPop 0.4s ease 0.1s both" }}>
+              <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 20px)", fontWeight: 700, color: damageInfo.fatedMult <= 0.5 ? "#e64b35" : damageInfo.fatedMult <= 1.5 ? "#4e79a7" : "#f0b930", animation: "dmgPop 0.4s ease 0.1s both", marginBottom: 2 }}>
                 🎲 [{damageInfo.fatedRoll}] → x{damageInfo.fatedMult}
               </div>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Silkscreen', cursive", position: "relative" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, fontFamily: "'Silkscreen', cursive", position: "relative" }}>
               {damageInfo.isCrit && (
-                <div style={{ position: "absolute", inset: -12, background: "radial-gradient(circle, #f0b93044 0%, transparent 70%)", animation: "critFlash 0.8s ease", borderRadius: "50%", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", inset: -16, background: "radial-gradient(circle, #f0b93044 0%, transparent 70%)", animation: "critFlash 0.8s ease", borderRadius: "50%", pointerEvents: "none" }} />
               )}
-              <span style={{ fontSize: 16, color: "var(--bl)", animation: "multIn 0.3s ease 0.2s both" }}>{damageInfo.atk}</span>
-              <span style={{ fontSize: 14, color: "var(--dm)", animation: "multIn 0.3s ease 0.4s both" }}>x{damageInfo.mult}</span>
-              <span style={{ fontSize: 14, color: "var(--dm)" }}>=</span>
-              <span style={{ fontSize: damageInfo.isCrit ? 28 : (currentHand.tier >= 4 ? 24 : 18), color: damageInfo.isCrit ? "#f0b930" : handTierColor, animation: damageInfo.isCrit ? "critBurst 0.7s ease 0.3s both" : "dmgPop 0.5s ease 0.3s both", textShadow: damageInfo.isCrit ? "0 0 20px #f0b930aa" : "none" }}>{damageInfo.total}</span>
-              <span style={{ fontSize: 18, animation: "dmgPop 0.3s ease 0.5s both" }}>{damageInfo.isCrit ? "💥⭐" : "💥"}</span>
+              <span style={{ fontSize: "clamp(16px, calc(var(--gw) * 0.032), 24px)", color: "var(--bl)", animation: "multIn 0.3s ease 0.2s both" }}>{damageInfo.atk}</span>
+              <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--dm)", animation: "multIn 0.3s ease 0.4s both" }}>x{damageInfo.mult}</span>
+              <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--dm)" }}>=</span>
+              <span style={{ fontSize: damageInfo.isCrit ? "clamp(26px, calc(var(--gw) * 0.052), 40px)" : (currentHand.tier >= 4 ? "clamp(22px, calc(var(--gw) * 0.044), 34px)" : "clamp(18px, calc(var(--gw) * 0.036), 28px)"), color: damageInfo.isCrit ? "#f0b930" : handTierColor, animation: damageInfo.isCrit ? "critBurst 0.7s ease 0.3s both" : "dmgPop 0.5s ease 0.3s both", textShadow: damageInfo.isCrit ? "0 0 20px #f0b930aa" : "none" }}>{damageInfo.total}</span>
+              <span style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 28px)", animation: "dmgPop 0.3s ease 0.5s both" }}>{damageInfo.isCrit ? "💥⭐" : "💥"}</span>
             </div>
           </div>
-        ) : (
-          <div style={{ height: 56, flexShrink: 0 }} />
-        )}
+        ) : null}
 
         {/* Passive Trigger Message */}
         {passiveMsg && (
-          <div style={{ textAlign: "center", flexShrink: 0, animation: "passivePop 0.4s ease, passiveFade 2s ease forwards" }}>
-            <span style={{ display: "inline-block", background: "#a855f733", border: "1px solid var(--ac)", borderRadius: 6, padding: "2px 10px", fontSize: 12, fontWeight: 700, color: "#e0d0ff" }}>
+          <div style={{ textAlign: "center", flexShrink: 0, padding: "2px 0", animation: "passivePop 0.4s ease, passiveFade 2s ease forwards" }}>
+            <span style={{ display: "inline-block", background: "#a855f733", border: "1px solid var(--ac)", borderRadius: 6, padding: "3px 12px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700, color: "#e0d0ff" }}>
               {passiveMsg}
             </span>
           </div>
         )}
+        </div>
 
-        <div style={{ textAlign: "center", position: "relative", flexShrink: 0, padding: "2px 0" }}>
-          <div style={{ animation: playerShake ? "playerHit 0.5s ease" : "none", display: "inline-block" }}>
-            <HpBar current={hp} max={MAX_HP} name={classData.name} emoji={classData.icon} isPlayer />
+        {/* 적 공격 데미지 표시 (몬스터 영역 중앙) */}
+        {enemyDmgShow !== null && (
+          <div style={{ position: "absolute", top: "40%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 20, pointerEvents: "none" }}>
+            {enemyDmgShow === "MISS" && (
+              <div style={{ position: "absolute", inset: -40, background: "radial-gradient(circle, #22c55e33 0%, transparent 70%)", animation: "missFlash 0.6s ease", borderRadius: "50%", pointerEvents: "none" }} />
+            )}
+            <div style={{ fontSize: enemyDmgShow === "MISS" ? 32 : 28, fontWeight: 900, color: enemyDmgShow === "MISS" ? "#22c55e" : "var(--rd)", fontFamily: "'Silkscreen', cursive", animation: enemyDmgShow === "MISS" ? "missBounce 0.7s ease, dmgFloat 1.4s ease 0.7s forwards" : "dmgPop 0.4s ease, dmgFloat 1.2s ease 0.4s forwards", textShadow: enemyDmgShow === "MISS" ? "0 0 15px #22c55eaa" : "0 0 10px #ef444488" }}>
+              {enemyDmgShow === "MISS" ? "✨MISS!✨" : "-" + enemyDmgShow}
+            </div>
           </div>
-          {enemyDmgShow !== null && (
-            <>
-              {enemyDmgShow === "MISS" && (
-                <div style={{ position: "absolute", inset: -20, background: "radial-gradient(circle, #22c55e33 0%, transparent 70%)", animation: "missFlash 0.6s ease", borderRadius: "50%", pointerEvents: "none" }} />
-              )}
-              <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: enemyDmgShow === "MISS" ? 22 : 20, fontWeight: 900, color: enemyDmgShow === "MISS" ? "#22c55e" : "var(--rd)", fontFamily: "'Silkscreen', cursive", animation: enemyDmgShow === "MISS" ? "missBounce 0.7s ease, dmgFloat 1.4s ease 0.7s forwards" : "dmgPop 0.4s ease, dmgFloat 1.2s ease 0.4s forwards", textShadow: enemyDmgShow === "MISS" ? "0 0 15px #22c55eaa" : "0 0 10px #ef444488" }}>
-                {enemyDmgShow === "MISS" ? "✨MISS!✨" : "-" + enemyDmgShow}
-              </div>
-            </>
-          )}
-        </div>
+        )}
 
         </div>
+
+        {/* === 1인칭 하단 상태창 (패시브 + HP + 유물 + 골드) === */}
+        <div style={{ flexShrink: 0, padding: "5px 10px", borderTop: "1px solid var(--bd)", background: "linear-gradient(180deg, var(--pn), var(--bg))", animation: playerShake ? "playerHit 0.5s ease" : "none" }}>
+          {/* 패시브 뱃지 (HP 바 위) */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginBottom: 4 }}>
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", flex: 1 }}>
+              {(function() {
+                var badge = classData.passive.renderBadge(passiveState, upgradeLevels.stealth * 5);
+                if (!badge) return null;
+                return (
+                  <div style={{ background: badge.bg, border: "1px solid " + badge.border, borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", display: "flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                    <span>{badge.label}</span>
+                    {badge.detail && <span style={{ color: classData.passive.color, fontSize: "clamp(12px, calc(var(--gw) * 0.024), 18px)" }}>{badge.detail}</span>}
+                  </div>
+                );
+              })()}
+              {poison > 0 && (
+                <div style={{ background: "#a855f722", border: "1px solid var(--ac)", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                  ☠️독{poison}
+                </div>
+              )}
+              {gambleBuff !== 0 && (
+                <div style={{ background: gambleBuff > 0 ? "#22c55e22" : "#ef444422", border: "1px solid " + (gambleBuff > 0 ? "#22c55e" : "#ef4444"), borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                  🎲{gambleBuff > 0 ? "+" : ""}{gambleBuff}
+                </div>
+              )}
+              {upgradeLevels.tenacity > 0 && !tenacityUsed && (
+                <div style={{ background: "#78716c22", border: "1px solid #78716c", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                  💀집념
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+              {relics.map(function(r) {
+                return (
+                  <span key={r.id}
+                    onClick={function() { setRelicTip(relicTip === r.id ? null : r.id); }}
+                    style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative" }}>
+                    {r.emoji}
+                    {relicTip === r.id && (
+                      <span style={{
+                        position: "absolute", bottom: "120%", left: "50%",
+                        transform: "translateX(-50%)",
+                        background: "var(--cd)", border: "1px solid var(--bd)",
+                        borderRadius: 8, padding: "5px 10px",
+                        fontSize: 12, color: "var(--tx)", whiteSpace: "nowrap",
+                        zIndex: 50, boxShadow: "0 4px 12px rgba(0,0,0,0.6)",
+                        pointerEvents: "none", fontWeight: 700,
+                      }}>
+                        {r.name}: {r.desc}
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+          {/* HP 바 + 골드 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)", fontWeight: 700, fontFamily: "'Silkscreen', cursive", color: hpColor, minWidth: "clamp(65px, calc(var(--gw) * 0.13), 110px)" }}>
+              {Math.max(0, hp)}/{MAX_HP}
+            </span>
+            <div style={{ flex: 1, height: "clamp(12px, calc(var(--gw) * 0.024), 20px)", background: "var(--cd)", borderRadius: 6, overflow: "hidden", border: "1px solid var(--bd)" }}>
+              <div style={{ width: hpPct + "%", height: "100%", background: hpColor, borderRadius: 6, transition: "width 0.5s ease" }} />
+            </div>
+            <span style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)", color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
+          </div>
+        </div>
+
         {/* === 손패 고정 영역 === */}
-        <div style={{ padding: "14px 6px 2px", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0 }}>
+        <div style={{ padding: "10px 6px 2px", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, minHeight: "clamp(100px, calc(var(--gw) * 0.2), 184px)" }}>
           {hand.map(function(c, idx) {
             var isNew = newCardIds.indexOf(c.id) >= 0;
             var isFrozen = frozenIds.indexOf(c.id) >= 0;
@@ -263,21 +289,21 @@ export function BattleScreen({ game }) {
         </div>
 
         <div style={{ padding: "clamp(6px, calc(var(--gw) * 0.012), 10px) clamp(10px, calc(var(--gw) * 0.02), 18px) clamp(8px, calc(var(--gw) * 0.016), 14px)", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0 }}>
-          <div style={{ fontSize: "clamp(12px, calc(var(--gw) * 0.024), 20px)", overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
             {preview ? (
               <span>
                 {preview.emoji}{" "}
                 <b style={{ color: preview.tier >= 3 ? "var(--gd)" : "var(--tx)" }}>{preview.name}</b>
-                <span style={{ color: "var(--dm)", marginLeft: 2 }}>x{preview.mult}</span>
+                <span style={{ color: "var(--dm)", marginLeft: 3 }}>x{preview.mult}</span>
                 {previewDmg && (
-                  <span style={{ marginLeft: 4 }}>
+                  <span style={{ marginLeft: 6 }}>
                     <span style={{ color: "#3b82f6" }}>{previewDmg.atk}</span>
                     <span style={{ color: "var(--dm)" }}>×</span>
                     <span style={{ color: "var(--or)" }}>{previewDmg.mult}</span>
                     <span style={{ color: "var(--dm)" }}>=</span>
-                    <span style={{ color: "var(--rd)", fontWeight: 700, fontSize: 14 }}>{previewDmg.total}</span>
+                    <span style={{ color: "var(--rd)", fontWeight: 700 }}>{previewDmg.total}</span>
                     {previewDmg.critChance > 0 && (
-                      <span style={{ color: "#f0b930", fontSize: 10, marginLeft: 2 }}>⭐{previewDmg.critChance}%</span>
+                      <span style={{ color: "#f0b930", fontSize: "clamp(11px, calc(var(--gw) * 0.022), 16px)", marginLeft: 3 }}>⭐{previewDmg.critChance}%</span>
                     )}
                   </span>
                 )}
@@ -306,6 +332,49 @@ export function BattleScreen({ game }) {
           onSort={function(m) { setDeckSort(m); }}
           onClose={function() { setOverlay(null); }}
         />
+      )}
+      {overlay === "hands" && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={function() { setOverlay(null); }}
+        >
+          <div
+            style={{ background: "var(--pn)", borderRadius: 14, padding: "18px 22px", maxWidth: 380, width: "90%", border: "1px solid var(--bd)" }}
+            onClick={function(e) { e.stopPropagation(); }}
+          >
+            <h3 style={{ fontSize: 16, marginBottom: 12, textAlign: "center" }}>🃏 족보 목록</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {[
+                { emoji: "🌟", name: "스트레이트 플러시", mult: "x12", desc: "같은 문양 연속 3장+", tier: 5 },
+                { emoji: "👑", name: "퍼펙트 포카", mult: "x9", desc: "같은 문양+등급 4장", tier: 4 },
+                { emoji: "👑", name: "포카", mult: "x8", desc: "같은 등급 4장", tier: 4 },
+                { emoji: "⛓️", name: "스트레이트5", mult: "x8", desc: "연속 등급 5장", tier: 4 },
+                { emoji: "🏠", name: "풀하우스", mult: "x6", desc: "트리플 + 페어", tier: 4 },
+                { emoji: "🔗", name: "스트레이트4", mult: "x6", desc: "연속 등급 4장", tier: 4 },
+                { emoji: "💎", name: "플러시", mult: "x5", desc: "같은 문양 5장", tier: 3 },
+                { emoji: "🔺", name: "퍼펙트 트리플", mult: "x4.5", desc: "같은 문양+등급 3장", tier: 3 },
+                { emoji: "🔺", name: "트리플", mult: "x4", desc: "같은 등급 3장", tier: 3 },
+                { emoji: "🔗", name: "스트레이트3", mult: "x4", desc: "연속 등급 3장", tier: 3 },
+                { emoji: "✌️", name: "투페어", mult: "x3", desc: "페어 2개", tier: 2 },
+                { emoji: "👯", name: "원페어", mult: "x2", desc: "같은 등급 2장", tier: 2 },
+                { emoji: "👊", name: "하이카드", mult: "x1", desc: "조합 없음", tier: 1 },
+              ].map(function(h) {
+                var tierColor = h.tier >= 5 ? "var(--gd)" : h.tier >= 4 ? "var(--or)" : h.tier >= 3 ? "var(--rd)" : h.tier >= 2 ? "var(--bl)" : "var(--dm)";
+                return (
+                  <div key={h.name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 6px", background: "var(--cd)", borderRadius: 6, borderLeft: "3px solid " + tierColor }}>
+                    <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>{h.emoji}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, flex: 1, color: tierColor }}>{h.name}</span>
+                    <span style={{ fontSize: 12, color: "var(--dm)", flex: 1 }}>{h.desc}</span>
+                    <span style={{ fontSize: 14, fontWeight: 900, fontFamily: "'Silkscreen', cursive", color: tierColor, minWidth: 36, textAlign: "right" }}>{h.mult}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: 14, textAlign: "center" }}>
+              <Btn onClick={function() { setOverlay(null); }}>닫기</Btn>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

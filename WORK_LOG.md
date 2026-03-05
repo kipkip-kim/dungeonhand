@@ -748,3 +748,35 @@ public/audio/          총 1.54MB
 - [x] BattleScreen 유물 이모지 터치 영역 확대 (padding 4px 2px → 6px 4px)
 - [x] BattleScreen 하단바 프리뷰 textOverflow: "ellipsis" 추가
 - [x] ShopScreen 덱 버튼 터치 타겟 확대 (padding 4px 10px → 6px 12px, fontSize 13→14)
+
+---
+
+## 세션 33 (2026-03-05) — 전투화면 레이아웃 시프트 수정 + UX 개선
+
+### 완료
+- [x] bossDialogue 등장 시 몬스터 바운스 수정 (position: absolute)
+- [x] 데미지 그룹 하단 상태창 간격 조정 (clamp(12px, 3vh, 24px))
+- [x] 카드 선택 시 상단 잘림 수정 (hand area 높이 증가)
+- [x] passiveMsg 사라질 때 damageInfo 위치 이동 수정 (column-reverse)
+- [x] encounterOverlay 스케일 애니메이션 시 배경 노출 수정 (배경/콘텐츠 분리)
+- [x] MISS 표시 위치 플레이어 쪽으로 이동 (top 40%→65%)
+- [x] 몬스터 표시 순서 변경 (HP바→공격력→이모지)
+- [x] 몬스터 이모지에 흔들림/공격 애니메이션 이동 (HpBar에서 분리)
+- [x] DefeatScreen "마을"→"홈으로" + "다시 도전"→바로 던전 재입장
+- [x] gambleAnim 레이아웃 시프트 수정 (position: absolute)
+- [x] 레이아웃 시프트 전수 조사 + 4건 추가 수정 (splitMon/stats/badge)
+- [x] 정적 분석: dead props/dead code 정리
+
+---
+
+## 세션 34 (2026-03-05) — 색상 테마 워밍 던전 톤 교체
+
+### 완료
+- [x] styles.js CSS 변수 17종 워밍 팔레트로 교체 + 신규 3종 추가 (--wn/--cr/--sb)
+- [x] components.jsx 카드/화상/HP바/버튼 하드코딩 색상 교체
+- [x] BattleScreen.jsx 인카운터/갬블/데미지/뱃지/MISS 색상 교체
+- [x] SmallScreens.jsx 타이틀/버튼/유물 배경 색상 교체
+- [x] CampfireScreen.jsx 이벤트 배경/텍스트/골드 색상 교체
+- [x] VillageScreen.jsx 스킬트리/궁극기/리셋 색상 교체
+- [x] ShopScreen.jsx 회복 버튼 색상 교체
+- [x] DungeonHand_v3.jsx 화상카드 suitColor 교체

@@ -11,13 +11,13 @@ export function PendingRelicOverlay({ game }) {
       <style>{CSS}</style>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
         <div style={{ background: "var(--cd)", border: "1px solid var(--bd)", borderRadius: 16, padding: 24, maxWidth: 340, width: "90%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#ef4444" }}>인벤토리가 가득 찼습니다!</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--rd)" }}>인벤토리가 가득 찼습니다!</div>
           <div style={{ fontSize: 13, color: "var(--dm)" }}>새 유물을 장착하려면 기존 유물 하나를 교체하세요</div>
-          <div style={{ padding: 14, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + prBorder, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "80%" }}>
+          <div style={{ padding: 14, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid " + prBorder, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "80%" }}>
             <span style={{ fontSize: 28 }}>{pendingRelic.emoji}</span>
             <span style={{ fontSize: 14, fontWeight: 700 }}>{pendingRelic.name}</span>
             <span style={{ fontSize: 13, color: "var(--dm)", textAlign: "center" }}>{pendingRelic.desc}</span>
-            <span style={{ fontSize: 11, color: "#22c55e" }}>NEW</span>
+            <span style={{ fontSize: 11, color: "var(--gn)" }}>NEW</span>
           </div>
           <div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>교체할 유물을 선택하세요:</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
@@ -27,7 +27,7 @@ export function PendingRelicOverlay({ game }) {
                 <div
                   key={r.id}
                   onClick={function() { swapRelic(r); }}
-                  style={{ width: 90, padding: 10, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + bCol, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}
+                  style={{ width: 90, padding: 10, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid " + bCol, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}
                 >
                   <span style={{ fontSize: 22 }}>{r.emoji}</span>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>{r.name}</span>
@@ -36,7 +36,7 @@ export function PendingRelicOverlay({ game }) {
               );
             })}
           </div>
-          <Btn onClick={discardPendingRelic} style={{ marginTop: 6, background: "#7f1d1d" }}>버리기 (영구 삭제)</Btn>
+          <Btn onClick={discardPendingRelic} style={{ marginTop: 6, background: "#5c1a0e" }}>버리기 (영구 삭제)</Btn>
         </div>
       </div>
     </div>
@@ -52,7 +52,7 @@ export function MenuScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
         <div style={{ fontSize: 48, animation: "popIn 0.5s ease" }}>🗡️</div>
-        <h1 style={{ fontSize: 28, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#fbbf24,#ef4444,#a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center", lineHeight: 1.5 }}>
+        <h1 style={{ fontSize: 28, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#e8a820,#c0392b,#9b59b6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center", lineHeight: 1.5 }}>
           DUNGEON HAND
         </h1>
         <p style={{ color: "var(--dm)", fontSize: 13 }}>도적의 카드로 던전을 정복하라!</p>
@@ -60,7 +60,7 @@ export function MenuScreen({ game }) {
           <Btn onClick={function() { if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
             ⚔️ 던전 입장
           </Btn>
-          <Btn onClick={function() { setScreen("village"); }} color="#22c55e" style={{ fontSize: 14, padding: "14px 32px" }}>
+          <Btn onClick={function() { setScreen("village"); }} color="var(--gn)" style={{ fontSize: 14, padding: "14px 32px" }}>
             🌳 스킬 트리
           </Btn>
         </div>
@@ -87,7 +87,7 @@ export function ClassSelectScreen({ game }) {
               <div
                 key={c.id}
                 onClick={function() { startRun(c.id); }}
-                style={{ width: 200, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
+                style={{ width: 200, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
               >
                 <span style={{ fontSize: 42 }}>{c.icon}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
@@ -219,7 +219,7 @@ export function RelicRewardScreen({ game }) {
               <div
                 key={r.id}
                 onClick={function() { pickRelic(r); }}
-                style={{ width: 170, padding: 20, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
+                style={{ width: 170, padding: 20, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
               >
                 <span style={{ fontSize: 24 }}>{r.emoji}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{r.name}</span>
@@ -244,7 +244,7 @@ export function VictoryScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 48, animation: "victBounce 1.5s ease infinite" }}>🏆</div>
-        <h1 style={{ fontSize: 16, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#fbbf24,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h1 style={{ fontSize: 16, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#e8a820,#d35400)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           VICTORY!
         </h1>
         <div style={{ display: "flex", gap: 16 }}>
@@ -262,7 +262,7 @@ export function VictoryScreen({ game }) {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <Btn onClick={function() { claimAndGo("village"); }} color="#22c55e">🏘️ 마을</Btn>
+          <Btn onClick={function() { claimAndGo("village"); }} color="var(--gn)">🏘️ 마을</Btn>
           <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
         </div>
       </div>
@@ -285,7 +285,7 @@ export function DefeatScreen({ game }) {
           <div style={{ fontSize: 14, color: "var(--or)", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈으로</Btn>
+          <Btn onClick={function() { claimAndGo("menu"); }} color="var(--gn)">🏠 홈으로</Btn>
           <Btn onClick={function() { claimAndGo("restart"); }} color="var(--rd)">🃏 다시 도전</Btn>
         </div>
       </div>

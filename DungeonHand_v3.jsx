@@ -711,7 +711,7 @@ export default function DungeonHand() {
             var actualBurn = Math.min(burnCount, MAX_HAND - allNewHand.length);
             var burnCards = [];
             for (var bi = 0; bi < actualBurn; bi++) {
-              burnCards.push({ id: getNextId(), suitId: "red", suitColor: "#e64b35", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });
+              burnCards.push({ id: getNextId(), suitId: "red", suitColor: "#c0392b", grade: 0, isCommon: false, burning: true, growthBonus: 0, keyword: null });
             }
             setHand(function(prev) { return prev.concat(burnCards); });
             showPassive("🔥 화상! " + actualBurn + "장 주입!");

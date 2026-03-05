@@ -24,7 +24,7 @@ export function BattleScreen({ game }) {
   else if (currentHand && currentHand.tier >= 3) handTierColor = "var(--rd)";
 
   var hpPct = Math.max(0, (hp / MAX_HP) * 100);
-  var hpColor = hpPct > 50 ? "var(--gn)" : hpPct > 25 ? "#f59e0b" : "var(--rd)";
+  var hpColor = hpPct > 50 ? "var(--gn)" : hpPct > 25 ? "var(--wn)" : "var(--rd)";
 
   return (
     <div style={Object.assign({}, wrapStyle, { minHeight: "auto", overflow: "hidden", position: "relative" })}>
@@ -35,14 +35,14 @@ export function BattleScreen({ game }) {
           position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100,
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           background: encounterOverlay.boss
-            ? "radial-gradient(circle, #2d1040 0%, #0c0c14 70%)"
-            : "radial-gradient(circle, #1a2040 0%, #0c0c14 70%)",
+            ? "radial-gradient(circle, #2d1a08 0%, var(--bg) 70%)"
+            : "radial-gradient(circle, #1a1808 0%, var(--bg) 70%)",
         }}>
           <div style={{ animation: "encounterIn 0.6s ease", display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{ fontSize: 72, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
               {encounterOverlay.emoji}
             </div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "#fbbf24" : "var(--ac)", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
+            <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "var(--gd)" : "var(--ac)", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
               {encounterOverlay.name}
             </div>
             <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
@@ -57,7 +57,7 @@ export function BattleScreen({ game }) {
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           background: "rgba(0,0,0,0.85)",
         }}>
-          <div style={{ fontSize: 18, fontWeight: 900, color: "#fbbf24", marginBottom: 16 }}>🎰 투기 — 1장을 선택하세요</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "var(--gd)", marginBottom: 16 }}>🎰 투기 — 1장을 선택하세요</div>
           <div style={{ display: "flex", gap: 12 }}>
             {gambitChoices.map(function(c) {
               return (
@@ -120,7 +120,7 @@ export function BattleScreen({ game }) {
           )}
           {bossDialogue && (
             <div style={{ position: "absolute", top: "100%", left: 0, right: 0, textAlign: "center", padding: "4px 0", animation: "slideUp 0.4s ease", zIndex: 5, pointerEvents: "none" }}>
-              <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid var(--ac)", borderRadius: 8, padding: "5px 16px", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
+              <span style={{ display: "inline-block", background: "#231e14ee", border: "1px solid var(--ac)", borderRadius: 8, padding: "5px 16px", fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", fontWeight: 700, color: "#f0e0c8", maxWidth: "80%" }}>
                 "{bossDialogue}"
               </span>
             </div>
@@ -128,7 +128,7 @@ export function BattleScreen({ game }) {
         {/* Gamble Roulette Animation */}
         {gambleAnim && (
           <div style={{ position: "absolute", top: "calc(100% + 30px)", left: 0, right: 0, textAlign: "center", padding: "4px 0", animation: "popIn 0.2s ease", zIndex: 5, pointerEvents: "none" }}>
-            <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", fontWeight: 700, color: gambleAnim.includes("🎉") ? "#22c55e" : gambleAnim.includes("💀") ? "#ef4444" : "#fbbf24", background: "rgba(0,0,0,0.6)", borderRadius: 8, padding: "4px 16px" }}>
+            <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", fontWeight: 700, color: gambleAnim.includes("🎉") ? "var(--gn)" : gambleAnim.includes("💀") ? "var(--rd)" : "var(--gd)", background: "rgba(0,0,0,0.6)", borderRadius: 8, padding: "4px 16px" }}>
               {gambleAnim}
             </span>
           </div>
@@ -144,7 +144,7 @@ export function BattleScreen({ game }) {
               {currentHand.emoji} {currentHand.name}! {currentHand.emoji}
             </div>
             {damageInfo.fatedRoll > 0 && (
-              <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 20px)", fontWeight: 700, color: damageInfo.fatedMult <= 0.5 ? "#e64b35" : damageInfo.fatedMult <= 1.5 ? "#4e79a7" : "#f0b930", animation: "dmgPop 0.4s ease 0.1s both", marginBottom: 2 }}>
+              <div style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 20px)", fontWeight: 700, color: damageInfo.fatedMult <= 0.5 ? "var(--rd)" : damageInfo.fatedMult <= 1.5 ? "var(--bl)" : "var(--cr)", animation: "dmgPop 0.4s ease 0.1s both", marginBottom: 2 }}>
                 🎲 [{damageInfo.fatedRoll}] → x{damageInfo.fatedMult}
               </div>
             )}
@@ -164,7 +164,7 @@ export function BattleScreen({ game }) {
         {/* Passive Trigger Message */}
         {passiveMsg && (
           <div style={{ textAlign: "center", flexShrink: 0, padding: "2px 0", animation: "passivePop 0.4s ease, passiveFade 2s ease forwards" }}>
-            <span style={{ display: "inline-block", background: "#a855f733", border: "1px solid var(--ac)", borderRadius: 6, padding: "3px 12px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700, color: "#e0d0ff" }}>
+            <span style={{ display: "inline-block", background: "#9b59b633", border: "1px solid var(--ac)", borderRadius: 6, padding: "3px 12px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700, color: "#f0e0c8" }}>
               {passiveMsg}
             </span>
           </div>
@@ -175,9 +175,9 @@ export function BattleScreen({ game }) {
         {enemyDmgShow !== null && (
           <div style={{ position: "absolute", top: enemyDmgShow === "MISS" ? "65%" : "40%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 20, pointerEvents: "none" }}>
             {enemyDmgShow === "MISS" && (
-              <div style={{ position: "absolute", inset: -40, background: "radial-gradient(circle, #22c55e33 0%, transparent 70%)", animation: "missFlash 0.6s ease", borderRadius: "50%", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", inset: -40, background: "radial-gradient(circle, #2d9b4e33 0%, transparent 70%)", animation: "missFlash 0.6s ease", borderRadius: "50%", pointerEvents: "none" }} />
             )}
-            <div style={{ fontSize: enemyDmgShow === "MISS" ? 32 : 28, fontWeight: 900, color: enemyDmgShow === "MISS" ? "#22c55e" : "var(--rd)", fontFamily: "'Silkscreen', cursive", animation: enemyDmgShow === "MISS" ? "missBounce 0.7s ease, dmgFloat 1.4s ease 0.7s forwards" : "dmgPop 0.4s ease, dmgFloat 1.2s ease 0.4s forwards", textShadow: enemyDmgShow === "MISS" ? "0 0 15px #22c55eaa" : "0 0 10px #ef444488" }}>
+            <div style={{ fontSize: enemyDmgShow === "MISS" ? 32 : 28, fontWeight: 900, color: enemyDmgShow === "MISS" ? "var(--gn)" : "var(--rd)", fontFamily: "'Silkscreen', cursive", animation: enemyDmgShow === "MISS" ? "missBounce 0.7s ease, dmgFloat 1.4s ease 0.7s forwards" : "dmgPop 0.4s ease, dmgFloat 1.2s ease 0.4s forwards", textShadow: enemyDmgShow === "MISS" ? "0 0 15px #2d9b4eaa" : "0 0 10px #c0392b88" }}>
               {enemyDmgShow === "MISS" ? "✨MISS!✨" : "-" + enemyDmgShow}
             </div>
           </div>
@@ -201,17 +201,17 @@ export function BattleScreen({ game }) {
                 );
               })()}
               {poison > 0 && (
-                <div style={{ background: "#a855f722", border: "1px solid var(--ac)", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                <div style={{ background: "#9b59b622", border: "1px solid var(--ac)", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
                   ☠️독{poison}
                 </div>
               )}
               {gambleBuff !== 0 && (
-                <div style={{ background: gambleBuff > 0 ? "#22c55e22" : "#ef444422", border: "1px solid " + (gambleBuff > 0 ? "#22c55e" : "#ef4444"), borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                <div style={{ background: gambleBuff > 0 ? "#2d9b4e22" : "#c0392b22", border: "1px solid " + (gambleBuff > 0 ? "var(--gn)" : "var(--rd)"), borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
                   🎲{gambleBuff > 0 ? "+" : ""}{gambleBuff}
                 </div>
               )}
               {upgradeLevels.tenacity > 0 && !tenacityUsed && (
-                <div style={{ background: "#78716c22", border: "1px solid #78716c", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                <div style={{ background: "#6b5c4a22", border: "1px solid #6b5c4a", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
                   💀집념
                 </div>
               )}
@@ -296,7 +296,7 @@ export function BattleScreen({ game }) {
                 <span style={{ color: "var(--dm)", marginLeft: 3 }}>x{preview.mult}</span>
                 {previewDmg && (
                   <span style={{ marginLeft: 6 }}>
-                    <span style={{ color: "#3b82f6" }}>{previewDmg.atk}</span>
+                    <span style={{ color: "var(--bl)" }}>{previewDmg.atk}</span>
                     <span style={{ color: "var(--dm)" }}>×</span>
                     <span style={{ color: "var(--or)" }}>{previewDmg.mult}</span>
                     <span style={{ color: "var(--dm)" }}>=</span>

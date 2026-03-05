@@ -33,7 +33,7 @@ export function VillageScreen({ game }) {
         <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap", justifyContent: "center" }}>
           {visibleTrees.map(function(tree) {
             var isActive = skillTab === tree.id;
-            var tColor = tree.color || "#888";
+            var tColor = tree.color || "var(--dm)";
             return (
               <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
                 {tree.icon} {tree.name}
@@ -51,7 +51,7 @@ export function VillageScreen({ game }) {
                   var actualCost = node.cost + lv * Math.ceil(node.cost * 0.5);
                   var canBuy = metaPoints >= actualCost && !maxed;
                   return (
-                    <div key={node.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "8px 10px" }}>
+                    <div key={node.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#2d9b4e11" : "var(--cd)", border: "1px solid " + (maxed ? "#2d9b4e44" : "var(--bd)"), borderRadius: 8, padding: "8px 10px" }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ fontSize: 13 }}>{node.icon}</span>
                         <span style={{ fontWeight: 700, marginLeft: 4, fontSize: 13 }}>{node.name}</span>
@@ -59,7 +59,7 @@ export function VillageScreen({ game }) {
                         <span style={{ color: "var(--ac)", fontSize: 13, marginLeft: 6 }}>{lv}/{node.max}</span>
                       </div>
                       {maxed ? (
-                        <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>MAX</span>
+                        <span style={{ color: "var(--gn)", fontSize: 13, fontWeight: 700 }}>MAX</span>
                       ) : (
                         <Btn
                           onClick={function() {
@@ -86,11 +86,11 @@ export function VillageScreen({ game }) {
             </div>
           );
         })}
-        <div style={{ marginBottom: 14, padding: 10, background: ulUnlocked ? "#f59e0b11" : "#1a1a2e", border: "1px solid " + (ulUnlocked ? "#f59e0b44" : "var(--bd)"), borderRadius: 10, textAlign: "center" }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: ulUnlocked ? "#f59e0b" : "var(--dm)" }}>{ULTIMATE_SKILL.icon} {ULTIMATE_SKILL.name}</div>
+        <div style={{ marginBottom: 14, padding: 10, background: ulUnlocked ? "#c87f0a11" : "#1a1810", border: "1px solid " + (ulUnlocked ? "#c87f0a44" : "var(--bd)"), borderRadius: 10, textAlign: "center" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: ulUnlocked ? "var(--wn)" : "var(--dm)" }}>{ULTIMATE_SKILL.icon} {ULTIMATE_SKILL.name}</div>
           <div style={{ fontSize: 13, color: "var(--dm)", marginTop: 2 }}>{ULTIMATE_SKILL.desc}</div>
           {ulOwned ? (
-            <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>활성화됨</span>
+            <span style={{ color: "var(--gn)", fontSize: 13, fontWeight: 700 }}>활성화됨</span>
           ) : ulUnlocked ? (
             <Btn
               onClick={function() {
@@ -99,12 +99,12 @@ export function VillageScreen({ game }) {
                 });
               }}
               style={{ padding: "8px 16px", fontSize: 13, marginTop: 6 }}
-              color="#f59e0b"
+              color="var(--wn)"
             >
               해금
             </Btn>
           ) : (
-            <div style={{ fontSize: 13, color: "#666", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
+            <div style={{ fontSize: 13, color: "var(--dm)", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
           )}
         </div>
         {(function() {
@@ -131,7 +131,7 @@ export function VillageScreen({ game }) {
                   setResetCount(function(c) { return c + 1; });
                 }}
                 disabled={!canReset}
-                color="#ef4444"
+                color="var(--rd)"
                 style={{ padding: "8px 20px", fontSize: 13 }}
               >
                 🔄 스킬 초기화 ({resetCount + 1}/3회) — ⭐{resetCost}

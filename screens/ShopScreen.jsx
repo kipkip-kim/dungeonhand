@@ -91,7 +91,7 @@ export function ShopScreen({ game }) {
                 setShopHealed(true);
               }}
               disabled={shopHealed || gold < healCost || hp >= MAX_HP}
-              color="#22c55e"
+              color="var(--gn)"
             >
               {shopHealed ? "완료" : hp >= MAX_HP ? "만탄" : "💰" + healCost}
             </Btn>

@@ -1101,16 +1101,19 @@ export default function DungeonHand() {
   // === WRAPPER STYLE ===
   var wrapStyle = {
     width: "100%",
+    maxWidth: 960,
     height: "100vh",
     maxHeight: "100vh",
     margin: "0 auto",
     background: "var(--bg)",
     color: "var(--tx)",
     fontFamily: "'Noto Sans KR', sans-serif",
-    fontSize: 15,
+    fontSize: "clamp(15px, 2.5vw + 5px, 22px)",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
+    position: "relative",
+    boxShadow: "0 0 60px rgba(0,0,0,0.6)",
   };
 
   // === AUDIO BUTTON ===
@@ -1118,7 +1121,7 @@ export default function DungeonHand() {
     <div
       onClick={toggleAudio}
       style={{
-        position: "fixed", top: 10, right: 10, zIndex: 999,
+        position: "absolute", top: 10, right: 10, zIndex: 999,
         background: "var(--pn)", border: "1px solid var(--bd)",
         borderRadius: "50%", width: 38, height: 38,
         display: "flex", alignItems: "center", justifyContent: "center",

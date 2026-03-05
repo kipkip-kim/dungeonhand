@@ -13,8 +13,8 @@ function CardView(props) {
 
   // Burn card special render
   if (c.burning) {
-    const bw = small ? 55 : 70;
-    const bh = small ? 77 : 98;
+    const bw = small ? "clamp(55px, 11vw, 100px)" : "clamp(70px, 14vw, 130px)";
+    const bh = small ? "clamp(77px, 15.4vw, 140px)" : "clamp(98px, 19.6vw, 182px)";
     return (
       <div
         onClick={disabled ? undefined : onClick}
@@ -32,16 +32,16 @@ function CardView(props) {
           WebkitTapHighlightColor: "transparent",
         }}
       >
-        <span style={{ fontSize: small ? 20 : 24 }}>🔥</span>
-        <span style={{ fontSize: small ? 9 : 11, color: "#fca5a5", fontWeight: 700 }}>화상</span>
-        <span style={{ fontSize: small ? 8 : 10, color: "#ef4444" }}>제출시 -3HP</span>
+        <span style={{ fontSize: "clamp(" + (small ? "20px, 4vw, 36px)" : "24px, 4.8vw, 44px)") }}>🔥</span>
+        <span style={{ fontSize: "clamp(" + (small ? "9px, 1.8vw, 16px)" : "11px, 2.2vw, 20px)"), color: "#fca5a5", fontWeight: 700 }}>화상</span>
+        <span style={{ fontSize: "clamp(" + (small ? "8px, 1.6vw, 14px)" : "10px, 2vw, 18px)"), color: "#ef4444" }}>제출시 -3HP</span>
       </div>
     );
   }
 
   const nm = getCardName(c, cls);
-  const w = small ? 55 : 70;
-  const h = small ? 77 : 98;
+  const w = small ? "clamp(55px, 11vw, 100px)" : "clamp(70px, 14vw, 130px)";
+  const h = small ? "clamp(77px, 15.4vw, 140px)" : "clamp(98px, 19.6vw, 182px)";
 
   // Common cards get distinct styling
   const isC = c.isCommon;
@@ -72,7 +72,7 @@ function CardView(props) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: small ? 2 : 4,
+        gap: "clamp(" + (small ? "2px, 0.4vw, 4px)" : "4px, 0.8vw, 7px)"),
         cursor: disabled ? "default" : "pointer",
         transition: "transform 0.12s ease, box-shadow 0.12s ease",
         transform: transform,
@@ -88,7 +88,7 @@ function CardView(props) {
           position: "absolute",
           top: small ? 2 : 4,
           left: small ? 3 : 5,
-          fontSize: small ? 8 : 10,
+          fontSize: "clamp(" + (small ? "8px, 1.6vw, 14px)" : "10px, 2vw, 18px)"),
           color: "#a78bfa",
           fontWeight: 700,
           letterSpacing: 1,
@@ -102,14 +102,14 @@ function CardView(props) {
           position: "absolute",
           top: small ? 2 : 4,
           right: small ? 3 : 5,
-          fontSize: small ? 10 : 13,
+          fontSize: "clamp(" + (small ? "10px, 2vw, 18px)" : "13px, 2.6vw, 24px)"),
         }} title={c.keyword.name + ": " + c.keyword.desc}>
           {c.keyword.icon}
         </div>
       )}
-      <span style={{ fontSize: small ? 14 : 18 }}>{isC ? c.common.icon : c.suitEmoji}</span>
+      <span style={{ fontSize: "clamp(" + (small ? "14px, 2.8vw, 26px)" : "18px, 3.6vw, 33px)") }}>{isC ? c.common.icon : c.suitEmoji}</span>
       <span style={{
-        fontSize: small ? 20 : 28,
+        fontSize: "clamp(" + (small ? "20px, 4vw, 36px)" : "28px, 5.6vw, 52px)"),
         fontWeight: 900,
         fontFamily: "'Silkscreen', cursive",
         color: isC ? "#c4b5fd" : c.suitColor,
@@ -118,7 +118,7 @@ function CardView(props) {
         {c.grade + (c.growthBonus || 0)}{(c.enhanceCount || 0) >= 2 ? "⬆⬆" : (c.enhanceCount || 0) >= 1 ? "⬆" : ""}
       </span>
       <span style={{
-        fontSize: small ? 8 : 10,
+        fontSize: "clamp(" + (small ? "8px, 1.6vw, 14px)" : "10px, 2vw, 18px)"),
         color: isC ? "#c4b5fd" : "var(--dm)",
         fontWeight: 700,
         fontFamily: "'Noto Sans KR', sans-serif",
@@ -128,7 +128,7 @@ function CardView(props) {
       {/* Effect text for common cards */}
       {isC && (
         <span style={{
-          fontSize: small ? 8 : 10,
+          fontSize: "clamp(" + (small ? "8px, 1.6vw, 14px)" : "10px, 2vw, 18px)"),
           color: "#94a3b8",
           fontFamily: "'Noto Sans KR', sans-serif",
           background: "#ffffff0a",
@@ -140,7 +140,7 @@ function CardView(props) {
       )}
       {/* Suit indicator for common cards (small dot) */}
       {isC && (
-        <span style={{ fontSize: small ? 8 : 10 }}>{c.suitEmoji}</span>
+        <span style={{ fontSize: "clamp(" + (small ? "8px, 1.6vw, 14px)" : "10px, 2vw, 18px)") }}>{c.suitEmoji}</span>
       )}
     </div>
   );
@@ -150,10 +150,10 @@ function HpBar(props) {
   const pct = Math.max(0, (props.current / props.max) * 100);
   const barColor = pct > 50 ? "var(--gn)" : pct > 25 ? "#f59e0b" : "var(--rd)";
   const anim = props.shaking ? (props.hardShake ? "shakeHard 0.5s ease" : "shake 0.4s ease") : props.enemyAttacking ? "enemyAtk 0.5s ease" : "none";
-  const barWidth = props.isPlayer ? "min(200px, 56vw)" : "min(240px, 64vw)";
-  const barHeight = props.isPlayer ? 14 : 16;
-  const emojiSize = props.boss ? 48 : props.isPlayer ? 32 : 40;
-  const nameSize = props.boss ? 18 : props.isPlayer ? 14 : 16;
+  const barWidth = props.isPlayer ? "clamp(200px, 40vw, 380px)" : "clamp(240px, 48vw, 460px)";
+  const barHeight = props.isPlayer ? "clamp(14px, 2.8vw, 24px)" : "clamp(16px, 3.2vw, 28px)";
+  const emojiSize = props.boss ? "clamp(48px, 9.6vw, 88px)" : props.isPlayer ? "clamp(32px, 6.4vw, 58px)" : "clamp(40px, 8vw, 72px)";
+  const nameSize = props.boss ? "clamp(18px, 3.6vw, 32px)" : props.isPlayer ? "clamp(14px, 2.8vw, 24px)" : "clamp(16px, 3.2vw, 28px)";
 
   return (
     <div style={{ textAlign: "center", animation: anim }}>
@@ -171,8 +171,8 @@ function HpBar(props) {
         fontFamily: "'Noto Sans KR', sans-serif",
       }}>
         {props.name}
-        {props.boss && <span style={{ color: "var(--gd)", fontSize: 13, marginLeft: 4 }}>BOSS</span>}
-        {props.miniboss && <span style={{ color: "var(--or)", fontSize: 13, marginLeft: 4 }}>엘리트</span>}
+        {props.boss && <span style={{ color: "var(--gd)", fontSize: "clamp(13px, 2.6vw, 22px)", marginLeft: 4 }}>BOSS</span>}
+        {props.miniboss && <span style={{ color: "var(--or)", fontSize: "clamp(13px, 2.6vw, 22px)", marginLeft: 4 }}>엘리트</span>}
       </div>
       <div style={{
         width: barWidth,
@@ -192,7 +192,7 @@ function HpBar(props) {
         }} />
       </div>
       <div style={{
-        fontSize: 14,
+        fontSize: "clamp(14px, 2.8vw, 24px)",
         color: "var(--dm)",
         marginTop: 2,
         fontFamily: "'Silkscreen', cursive",
@@ -211,12 +211,12 @@ function Btn(props) {
       className="btn-base"
       onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
       style={Object.assign({
-        padding: "8px 16px",
+        padding: "clamp(8px, 1.6vw, 14px) clamp(16px, 3.2vw, 28px)",
         background: isDisabled ? "#1a1a2a" : color,
         border: "none",
         borderRadius: 10,
         color: "var(--tx)",
-        fontSize: 14,
+        fontSize: "clamp(14px, 2.8vw, 22px)",
         fontWeight: 700,
         fontFamily: "'Noto Sans KR', sans-serif",
         cursor: isDisabled ? "default" : "pointer",

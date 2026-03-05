@@ -200,6 +200,12 @@
 - rcPool 필터링 중복 → getRewardPool() 헬퍼 추출 ✅
 - components.jsx var→const/let 통일 (34개) ✅
 
+### ~~세션 24: 중복 코드 제거~~ ✅ 완료
+- scaleMonsterHp/scaleMonsterAtk 헬퍼 추출 (2곳) ✅
+- rollEnemyDmg 헬퍼 추출 (3곳) ✅
+- rollGrade 함수 추출 + 상점 인라인 제거 (2곳) ✅
+- resetBattleState 헬퍼 추출 (2곳, setter 10개 통합) ✅
+
 ---
 
 ## 기능 추가 체크리스트

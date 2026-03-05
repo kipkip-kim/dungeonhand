@@ -100,6 +100,34 @@ export default function DungeonHand() {
     return floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
   }
 
+  function rollGrade(base, bossBonus) {
+    var roll = Math.random();
+    var g;
+    if (roll < 0.50) g = base;
+    else if (roll < 0.80) g = base + 1;
+    else if (roll < 0.95) g = base + 2;
+    else g = base + 3;
+    if (bossBonus) g += 1;
+    return Math.max(1, Math.min(g, 10));
+  }
+
+  function scaleMonsterHp(baseHp, fl) { return Math.floor(baseHp * (1 + (fl - 1) * 0.45)); }
+  function scaleMonsterAtk(baseAtk, fl) { return Math.floor(baseAtk * (1 + (fl - 1) * 0.1)); }
+  function rollEnemyDmg(baseAtk) { return baseAtk + Math.floor(Math.random() * 3); }
+
+  function resetBattleState() {
+    setFrozenIds([]);
+    setSplitMon(null);
+    setAimedBonus(0);
+    setBook2Used(false);
+    setBossDialogue(null);
+    setPoison(0);
+    setErodedIds([]);
+    setGambleBuff(0);
+    setGambleAnim(null);
+    setNewCardIds([]);
+  }
+
   function buildPState() {
     return Object.assign({}, passiveState, {
       stealthBonus: upgradeLevels.stealth * 5,
@@ -165,8 +193,8 @@ export default function DungeonHand() {
     if (mi === undefined) return; // campfire, no monster
     var idx = (fl - 1) * 4 + mi;
     var m = MONSTERS[idx] || MONSTERS[0];
-    var mhp = Math.floor(m.hp * (1 + (fl - 1) * 0.45));
-    var matk = Math.floor(m.atk * (1 + (fl - 1) * 0.1));
+    var mhp = scaleMonsterHp(m.hp, fl);
+    var matk = scaleMonsterAtk(m.atk, fl);
     setMonster({ name: m.name, emoji: m.emoji, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false });
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
@@ -178,17 +206,7 @@ export default function DungeonHand() {
     setSelected([]);
     setBusy(false);
     setEnemyDmgShow(null);
-    setGambleBuff(0);
-    setGambleAnim(null);
-    // Reset battle-scoped passives
-    // (passiveState persists across battles)
-    setFrozenIds([]);
-    setSplitMon(null);
-    setAimedBonus(0);
-    setBook2Used(false);
-    setBossDialogue(null);
-    setPoison(0);
-    setErodedIds([]);
+    resetBattleState();
     // === 전투 시작 시퀀스: encounter → dialogue → ambush → dice → draw ===
     var shuffled = shuffle(curDeck);
     var initialHand = shuffled.slice(0, HAND_SIZE);
@@ -225,7 +243,7 @@ export default function DungeonHand() {
     var ambushChance = m.boss ? 30 : m.miniboss ? 20 : 10;
     var isAmbush = Math.random() * 100 < ambushChance;
     if (isAmbush) {
-      var ambushDmg = matk + Math.floor(Math.random() * 3);
+      var ambushDmg = rollEnemyDmg(matk);
       setTimeout(function() {
         showPassive("⚡ 기습! " + m.name + "의 선제 공격!");
         sfx.enemy();
@@ -498,7 +516,7 @@ export default function DungeonHand() {
       showPassive("☠️ 독 데미지 " + poison + "!");
     }
 
-    var atkDmg = mon.atk + Math.floor(Math.random() * 3);
+    var atkDmg = rollEnemyDmg(mon.atk);
 
     // === Warrior 🔷 blue: damage reduction ===
     if (dmgResult && dmgResult.dmgReduction > 0) {
@@ -794,19 +812,6 @@ export default function DungeonHand() {
     var pool = [];
     var isBoss = battleNum === 5 || battleNum === 4;
     var kwChance = isBoss ? 0.3 : 0.15;
-    // Floor-scaled grade with weighted distribution
-    // 50% base, 30% base+1, 15% base+2, 5% base+3 (rare)
-    function rollGrade() {
-      var base = floor;
-      var roll = Math.random();
-      var g;
-      if (roll < 0.50) g = base;
-      else if (roll < 0.80) g = base + 1;
-      else if (roll < 0.95) g = base + 2;
-      else g = base + 3;
-      if (isBoss) g += 1;
-      return Math.max(1, Math.min(g, 10));
-    }
     // 문양수집: 보장할 문양 목록
     var collectSuits = [];
     if (upgradeLevels.redCollect > 0) collectSuits.push("red");
@@ -819,13 +824,13 @@ export default function DungeonHand() {
       } else {
         s2 = pickN(SUITS, 1)[0];
       }
-      var g2 = rollGrade();
+      var g2 = rollGrade(floor, isBoss);
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
     var ct = pickN(getRewardPool(), 1)[0];
     var s3 = collectSuits.length > 2 ? SUITS.find(function(ss) { return ss.id === collectSuits[2]; }) : pickN(SUITS, 1)[0];
-    var g3 = rollGrade();
+    var g3 = rollGrade(floor, isBoss);
     if (ct && (ct.fx === "reclaim" || ct.fx === "gambit") && g3 < 2) g3 = 2;
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
     pool.push(makeCard(s3.id, g3, classId, ct, kw2));
@@ -908,15 +913,7 @@ export default function DungeonHand() {
     var pool = [];
     for (var i = 0; i < 3; i++) {
       var s2 = pickN(SUITS, 1)[0];
-      // Weighted: 50% base, 30% +1, 15% +2, 5% +3
-      var base = floor + 1; // shop premium
-      var roll = Math.random();
-      var g;
-      if (roll < 0.50) g = base;
-      else if (roll < 0.80) g = base + 1;
-      else if (roll < 0.95) g = base + 2;
-      else g = base + 3;
-      g = Math.max(1, Math.min(g, 10));
+      var g = rollGrade(floor + 1, false); // shop premium: base = floor+1
       var kw = (i < 2 && Math.random() < 0.25) ? pickKw(g) : null;
       if (Math.random() < 0.3) {
         pool.push(makeCard(s2.id, g, classId, pickN(getRewardPool(), 1)[0], kw));
@@ -1040,8 +1037,8 @@ export default function DungeonHand() {
       setCampPhase(1);
       var ambushIdx = (floor - 1) * 4;
       var am = MONSTERS[ambushIdx];
-      var amhp = Math.floor(am.hp * (1 + (floor - 1) * 0.45));
-      var amatk = Math.floor(am.atk * (1 + (floor - 1) * 0.1));
+      var amhp = scaleMonsterHp(am.hp, floor);
+      var amatk = scaleMonsterAtk(am.atk, floor);
       setMonster({ name: am.name, emoji: am.emoji, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
       var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
       setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
@@ -1051,22 +1048,14 @@ export default function DungeonHand() {
       setSelected([]);
       setBusy(false);
       setEnemyDmgShow(null);
-      setFrozenIds([]);
-      setSplitMon(null);
-      setBook2Used(false);
-      setAimedBonus(0);
-      setPoison(0);
-      setErodedIds([]);
-      setGambleBuff(0);
-      setGambleAnim(null);
-      setNewCardIds([]);
+      resetBattleState();
       var shuffled = shuffle(deck);
       setDrawPile(shuffled.slice(HAND_SIZE));
       setHand(shuffled.slice(0, HAND_SIZE));
       setDiscardPile([]);
       setScreen("battle");
       if (sfx.getOn()) sfx.bgmOn("battle");
-      var ambushDmg = amatk + Math.floor(Math.random() * 3);
+      var ambushDmg = rollEnemyDmg(amatk);
       setTimeout(function() {
         showPassive("⚡ 기습! " + am.name + "의 선제 공격!");
         sfx.enemy();

@@ -553,6 +553,19 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 24: 중복 코드 제거 (2026-03-05)
+
+### 완료 내역
+1. **scaleMonsterHp/scaleMonsterAtk 함수 추출** — beginBattle(168줄) + 캠프기습(1043줄) 2곳 교체
+2. **rollEnemyDmg 함수 추출** — beginBattle기습(228줄) + enemyTurn(501줄) + 캠프기습(1069줄) 3곳 교체
+3. **rollGrade 함수 추출** — generateRewardCards 내부함수 → 컴포넌트 메서드로 승격, openShop 인라인 로직 교체
+4. **resetBattleState 함수 추출** — beginBattle(184~191줄) + 캠프기습(1054~1062줄) 통합 (10개 setter)
+
+### 검증
+- 빌드 성공 (220.77 kB)
+
+---
+
 ## 다음 세션 TODO
 
 ### 게임 UI 전반 개선

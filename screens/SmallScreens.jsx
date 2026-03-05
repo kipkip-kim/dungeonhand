@@ -52,10 +52,10 @@ export function MenuScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
         <div style={{ fontSize: 48, animation: "popIn 0.5s ease" }}>🗡️</div>
-        <h1 style={{ fontSize: 28, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#e8a820,#c0392b,#9b59b6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center", lineHeight: 1.5 }}>
+        <h1 style={{ fontSize: "var(--fs-xl)", fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#e8a820,#c0392b,#9b59b6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center", lineHeight: 1.5 }}>
           DUNGEON HAND
         </h1>
-        <p style={{ color: "var(--dm)", fontSize: 13 }}>도적의 카드로 던전을 정복하라!</p>
+        <p style={{ color: "var(--dm)", fontSize: "var(--fs-md)" }}>도적의 카드로 던전을 정복하라!</p>
         <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
           <Btn onClick={function() { if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
             ⚔️ 던전 입장
@@ -80,7 +80,7 @@ export function ClassSelectScreen({ game }) {
       <style>{CSS}</style>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-        <h2 style={{ fontSize: 16 }}>직업을 선택하세요</h2>
+        <h2 style={{ fontSize: "var(--fs-xl)" }}>직업을 선택하세요</h2>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
           {CLASSES.map(function(c) {
             return (
@@ -115,7 +115,7 @@ export function RewardScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <div style={{ fontSize: 38, animation: "popIn 0.4s ease" }}>⚔️ 승리!</div>
-        <h3 style={{ fontSize: 15 }}>보상 카드 선택</h3>
+        <h3 style={{ fontSize: "var(--fs-lg)" }}>보상 카드 선택</h3>
         <div style={{ display: "flex", gap: 10 }}>
           {rewardCards.map(function(c) {
             return (
@@ -173,7 +173,7 @@ export function EnhanceScreen({ game }) {
       <style>{CSS}</style>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 16, overflow: "auto" }}>
-        <h3 style={{ fontSize: 14 }}>강화할 카드 (등급+1, 카드당 최대2회)</h3>
+        <h3 style={{ fontSize: "var(--fs-lg)" }}>강화할 카드 (등급+1, 카드당 최대2회)</h3>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", maxWidth: 800 }}>
           {groups.map(function(grp) {
             return (
@@ -211,7 +211,7 @@ export function RelicRewardScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>👑 보스 처치!</div>
-        <h3 style={{ fontSize: 15 }}>유물 선택</h3>
+        <h3 style={{ fontSize: "var(--fs-lg)" }}>유물 선택</h3>
         <div style={{ display: "flex", gap: 10 }}>
           {rewardRelics.map(function(r) {
             var borderCol = relicBorderColor(r.tier);
@@ -244,21 +244,21 @@ export function VictoryScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 48, animation: "victBounce 1.5s ease infinite" }}>🏆</div>
-        <h1 style={{ fontSize: 16, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#e8a820,#d35400)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h1 style={{ fontSize: "var(--fs-xl)", fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#e8a820,#d35400)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           VICTORY!
         </h1>
         <div style={{ display: "flex", gap: 16 }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--gd)" }}>💰{gold}</div>
-            <div style={{ fontSize: 14, color: "var(--dm)" }}>골드</div>
+            <div style={{ fontSize: "var(--fs-md)", color: "var(--dm)" }}>골드</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--ac)" }}>{relics.length}</div>
-            <div style={{ fontSize: 14, color: "var(--dm)" }}>유물</div>
+            <div style={{ fontSize: "var(--fs-md)", color: "var(--dm)" }}>유물</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--or)" }}>+{runPoints}⭐</div>
-            <div style={{ fontSize: 14, color: "var(--dm)" }}>포인트</div>
+            <div style={{ fontSize: "var(--fs-md)", color: "var(--dm)" }}>포인트</div>
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
@@ -279,7 +279,7 @@ export function DefeatScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 44 }}>💀</div>
-        <h1 style={{ fontSize: 18, fontFamily: "'Silkscreen', cursive", color: "var(--rd)" }}>DEFEAT</h1>
+        <h1 style={{ fontSize: "var(--fs-xl)", fontFamily: "'Silkscreen', cursive", color: "var(--rd)" }}>DEFEAT</h1>
         <p style={{ color: "var(--dm)" }}>{floor}층에서 쓰러졌습니다...</p>
         {runPoints > 0 && (
           <div style={{ fontSize: 14, color: "var(--or)", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>

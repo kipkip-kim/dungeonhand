@@ -2,7 +2,7 @@
 var CSS = [
   "*{margin:0;padding:0;box-sizing:border-box}",
   "body{background:#0a0808;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh}",
-  ":root{--gw:min(100vw,calc(100vh * 9 / 16),960px);--bg:#0f0c08;--pn:#1a1510;--cd:#231e14;--bd:#3a3025;--tx:#f0e8d8;--dm:#8a7e6b;--gd:#e8a820;--rd:#c0392b;--gn:#2d9b4e;--bl:#4a8cc7;--ac:#9b59b6;--pu:#7d3c98;--or:#d35400;--fr:#5dade2;--bn:#e6a598;--er:#a88ec4;--wn:#c87f0a;--cr:#f0b930;--sb:#d5cfc0}",
+  ":root{--gw:min(100vw,calc(100vh * 9 / 16),960px);--bg:#0f0c08;--pn:#1a1510;--cd:#231e14;--bd:#3a3025;--tx:#f0e8d8;--dm:#8a7e6b;--gd:#e8a820;--rd:#c0392b;--gn:#2d9b4e;--bl:#4a8cc7;--ac:#9b59b6;--pu:#7d3c98;--or:#d35400;--fr:#5dade2;--bn:#e6a598;--er:#a88ec4;--wn:#c87f0a;--cr:#f0b930;--sb:#d5cfc0;--fs-xl:clamp(18px,calc(var(--gw) * 0.036),28px);--fs-lg:clamp(15px,calc(var(--gw) * 0.03),24px);--fs-md:clamp(13px,calc(var(--gw) * 0.026),20px);--fs-sm:clamp(12px,calc(var(--gw) * 0.024),18px)}",
   "@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}",
   "@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}",
   "@keyframes shake{0%,100%{transform:translateX(0) rotate(0)}10%{transform:translateX(-8px) rotate(-2deg)}30%{transform:translateX(10px) rotate(2deg)}50%{transform:translateX(-10px) rotate(-1deg)}70%{transform:translateX(8px) rotate(1deg)}90%{transform:translateX(-4px) rotate(0)}}",

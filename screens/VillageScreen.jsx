@@ -26,16 +26,16 @@ export function VillageScreen({ game }) {
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
         <div style={{ textAlign: "center", marginBottom: 12 }}>
-          <h2 style={{ fontSize: 16 }}>🌟 스킬 트리</h2>
-          <div style={{ fontSize: 14, color: "var(--or)", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
-          <div style={{ fontSize: 13, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
+          <h2 style={{ fontSize: "var(--fs-xl)" }}>🌟 스킬 트리</h2>
+          <div style={{ fontSize: "var(--fs-md)", color: "var(--or)", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
+          <div style={{ fontSize: "var(--fs-sm)", color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
         </div>
         <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap", justifyContent: "center" }}>
           {visibleTrees.map(function(tree) {
             var isActive = skillTab === tree.id;
             var tColor = tree.color || "var(--dm)";
             return (
-              <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
+              <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "8px 14px", fontSize: "var(--fs-md)", fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
                 {tree.icon} {tree.name}
               </button>
             );
@@ -53,10 +53,10 @@ export function VillageScreen({ game }) {
                   return (
                     <div key={node.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#2d9b4e11" : "var(--cd)", border: "1px solid " + (maxed ? "#2d9b4e44" : "var(--bd)"), borderRadius: 8, padding: "8px 10px" }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: 13 }}>{node.icon}</span>
-                        <span style={{ fontWeight: 700, marginLeft: 4, fontSize: 13 }}>{node.name}</span>
-                        <span style={{ color: "var(--dm)", fontSize: 13, marginLeft: 6 }}>{node.desc}</span>
-                        <span style={{ color: "var(--ac)", fontSize: 13, marginLeft: 6 }}>{lv}/{node.max}</span>
+                        <span style={{ fontSize: "var(--fs-md)" }}>{node.icon}</span>
+                        <span style={{ fontWeight: 700, marginLeft: 4, fontSize: "var(--fs-md)" }}>{node.name}</span>
+                        <span style={{ color: "var(--dm)", fontSize: "var(--fs-sm)", marginLeft: 6 }}>{node.desc}</span>
+                        <span style={{ color: "var(--ac)", fontSize: "var(--fs-sm)", marginLeft: 6 }}>{lv}/{node.max}</span>
                       </div>
                       {maxed ? (
                         <span style={{ color: "var(--gn)", fontSize: 13, fontWeight: 700 }}>MAX</span>

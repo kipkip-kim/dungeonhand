@@ -258,6 +258,13 @@
 - 버튼 그라디언트 + hover glow (Btn + styles.js) ✅
 - 카드 drop shadow + 선택 시 문양색 glow 강화 (CardView) ✅
 
+### ~~세션 36: 레이아웃 일관성 정리 5건~~ ✅ 완료
+- CSS 폰트 변수 --fs-xl/lg/md/sm 추가 (clamp 반응형) ✅
+- SmallScreens 7개 화면 폰트 → CSS 변수 + 반응형 ✅
+- CampfireScreen 이모지/버튼/본문 폰트 통일 ✅
+- ShopScreen 유물설명 축소 + 전체 폰트 CSS 변수 ✅
+- VillageScreen 폰트 계층 분리 (이름 md / 설명 sm) ✅
+
 ---
 
 ## 기능 추가 체크리스트

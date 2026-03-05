@@ -32,9 +32,9 @@ export function ShopScreen({ game }) {
       <style>{CSS}</style>
       {audioButton}
       <div style={{ padding: "12px 14px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
-        <h2 style={{ fontSize: 16 }}>🏪 대장간</h2>
+        <h2 style={{ fontSize: "var(--fs-xl)" }}>🏪 대장간</h2>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span style={{ fontSize: 14 }}>❤️{hp}/{MAX_HP}</span>
+          <span style={{ fontSize: "var(--fs-md)" }}>❤️{hp}/{MAX_HP}</span>
           <span style={{ color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
           <button
             onClick={function() { setDeckView(true); }}
@@ -46,14 +46,14 @@ export function ShopScreen({ game }) {
       </div>
       <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 18, overflow: "auto" }}>
         <div>
-          <h3 style={{ fontSize: 14, marginBottom: 8 }}>📦 카드</h3>
+          <h3 style={{ fontSize: "var(--fs-lg)", marginBottom: 8 }}>📦 카드</h3>
           <div style={{ display: "flex", gap: 8 }}>
             {shopCards.map(function(c) {
               var cost = Math.floor((c.grade * 3 + (c.isCommon ? 2 : 0) + (c.keyword ? 5 : 0)) * discount);
               return (
                 <div key={c.id} style={{ textAlign: "center" }}>
                   <CardView card={c} cls={classData} small />
-                  <Btn onClick={function() { buyCard(c, cost); }} disabled={gold < cost} style={{ fontSize: 14, padding: "5px 12px", marginTop: 4 }}>
+                  <Btn onClick={function() { buyCard(c, cost); }} disabled={gold < cost} style={{ fontSize: "var(--fs-md)", padding: "5px 12px", marginTop: 4 }}>
                     💰{cost}
                   </Btn>
                 </div>
@@ -63,19 +63,19 @@ export function ShopScreen({ game }) {
         </div>
         {shopRelic && (
           <div>
-            <h3 style={{ fontSize: 14, marginBottom: 8 }}>🔮 유물</h3>
+            <h3 style={{ fontSize: "var(--fs-lg)", marginBottom: 8 }}>🔮 유물</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + relicBorderColor(shopRelic.tier), textAlign: "center" }}>
                 <div style={{ fontSize: 20 }}>{shopRelic.emoji}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>{shopRelic.name}</div>
-                <div style={{ fontSize: 16, color: "var(--dm)" }}>{shopRelic.desc}</div>
+                <div style={{ fontSize: "var(--fs-md)", color: "var(--dm)" }}>{shopRelic.desc}</div>
               </div>
               <Btn onClick={function() { buyRelic(shopRelic, relicCost); }} disabled={gold < relicCost} color="var(--pu)">💰{relicCost}</Btn>
             </div>
           </div>
         )}
         <div>
-          <h3 style={{ fontSize: 14, marginBottom: 8 }}>❤️ 회복 (1회 한정)</h3>
+          <h3 style={{ fontSize: "var(--fs-lg)", marginBottom: 8 }}>❤️ 회복 (1회 한정)</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid var(--bd)", textAlign: "center", minWidth: 100 }}>
               <div style={{ fontSize: 20 }}>🧪</div>
@@ -98,7 +98,7 @@ export function ShopScreen({ game }) {
           </div>
         </div>
         <div>
-          <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {SHOP_MAX_REMOVE - shopRemoved}회 남음)</h3>
+          <h3 style={{ fontSize: "var(--fs-lg)", marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {SHOP_MAX_REMOVE - shopRemoved}회 남음)</h3>
           {deck.length <= 10 && (
             <div style={{ fontSize: 12, color: "var(--rd)", marginBottom: 6 }}>덱 10장 이하 — 제거 불가</div>
           )}
@@ -125,7 +125,7 @@ export function ShopScreen({ game }) {
         </div>
       </div>
       <div style={{ padding: "clamp(8px, 1.5vh, 14px)", borderTop: "1px solid var(--bd)", textAlign: "center" }}>
-        <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: 14, padding: "clamp(8px, 1.5vh, 14px) 36px" }}>
+        <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: "var(--fs-md)", padding: "clamp(8px, 1.5vh, 14px) 36px" }}>
           {floor >= 5 ? "🏆 클리어!" : "다음 층 →"}
         </Btn>
       </div>

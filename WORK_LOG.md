@@ -793,3 +793,12 @@ public/audio/          총 1.54MB
 - [x] Btn: flat color → linear-gradient + 강화된 boxShadow
 - [x] styles.js: .btn-base:hover 규칙 추가
 - [x] CardView: 기본 drop shadow + inset highlight, 선택 시 문양색 glow 강화, 화상 카드 동일 적용
+
+## 세션 36 (2026-03-05) — 레이아웃 일관성 정리
+
+### 완료
+- [x] styles.js: :root에 --fs-xl/lg/md/sm 폰트 변수 4종 추가 (clamp 반응형)
+- [x] SmallScreens.jsx: 7개 화면 제목/라벨 → CSS 변수 (Menu 28→xl, ClassSelect 16→xl, Reward/Enhance/RelicReward 15/14→lg, Victory 16→xl, Defeat 18→xl)
+- [x] CampfireScreen.jsx: Phase 1/3 이모지 56→48, 모든 본문 14→md, 버튼 13~16→md, Merchant 이모지 22→24
+- [x] ShopScreen.jsx: 헤더 제목 16→xl, 섹션 제목 14→lg, 유물 설명 16→md (돌출 수정), HP/버튼 14→md
+- [x] VillageScreen.jsx: 제목 16→xl, 포인트 14→md, 총투자 13→sm, 탭 13→md, 스킬 이름 13→md, 설명 13→sm (계층 분리)

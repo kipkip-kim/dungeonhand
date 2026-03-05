@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG } from "./data.js";
 import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
@@ -1116,11 +1116,17 @@ export default function DungeonHand() {
   }
 
   // === WRAPPER STYLE ===
+  var bgKey = screen === "classSelect" ? "menu"
+    : screen === "reward" || screen === "enhance" || screen === "relicReward" ? "battle"
+    : screen === "victory" || screen === "defeat" ? "menu"
+    : screen;
+  var bgUrl = SCREEN_BG[bgKey] || SCREEN_BG.menu;
+
   var wrapStyle = {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",
     height: "min(100vh, calc(min(100vw, 960px) * 16 / 9))",
     margin: "auto",
-    background: "radial-gradient(ellipse at 50% 30%, #1a1510 0%, var(--bg) 70%)",
+    background: "radial-gradient(ellipse at 50% 30%, rgba(26,21,16,0.7) 0%, rgba(15,12,8,0.85) 70%), url(" + bgUrl + ") center/cover no-repeat",
     color: "var(--tx)",
     fontFamily: "'Noto Sans KR', sans-serif",
     fontSize: "clamp(15px, calc(var(--gw) * 0.025 + 5px), 22px)",
@@ -1129,6 +1135,7 @@ export default function DungeonHand() {
     overflow: "hidden",
     position: "relative",
     boxShadow: "0 0 60px rgba(0,0,0,0.6)",
+    imageRendering: "pixelated",
   };
 
   // === AUDIO BUTTON ===

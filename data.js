@@ -234,4 +234,12 @@ const ULTIMATE_SKILL = {
 
 const BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
 
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS };
+const SCREEN_BG = {
+  menu: "/images/bg/menu.webp",
+  village: "/images/bg/village.webp",
+  shop: "/images/bg/shop.webp",
+  campfire: "/images/bg/campfire.webp",
+  battle: "/images/bg/battle.webp",
+};
+
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG };

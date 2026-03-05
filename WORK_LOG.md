@@ -811,3 +811,30 @@ public/audio/          총 1.54MB
 - [x] SmallScreens.jsx: #14120e → var(--card-dark) 3곳 + ClassSelect width clamp + RelicReward width clamp
 - [x] ShopScreen.jsx: 하드코딩 색상 없음 (이미 변수화 완료)
 - [x] CampfireScreen.jsx: 상인 이벤트 border #fbbf24 → var(--gd) 2곳
+
+## 세션 38 (2026-03-05) — 배경 이미지 도입 (CSS 오버레이)
+
+### 완료
+- [x] public/images/bg/ 폴더 생성 (이미지 배치 위치)
+- [x] data.js: SCREEN_BG 상수 추가 (menu/village/shop/campfire/battle 5종 경로)
+- [x] DungeonHand_v3.jsx: screen→bgKey 매핑 + wrapStyle background 멀티레이어화 (gradient 오버레이 + url)
+- [x] DungeonHand_v3.jsx: imageRendering: "pixelated" 추가 (픽셀아트 배경 선명 표시)
+
+### 화면→배경 매핑
+| bgKey | 적용 화면 |
+|-------|-----------|
+| menu | menu, classSelect, victory, defeat |
+| village | village |
+| shop | shop |
+| campfire | campfire |
+| battle | battle, reward, enhance, relicReward |
+
+### 이미지 배치 안내
+`public/images/bg/` 에 아래 파일 배치:
+- menu.webp — 메뉴/직업선택/승리/패배 배경
+- village.webp — 마을 배경
+- shop.webp — 상점 배경
+- campfire.webp — 캠프파이어 배경
+- battle.webp — 전투/보상/강화 배경
+
+이미지 없이도 기존 gradient fallback으로 정상 표시됨.

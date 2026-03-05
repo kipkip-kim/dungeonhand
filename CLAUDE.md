@@ -271,6 +271,12 @@
 - SmallScreens #14120e → var(--card-dark) + 반응형 폭 2곳 ✅
 - CampfireScreen #fbbf24 → var(--gd) 통일 ✅
 
+### ~~세션 38: 배경 이미지 도입~~ ✅ 완료
+- public/images/bg/ 폴더 생성 ✅
+- data.js SCREEN_BG 상수 추가 (5종 경로) ✅
+- wrapStyle background 멀티레이어화 (gradient + url) ✅
+- imageRendering: pixelated 추가 ✅
+
 ---
 
 ## 기능 추가 체크리스트

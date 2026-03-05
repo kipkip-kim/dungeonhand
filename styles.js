@@ -6,7 +6,7 @@ var CSS = [
   "@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}",
   "@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}",
   "@keyframes shake{0%,100%{transform:translateX(0) rotate(0)}10%{transform:translateX(-8px) rotate(-2deg)}30%{transform:translateX(10px) rotate(2deg)}50%{transform:translateX(-10px) rotate(-1deg)}70%{transform:translateX(8px) rotate(1deg)}90%{transform:translateX(-4px) rotate(0)}}",
-  "@keyframes shakeHard{0%,100%{transform:translateX(0) rotate(0)}10%{transform:translateX(-14px) rotate(-4deg)}30%{transform:translateX(16px) rotate(3deg)}50%{transform:translateX(-16px) rotate(-3deg)}70%{transform:translateX(12px) rotate(2deg)}90%{transform:translateX(-6px) rotate(-1deg)}}",
+  "@keyframes shakeHard{0%,100%{transform:translateX(0) translateY(0) rotate(0)}10%{transform:translateX(-14px) translateY(-12px) rotate(-4deg)}30%{transform:translateX(16px) translateY(-8px) rotate(3deg)}50%{transform:translateX(-16px) translateY(-4px) rotate(-3deg)}70%{transform:translateX(12px) translateY(-2px) rotate(2deg)}90%{transform:translateX(-6px) translateY(0) rotate(-1deg)}}",
   "@keyframes dmgPop{0%{opacity:0;transform:scale(0) rotate(-10deg)}40%{transform:scale(1.5) rotate(3deg)}70%{transform:scale(0.9)}100%{opacity:1;transform:scale(1) rotate(0)}}",
   "@keyframes multIn{0%{opacity:0;transform:scale(2)}100%{opacity:1;transform:scale(1)}}",
   "@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}",

@@ -170,7 +170,7 @@
 
 ### ~~세션 19: 오디오 시스템 마이그레이션~~ ✅ 완료
 - audio.js: 오실레이터 합성음 → HTMLAudioElement(실제 파일) 전면 교체 ✅
-- public/audio/bgm/ (battle/campfire/shop.mp3) + sfx/ (9종) 폴더 구조 ✅
+- public/audio/bgm/ (battle/campfire/shop.ogg) + sfx/ (9종) 폴더 구조 ✅
 - sfx API 인터페이스 100% 유지 (DungeonHand_v3.jsx/components.jsx 변경 없음) ✅
 - iOS 오디오 잠금 해제 유지, 재생 실패 무음 처리 ✅
 

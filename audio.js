@@ -26,7 +26,7 @@ const sfx = (() => {
   sfxNames.forEach(function (name) {
     const a = new Audio();
     a.preload = "auto";
-    a.src = BASE + "/audio/sfx/" + name + ".mp3";
+    a.src = BASE + "/audio/sfx/" + name + ".ogg";
     sounds[name] = a;
   });
 
@@ -50,7 +50,7 @@ const sfx = (() => {
       a.preload = "auto";
       a.loop = true;
       a.volume = 0.3;
-      a.src = BASE + "/audio/bgm/" + type + ".mp3";
+      a.src = BASE + "/audio/bgm/" + type + ".ogg";
       bgmCache[type] = a;
     }
     return bgmCache[type];

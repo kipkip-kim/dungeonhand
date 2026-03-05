@@ -103,18 +103,18 @@
 ### 효과음 (파일 기반)
 | 이름 | 파일 | 설명 |
 |------|------|------|
-| battle BGM | bgm/battle.mp3 | 전투 루프 |
-| campfire BGM | bgm/campfire.mp3 | 캠프파이어 루프 |
-| shop BGM | bgm/shop.mp3 | 상점 루프 |
-| click | sfx/click.mp3 | 버튼 클릭 |
-| card | sfx/card.mp3 | 카드 선택/드로우 |
-| hit | sfx/hit.mp3 | 카드 제출 |
-| dmg | sfx/dmg.mp3 | 몬스터 피격 |
-| enemy | sfx/enemy.mp3 | 적 공격 |
-| win | sfx/win.mp3 | 승리 팡파레 |
-| lose | sfx/lose.mp3 | 패배 징글 |
-| gold | sfx/gold.mp3 | 골드 획득 |
-| heal | sfx/heal.mp3 | 회복 |
+| battle BGM | bgm/battle.ogg | 전투 루프 |
+| campfire BGM | bgm/campfire.ogg | 캠프파이어 루프 |
+| shop BGM | bgm/shop.ogg | 상점 루프 |
+| click | sfx/click.ogg | 버튼 클릭 |
+| card | sfx/card.ogg | 카드 선택/드로우 |
+| hit | sfx/hit.ogg | 카드 제출 |
+| dmg | sfx/dmg.ogg | 몬스터 피격 |
+| enemy | sfx/enemy.ogg | 적 공격 |
+| win | sfx/win.ogg | 승리 팡파레 |
+| lose | sfx/lose.ogg | 패배 징글 |
+| gold | sfx/gold.ogg | 골드 획득 |
+| heal | sfx/heal.ogg | 회복 |
 
 ---
 
@@ -465,33 +465,33 @@
   - `.play().catch(()=>{})` 로 재생 실패 무음 처리
   - sfx API 인터페이스 100% 유지 (다른 파일 변경 없음)
 
-### 오디오 파일 배치 가이드
+### 오디오 파일 (OGG Vorbis, CC0)
 ```
-public/audio/
+public/audio/          총 1.54MB
   bgm/
-    battle.mp3      (~100-150KB, 루핑 전투 칩튠)
-    campfire.mp3    (~80-120KB, 잔잔한 휴식 테마)
-    shop.mp3        (~80-120KB, 밝은 상점 테마)
-  sfx/
-    click.mp3       (~5-15KB, UI 클릭)
-    card.mp3        (~5-15KB, 카드 선택/드로우)
-    hit.mp3         (~10-20KB, 공격/제출)
-    dmg.mp3         (~10-20KB, 몬스터 피격)
-    enemy.mp3       (~10-20KB, 적 공격)
-    win.mp3         (~20-40KB, 승리 팡파레)
-    lose.mp3        (~20-40KB, 패배 징글)
-    gold.mp3        (~5-15KB, 골드 획득)
-    heal.mp3        (~10-20KB, 회복)
+    battle.ogg      (861KB) — 8-Bit Battle Loop by Wolfgang_
+    campfire.ogg    (294KB) — NES Shooter "Map" by Juhani Junkala
+    shop.ogg        (327KB) — NES Shooter "Mercury" by Juhani Junkala
+  sfx/                (59KB total)
+    click.ogg       (6.7KB) — Button sound
+    card.ogg        (7.8KB) — Interaction sound
+    hit.ogg         (4.7KB) — Sword melee
+    dmg.ogg         (4.1KB) — Damage hit
+    enemy.ogg       (4.4KB) — Impact
+    win.ogg         (8.3KB) — Fanfare
+    lose.ogg        (5.2KB) — Negative damage
+    gold.ogg        (7.0KB) — Coin single
+    heal.ogg        (11KB)  — Powerup
 ```
 
-추천 소스:
-- BGM: OpenGameArt CC0 8bit Chiptune / CC0 Retro Music
-- SFX: Kenney RPG Audio, UI Audio, Impact Sounds
-- 목표 총 용량: ~400-600KB (1MB 이내)
+출처 (모두 CC0):
+- BGM battle: [8-Bit Battle Loop](https://opengameart.org/content/8-bit-battle-loop) by Wolfgang_
+- BGM campfire/shop: [NES Shooter Music](https://opengameart.org/content/nes-shooter-music-5-tracks-3-jingles) by Juhani Junkala
+- SFX 9종: [512 Sound Effects 8-bit](https://opengameart.org/content/512-sound-effects-8-bit-style) by Juhani Junkala
 
 ### 검증
 - 빌드 성공 (217.12 kB)
-- dist/audio/ 폴더 정상 복사 확인
+- dist/audio/ 폴더 12개 파일 정상 복사 확인
 
 ---
 

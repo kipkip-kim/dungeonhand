@@ -24,7 +24,7 @@ export function BattleScreen({ game }) {
   else if (currentHand && currentHand.tier >= 3) handTierColor = "var(--rd)";
 
   return (
-    <div style={Object.assign({}, wrapStyle, { height: "100vh", minHeight: "auto", overflow: "hidden", position: "relative" })}>
+    <div style={Object.assign({}, wrapStyle, { minHeight: "auto", overflow: "hidden", position: "relative" })}>
       <style>{CSS}</style>
       {audioButton}
       {encounterOverlay && (
@@ -67,18 +67,18 @@ export function BattleScreen({ game }) {
         </div>
       )}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
-        <div style={{ fontSize: "clamp(13px, 2.6vw, 22px)" }}>
+        <div style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 22px)" }}>
           <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>
-          <span style={{ color: "var(--dm)", fontSize: "clamp(12px, 2.4vw, 20px)", marginLeft: 4 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
+          <span style={{ color: "var(--dm)", fontSize: "clamp(12px, calc(var(--gw) * 0.024), 20px)", marginLeft: 4 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "clamp(6px, 1.2vw, 10px)" }}>
-          <span style={{ fontSize: "clamp(14px, 2.8vw, 24px)", color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "clamp(6px, calc(var(--gw) * 0.012), 10px)" }}>
+          <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 24px)", color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
           <div style={{ display: "flex", gap: 1 }}>
             {relics.map(function(r) {
               return (
                 <span key={r.id}
                   onClick={function() { setRelicTip(relicTip === r.id ? null : r.id); }}
-                  style={{ fontSize: "clamp(18px, 3.6vw, 30px)", cursor: "pointer", position: "relative" }}>
+                  style={{ fontSize: "clamp(18px, calc(var(--gw) * 0.036), 30px)", cursor: "pointer", position: "relative" }}>
                   {r.emoji}
                   {relicTip === r.id && (
                     <span style={{
@@ -106,7 +106,9 @@ export function BattleScreen({ game }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "6px 0" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "6px 0", overflow: "hidden" }}>
+        {/* === 전투 그룹 (중앙 정렬 + clamp gap) === */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", gap: "clamp(4px, 1.5vh, 12px)", overflow: "hidden" }}>
         {/* Gamble Roulette Animation */}
         {gambleAnim && (
           <div style={{ textAlign: "center", padding: "4px 0", animation: "popIn 0.2s ease" }}>
@@ -226,14 +228,16 @@ export function BattleScreen({ game }) {
           )}
         </div>
 
-        <div style={{ padding: "2px 6px", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "hidden", flex: 1 }}>
+        </div>
+        {/* === 손패 고정 영역 === */}
+        <div style={{ padding: "14px 6px 2px", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0 }}>
           {hand.map(function(c, idx) {
             var isNew = newCardIds.indexOf(c.id) >= 0;
             var isFrozen = frozenIds.indexOf(c.id) >= 0;
             var isEroded = c.eroded;
             var isBurning = c.burning;
             var baseOverlap = hand.length > 7 ? -10 : hand.length > 6 ? -6 : hand.length > 5 ? -2 : 3;
-            var overlap = "clamp(" + baseOverlap + "px, " + (baseOverlap * 0.2) + "vw, " + (baseOverlap < 0 ? Math.round(baseOverlap * 1.8) + "px" : Math.round(baseOverlap * 1.8) + "px") + ")";
+            var overlap = "clamp(" + baseOverlap + "px, calc(var(--gw) * " + (baseOverlap * 0.002) + "), " + (baseOverlap < 0 ? Math.round(baseOverlap * 1.8) + "px" : Math.round(baseOverlap * 1.8) + "px") + ")";
             return (
               <div key={c.id} style={{
                 animation: isNew ? "cardDraw 0.35s ease forwards" : "none",
@@ -258,8 +262,8 @@ export function BattleScreen({ game }) {
           })}
         </div>
 
-        <div style={{ padding: "clamp(6px, 1.2vw, 10px) clamp(10px, 2vw, 18px) clamp(8px, 1.6vw, 14px)", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0 }}>
-          <div style={{ fontSize: "clamp(12px, 2.4vw, 20px)", overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+        <div style={{ padding: "clamp(6px, calc(var(--gw) * 0.012), 10px) clamp(10px, calc(var(--gw) * 0.02), 18px) clamp(8px, calc(var(--gw) * 0.016), 14px)", display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--bd)", background: "var(--pn)", flexShrink: 0 }}>
+          <div style={{ fontSize: "clamp(12px, calc(var(--gw) * 0.024), 20px)", overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
             {preview ? (
               <span>
                 {preview.emoji}{" "}
@@ -283,10 +287,10 @@ export function BattleScreen({ game }) {
             )}
           </div>
           <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-            <Btn onClick={doDiscard} disabled={discards <= 0 || selected.length === 0 || busy} style={{ padding: "clamp(8px, 1.6vw, 14px) clamp(12px, 2.4vw, 20px)", fontSize: "clamp(13px, 2.6vw, 22px)" }}>
+            <Btn onClick={doDiscard} disabled={discards <= 0 || selected.length === 0 || busy} style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(12px, calc(var(--gw) * 0.024), 20px)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 22px)" }}>
               🔄{discards}
             </Btn>
-            <Btn onClick={submitCards} disabled={selected.length === 0 || busy} color="var(--rd)" style={{ padding: "clamp(10px, 2vw, 18px) clamp(20px, 4vw, 36px)", fontSize: "clamp(15px, 3vw, 26px)" }}>
+            <Btn onClick={submitCards} disabled={selected.length === 0 || busy} color="var(--rd)" style={{ padding: "clamp(10px, calc(var(--gw) * 0.02), 18px) clamp(20px, calc(var(--gw) * 0.04), 36px)", fontSize: "clamp(15px, calc(var(--gw) * 0.03), 26px)" }}>
               ⚡제출
             </Btn>
           </div>

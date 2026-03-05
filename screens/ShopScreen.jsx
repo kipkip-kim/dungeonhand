@@ -129,8 +129,8 @@ export function ShopScreen({ game }) {
         </div>
         ); })()}
       </div>
-      <div style={{ padding: 12, borderTop: "1px solid var(--bd)", textAlign: "center" }}>
-        <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: 14, padding: "12px 36px" }}>
+      <div style={{ padding: "clamp(8px, 1.5vh, 14px)", borderTop: "1px solid var(--bd)", textAlign: "center" }}>
+        <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: 14, padding: "clamp(8px, 1.5vh, 14px) 36px" }}>
           {floor >= 5 ? "🏆 클리어!" : "다음 층 →"}
         </Btn>
       </div>

@@ -242,7 +242,7 @@ export function VictoryScreen({ game }) {
     <div style={wrapStyle}>
       <style>{CSS}</style>
       {audioButton}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 48, animation: "victBounce 1.5s ease infinite" }}>🏆</div>
         <h1 style={{ fontSize: 16, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#fbbf24,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           VICTORY!
@@ -277,7 +277,7 @@ export function DefeatScreen({ game }) {
     <div style={wrapStyle}>
       <style>{CSS}</style>
       {audioButton}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 44 }}>💀</div>
         <h1 style={{ fontSize: 18, fontFamily: "'Silkscreen', cursive", color: "var(--rd)" }}>DEFEAT</h1>
         <p style={{ color: "var(--dm)" }}>{floor}층에서 쓰러졌습니다...</p>

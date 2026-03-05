@@ -1,8 +1,8 @@
 // === STYLES ===
 var CSS = [
   "*{margin:0;padding:0;box-sizing:border-box}",
-  "body{background:#0a0a10;overflow:hidden}",
-  ":root{--bg:#0c0c14;--pn:#151525;--cd:#1c1c32;--bd:#2a2a45;--tx:#e8e8f0;--dm:#6b6b8a;--gd:#fbbf24;--rd:#ef4444;--gn:#22c55e;--bl:#3b82f6;--ac:#a855f7;--pu:#7c3aed;--or:#f97316}",
+  "body{background:#0a0a10;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh}",
+  ":root{--gw:min(100vw,calc(100vh * 9 / 16),960px);--bg:#0c0c14;--pn:#151525;--cd:#1c1c32;--bd:#2a2a45;--tx:#e8e8f0;--dm:#6b6b8a;--gd:#fbbf24;--rd:#ef4444;--gn:#22c55e;--bl:#3b82f6;--ac:#a855f7;--pu:#7c3aed;--or:#f97316}",
   "@keyframes popIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}",
   "@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}",
   "@keyframes shake{0%,100%{transform:translateX(0) rotate(0)}10%{transform:translateX(-8px) rotate(-2deg)}30%{transform:translateX(10px) rotate(2deg)}50%{transform:translateX(-10px) rotate(-1deg)}70%{transform:translateX(8px) rotate(1deg)}90%{transform:translateX(-4px) rotate(0)}}",

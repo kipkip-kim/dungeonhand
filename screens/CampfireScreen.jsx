@@ -10,7 +10,7 @@ export function CampfireScreen({ game }) {
     <div style={wrapStyle}>
       <style>{CSS}</style>
       {audioButton}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 16 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(12px, 2vh, 20px)", padding: "clamp(12px, 2vh, 20px)" }}>
 
         {/* Phase 1: Arrival */}
         {campPhase === 1 && (

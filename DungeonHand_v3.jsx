@@ -1100,15 +1100,13 @@ export default function DungeonHand() {
 
   // === WRAPPER STYLE ===
   var wrapStyle = {
-    width: "100%",
-    maxWidth: 960,
-    height: "100vh",
-    maxHeight: "100vh",
-    margin: "0 auto",
+    width: "min(100vw, calc(100vh * 9 / 16), 960px)",
+    height: "min(100vh, calc(min(100vw, 960px) * 16 / 9))",
+    margin: "auto",
     background: "var(--bg)",
     color: "var(--tx)",
     fontFamily: "'Noto Sans KR', sans-serif",
-    fontSize: "clamp(15px, 2.5vw + 5px, 22px)",
+    fontSize: "clamp(15px, calc(var(--gw) * 0.025 + 5px), 22px)",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",

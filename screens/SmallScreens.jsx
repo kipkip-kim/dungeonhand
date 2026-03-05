@@ -262,7 +262,7 @@ export function VictoryScreen({ game }) {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>
+          <Btn onClick={function() { claimAndGo("village"); }} color="#22c55e">🏘️ 마을</Btn>
           <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
         </div>
       </div>
@@ -285,7 +285,7 @@ export function DefeatScreen({ game }) {
           <div style={{ fontSize: 14, color: "var(--or)", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>
+          <Btn onClick={function() { claimAndGo("village"); }} color="#22c55e">🏘️ 마을</Btn>
           <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
         </div>
       </div>

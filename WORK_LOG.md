@@ -566,6 +566,20 @@ public/audio/          총 1.54MB
 
 ---
 
+## 세션 25: 기술부채 정리 — 버그+구조 (2026-03-05)
+
+### 완료 내역
+1. **VictoryScreen/DefeatScreen "마을" 버튼 버그 수정** — claimAndGo("menu")→claimAndGo("village") (승리/패배 후 마을 이동 복원)
+2. **startRun BASE_HP 하드코딩 제거** — `70 + upgradeLevels.hp * 5` 수식 중복 → `MAX_HP` 직접 참조
+3. **monMap 중복 + MONSTERS_PER_FLOOR 상수 추출** — `{ 1:0, 2:1, 4:2, 5:3 }` 2곳 → `BATTLE_TO_SLOT` 상수, `* 4` 3곳 → `MONSTERS_PER_FLOOR`
+4. **var→const 7개** — MAX_HP, HAND_SIZE, MAX_HAND, RELIC_SLOTS, BASE_SUBMIT, MONSTERS_PER_FLOOR, BATTLE_TO_SLOT
+5. **gamble relic eff 데이터 기반화** — data.js에 win/lose 필드 추가, beginBattle에서 하드코딩 제거
+
+### 검증
+- 빌드 성공 (220.81 kB)
+
+---
+
 ## 다음 세션 TODO
 
 ### 게임 UI 전반 개선

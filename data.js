@@ -151,7 +151,7 @@ const CAMPFIRE_EVENTS = [
 const RELICS = [
   { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 }, classId: null },
   { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 }, classId: null },
-  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble" }, classId: null },
+  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble", win: 1, lose: -0.5 }, classId: null },
   { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 }, classId: null },
   { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 }, classId: null },
   { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 }, classId: null },

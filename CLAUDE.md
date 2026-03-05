@@ -206,6 +206,13 @@
 - rollGrade 함수 추출 + 상점 인라인 제거 (2곳) ✅
 - resetBattleState 헬퍼 추출 (2곳, setter 10개 통합) ✅
 
+### ~~세션 25: 기술부채 정리 — 버그+구조~~ ✅ 완료
+- VictoryScreen/DefeatScreen "마을" 버튼 버그 수정 ✅
+- startRun BASE_HP 하드코딩 → MAX_HP 참조 ✅
+- monMap 중복 + MONSTERS_PER_FLOOR 상수 추출 ✅
+- 파생 상수 7개 var→const ✅
+- gamble relic eff에 win/lose 값 추가 (데이터 기반화) ✅
+
 ---
 
 ## 기능 추가 체크리스트

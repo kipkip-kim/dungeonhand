@@ -36,7 +36,7 @@ export default function DungeonHand() {
   var [resetCount, setResetCount] = s(0);
   var [skillTab, setSkillTab] = s("common");
   var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
-  var MAX_HP = 70 + upgradeLevels.hp * 5;
+  const MAX_HP = 70 + upgradeLevels.hp * 5;
   var [relics, setRelics] = s([]);
   var [deck, setDeck] = s([]);
   var [drawPile, setDrawPile] = s([]);
@@ -89,10 +89,12 @@ export default function DungeonHand() {
   var [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
   var [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
 
-  var HAND_SIZE = 5 + (upgradeLevels.deft || 0);
-  var MAX_HAND = 7;
-  var RELIC_SLOTS = 3 + (upgradeLevels.inventory || 0);
-  var BASE_SUBMIT = 3;
+  const HAND_SIZE = 5 + (upgradeLevels.deft || 0);
+  const MAX_HAND = 7;
+  const RELIC_SLOTS = 3 + (upgradeLevels.inventory || 0);
+  const BASE_SUBMIT = 3;
+  const MONSTERS_PER_FLOOR = 4;
+  const BATTLE_TO_SLOT = { 1: 0, 2: 1, 4: 2, 5: 3 };
 
   var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
 
@@ -165,8 +167,7 @@ export default function DungeonHand() {
     d = shuffle(d);
     setDeck(d);
     setGold(0); // 약탈 효과는 매 전투 승리 시 적용
-    var maxHp = 70 + upgradeLevels.hp * 5;
-    setHp(maxHp);
+    setHp(MAX_HP);
     setRelics([]);
     setDiscardedRelicIds([]);
     setPendingRelic(null);
@@ -188,10 +189,9 @@ export default function DungeonHand() {
   function beginBattle(curDeck, curRelics, fl, bn) {
     // battleNum: 1,2=normal 3=campfire 4=miniboss 5=boss
     // Monster index mapping: bn1→0, bn2→1, bn4→2, bn5→3
-    var monMap = { 1: 0, 2: 1, 4: 2, 5: 3 };
-    var mi = monMap[bn];
+    var mi = BATTLE_TO_SLOT[bn];
     if (mi === undefined) return; // campfire, no monster
-    var idx = (fl - 1) * 4 + mi;
+    var idx = (fl - 1) * MONSTERS_PER_FLOOR + mi;
     var m = MONSTERS[idx] || MONSTERS[0];
     var mhp = scaleMonsterHp(m.hp, fl);
     var matk = scaleMonsterAtk(m.atk, fl);
@@ -274,10 +274,12 @@ export default function DungeonHand() {
     }
 
     // Phase 4: Dice (gamble relic)
-    var hasGamble = curRelics.some(function(r) { return r.eff.type === "gamble"; });
-    if (hasGamble) {
-      var roll = Math.random() < 0.5 ? 1 : -0.5;
-      var options = ["+1", "-0.5", "+1", "-0.5", "+1", "-0.5"];
+    var gambleRelic = curRelics.find(function(r) { return r.eff.type === "gamble"; });
+    if (gambleRelic) {
+      var gWin = gambleRelic.eff.win;
+      var gLose = gambleRelic.eff.lose;
+      var roll = Math.random() < 0.5 ? gWin : gLose;
+      var options = ["+" + gWin, "" + gLose, "+" + gWin, "" + gLose, "+" + gWin, "" + gLose];
       laterTimers.push(setTimeout(function() {
         var tick = 0;
         var interval = setInterval(function() {
@@ -286,7 +288,7 @@ export default function DungeonHand() {
           if (tick >= 8) {
             clearInterval(interval);
             setGambleBuff(roll);
-            setGambleAnim(roll > 0 ? "🎲 배율+1! 🎉" : "🎲 배율-0.5... 💀");
+            setGambleAnim(roll > 0 ? "🎲 배율+" + gWin + "! 🎉" : "🎲 배율" + gLose + "... 💀");
             laterTimers.push(setTimeout(function() { setGambleAnim(null); }, 1200));
           }
         }, 100);
@@ -777,9 +779,8 @@ export default function DungeonHand() {
     sfx.bgmOff();
     sfx.win();
     // Track boss kills for meta points
-    var monMap = { 1: 0, 2: 1, 4: 2, 5: 3 };
-    var mi = monMap[battleNum];
-    var monIdx = (floor - 1) * 4 + (mi || 0);
+    var mi = BATTLE_TO_SLOT[battleNum];
+    var monIdx = (floor - 1) * MONSTERS_PER_FLOOR + (mi || 0);
     if (battleNum === 5 && BOSS_POINTS[monIdx] !== undefined) {
       var pts = BOSS_POINTS[monIdx];
       setBossesKilled(function(prev) { return prev.concat([pts]); });
@@ -1035,7 +1036,7 @@ export default function DungeonHand() {
     if (evtId === "ambush") {
       setCampEvent(null);
       setCampPhase(1);
-      var ambushIdx = (floor - 1) * 4;
+      var ambushIdx = (floor - 1) * MONSTERS_PER_FLOOR;
       var am = MONSTERS[ambushIdx];
       var amhp = scaleMonsterHp(am.hp, floor);
       var amatk = scaleMonsterAtk(am.atk, floor);

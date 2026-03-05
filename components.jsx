@@ -20,8 +20,8 @@ function CardView(props) {
         onClick={disabled ? undefined : onClick}
         style={{
           width: bw, height: bh,
-          background: "linear-gradient(145deg, #5c1a0e, #3a0e06)",
-          border: "2px solid " + (selected ? "var(--rd)" : "#6b1a0e"),
+          background: "linear-gradient(145deg, var(--burn-bg), var(--burn-dark))",
+          border: "2px solid " + (selected ? "var(--rd)" : "var(--burn-bd)"),
           borderRadius: 10,
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
           cursor: disabled ? "default" : "pointer",
@@ -46,12 +46,12 @@ function CardView(props) {
   // Common cards get distinct styling
   const isC = c.isCommon;
   const commonBg = isC
-    ? (selected ? "linear-gradient(145deg,#3a2a1844,#1a1408)" : "linear-gradient(145deg,#2a2010,#14100a)")
-    : (selected ? "linear-gradient(145deg," + c.suitColor + "22," + c.suitColor + "11)" : "linear-gradient(145deg,var(--cd),#14120e)");
+    ? (selected ? "linear-gradient(145deg,var(--cm-bg),var(--cm-dark))" : "linear-gradient(145deg,#2a2010,#14100a)")
+    : (selected ? "linear-gradient(145deg," + c.suitColor + "22," + c.suitColor + "11)" : "linear-gradient(145deg,var(--cd),var(--card-dark))");
 
   const borderColor = c.keyword ? "var(--ac)" : isC ? "var(--pu)" : (selected ? c.suitColor : "var(--bd)");
   const transform = selected ? "translateY(-12px) scale(1.04)" : "none";
-  const sColor = isC ? "#9b59b6" : c.suitColor;
+  const sColor = isC ? "var(--ac)" : c.suitColor;
   const shadow = selected
     ? "0 4px 16px " + sColor + "44, 0 0 0 1px " + sColor + "66, inset 0 1px 0 rgba(255,255,255,0.06)"
     : "0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)";
@@ -115,14 +115,14 @@ function CardView(props) {
         fontSize: "clamp(" + (small ? "20px, calc(var(--gw) * 0.04), 36px)" : "28px, calc(var(--gw) * 0.056), 52px)"),
         fontWeight: 900,
         fontFamily: "'Silkscreen', cursive",
-        color: isC ? "#c4b098" : c.suitColor,
+        color: isC ? "var(--cm-tx)" : c.suitColor,
         lineHeight: 1,
       }}>
         {c.grade + (c.growthBonus || 0)}{(c.enhanceCount || 0) >= 2 ? "⬆⬆" : (c.enhanceCount || 0) >= 1 ? "⬆" : ""}
       </span>
       <span style={{
         fontSize: "clamp(" + (small ? "8px, calc(var(--gw) * 0.016), 14px)" : "10px, calc(var(--gw) * 0.02), 18px)"),
-        color: isC ? "#c4b098" : "var(--dm)",
+        color: isC ? "var(--cm-tx)" : "var(--dm)",
         fontWeight: 700,
         fontFamily: "'Noto Sans KR', sans-serif",
       }}>
@@ -218,7 +218,7 @@ function Btn(props) {
       onClick={isDisabled ? undefined : function(e) { sfx.click(); props.onClick(e); }}
       style={Object.assign({
         padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(16px, calc(var(--gw) * 0.032), 28px)",
-        background: isDisabled ? "#1a1810" : color,
+        background: isDisabled ? "var(--btn-off)" : color,
         border: "none",
         borderRadius: 10,
         color: "var(--tx)",

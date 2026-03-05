@@ -265,6 +265,12 @@
 - ShopScreen 유물설명 축소 + 전체 폰트 CSS 변수 ✅
 - VillageScreen 폰트 계층 분리 (이름 md / 설명 sm) ✅
 
+### ~~세션 37: 하드코딩 색상 변수화 + 반응형 폭~~ ✅ 완료
+- styles.js CSS 변수 8종 추가 (burn-bg/dark/bd, cm-bg/dark/tx, btn-off, card-dark) ✅
+- components.jsx CardView/Btn 하드코딩 색상 → CSS 변수 (~8곳) ✅
+- SmallScreens #14120e → var(--card-dark) + 반응형 폭 2곳 ✅
+- CampfireScreen #fbbf24 → var(--gd) 통일 ✅
+
 ---
 
 ## 기능 추가 체크리스트

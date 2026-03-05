@@ -802,3 +802,12 @@ public/audio/          총 1.54MB
 - [x] CampfireScreen.jsx: Phase 1/3 이모지 56→48, 모든 본문 14→md, 버튼 13~16→md, Merchant 이모지 22→24
 - [x] ShopScreen.jsx: 헤더 제목 16→xl, 섹션 제목 14→lg, 유물 설명 16→md (돌출 수정), HP/버튼 14→md
 - [x] VillageScreen.jsx: 제목 16→xl, 포인트 14→md, 총투자 13→sm, 탭 13→md, 스킬 이름 13→md, 설명 13→sm (계층 분리)
+
+## 세션 37 (2026-03-05) — 하드코딩 색상 변수화 + 반응형 폭
+
+### 완료
+- [x] styles.js: CSS 변수 8종 추가 (--burn-bg/dark/bd, --cm-bg/dark/tx, --btn-off, --card-dark)
+- [x] components.jsx: CardView 화상카드 3곳, 커먼카드 bg/color 4곳, Btn 비활성 1곳 → CSS 변수 교체
+- [x] SmallScreens.jsx: #14120e → var(--card-dark) 3곳 + ClassSelect width clamp + RelicReward width clamp
+- [x] ShopScreen.jsx: 하드코딩 색상 없음 (이미 변수화 완료)
+- [x] CampfireScreen.jsx: 상인 이벤트 border #fbbf24 → var(--gd) 2곳

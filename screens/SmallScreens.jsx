@@ -13,7 +13,7 @@ export function PendingRelicOverlay({ game }) {
         <div style={{ background: "var(--cd)", border: "1px solid var(--bd)", borderRadius: 16, padding: 24, maxWidth: 340, width: "90%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--rd)" }}>인벤토리가 가득 찼습니다!</div>
           <div style={{ fontSize: 13, color: "var(--dm)" }}>새 유물을 장착하려면 기존 유물 하나를 교체하세요</div>
-          <div style={{ padding: 14, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid " + prBorder, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "80%" }}>
+          <div style={{ padding: 14, background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + prBorder, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "80%" }}>
             <span style={{ fontSize: 28 }}>{pendingRelic.emoji}</span>
             <span style={{ fontSize: 14, fontWeight: 700 }}>{pendingRelic.name}</span>
             <span style={{ fontSize: 13, color: "var(--dm)", textAlign: "center" }}>{pendingRelic.desc}</span>
@@ -27,7 +27,7 @@ export function PendingRelicOverlay({ game }) {
                 <div
                   key={r.id}
                   onClick={function() { swapRelic(r); }}
-                  style={{ width: 90, padding: 10, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid " + bCol, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}
+                  style={{ width: 90, padding: 10, background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + bCol, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}
                 >
                   <span style={{ fontSize: 22 }}>{r.emoji}</span>
                   <span style={{ fontSize: 11, fontWeight: 700 }}>{r.name}</span>
@@ -87,7 +87,7 @@ export function ClassSelectScreen({ game }) {
               <div
                 key={c.id}
                 onClick={function() { startRun(c.id); }}
-                style={{ width: 200, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
+                style={{ width: "clamp(160px, calc(var(--gw) * 0.4), 240px)", background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
               >
                 <span style={{ fontSize: 42 }}>{c.icon}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
@@ -219,7 +219,7 @@ export function RelicRewardScreen({ game }) {
               <div
                 key={r.id}
                 onClick={function() { pickRelic(r); }}
-                style={{ width: 170, padding: 20, background: "linear-gradient(145deg,var(--cd),#14120e)", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
+                style={{ width: "clamp(140px, calc(var(--gw) * 0.28), 200px)", padding: 20, background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
               >
                 <span style={{ fontSize: 24 }}>{r.emoji}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{r.name}</span>

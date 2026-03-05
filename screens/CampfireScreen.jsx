@@ -150,7 +150,7 @@ export function CampfireScreen({ game }) {
 
             {/* Merchant */}
             {campEvent.id === "merchant" && (
-              <div style={{ background: "#e8a82022", border: "1px solid #fbbf24", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "#e8a82022", border: "1px solid var(--gd)", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 6 }}>🏪</div>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.6, margin: 0 }}>
                   "좋은 카드가 있으면 제값에 사겠소."
@@ -160,7 +160,7 @@ export function CampfireScreen({ game }) {
                   {deck.map(function(c) {
                     var isSelected = pendingSell && pendingSell.id === c.id;
                     return (
-                      <div key={c.id} onClick={function() { setPendingSell(isSelected ? null : c); }} style={{ cursor: "pointer", position: "relative", border: isSelected ? "2px solid #fbbf24" : "2px solid transparent", borderRadius: 8 }}>
+                      <div key={c.id} onClick={function() { setPendingSell(isSelected ? null : c); }} style={{ cursor: "pointer", position: "relative", border: isSelected ? "2px solid var(--gd)" : "2px solid transparent", borderRadius: 8 }}>
                         <CardView card={c} cls={classData} small={true} />
                         <div style={{ position: "absolute", bottom: 2, right: 2, background: "var(--gd)", color: "#000", borderRadius: 4, padding: "1px 4px", fontSize: 11, fontWeight: 700 }}>
                           💰{c.grade * 3}

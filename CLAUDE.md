@@ -239,6 +239,11 @@
 - 유물 툴팁 잘림 수정 (calc+maxWidth+whiteSpace) ✅
 - 손패 padding 하드코딩 → clamp() 반응형 ✅
 
+### ~~세션 31: P3 코드 품질 정리 3건~~ ✅ 완료
+- tenacityUsed stale closure → useRef 추적 (이중 발동 방지) ✅
+- dead comment 정리 ("Warrior" → "passive hook") ✅
+- ShopScreen IIFE 3개 → 렌더 전 변수 추출 ✅
+
 ---
 
 ## 기능 추가 체크리스트

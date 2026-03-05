@@ -13,6 +13,19 @@ export function ShopScreen({ game }) {
   } = game;
 
   var discount = upgradeLevels.merchant > 0 ? 0.8 : 1;
+  var relicCost = shopRelic ? Math.floor((shopRelic.tier === 1 ? 30 : shopRelic.tier === 2 ? 50 : 75) * discount) : 0;
+  var healCost = Math.floor(10 * discount);
+  var removeCost = Math.floor(10 * discount);
+  var sortedDeck = deck.slice().sort(function(a, b) {
+    var suitOrd = { red: 0, blue: 1, yellow: 2 };
+    if (a.isCommon !== b.isCommon) return a.isCommon ? 1 : -1;
+    if (!a.isCommon && !b.isCommon) {
+      if (a.suitId !== b.suitId) return (suitOrd[a.suitId] || 0) - (suitOrd[b.suitId] || 0);
+      return a.grade - b.grade;
+    }
+    if (a.isCommon && b.isCommon) return a.common.id.localeCompare(b.common.id);
+    return 0;
+  });
 
   return (
     <div style={wrapStyle}>
@@ -51,22 +64,16 @@ export function ShopScreen({ game }) {
         {shopRelic && (
           <div>
             <h3 style={{ fontSize: 14, marginBottom: 8 }}>🔮 유물</h3>
-            {(function() {
-              var relicCost = Math.floor((shopRelic.tier === 1 ? 30 : shopRelic.tier === 2 ? 50 : 75) * discount);
-              return (
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + relicBorderColor(shopRelic.tier), textAlign: "center" }}>
-                    <div style={{ fontSize: 20 }}>{shopRelic.emoji}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>{shopRelic.name}</div>
-                    <div style={{ fontSize: 16, color: "var(--dm)" }}>{shopRelic.desc}</div>
-                  </div>
-                  <Btn onClick={function() { buyRelic(shopRelic, relicCost); }} disabled={gold < relicCost} color="var(--pu)">💰{relicCost}</Btn>
-                </div>
-              );
-            })()}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + relicBorderColor(shopRelic.tier), textAlign: "center" }}>
+                <div style={{ fontSize: 20 }}>{shopRelic.emoji}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>{shopRelic.name}</div>
+                <div style={{ fontSize: 16, color: "var(--dm)" }}>{shopRelic.desc}</div>
+              </div>
+              <Btn onClick={function() { buyRelic(shopRelic, relicCost); }} disabled={gold < relicCost} color="var(--pu)">💰{relicCost}</Btn>
+            </div>
           </div>
         )}
-        {(function() { var healCost = Math.floor(10 * discount); return (
         <div>
           <h3 style={{ fontSize: 14, marginBottom: 8 }}>❤️ 회복 (1회 한정)</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -90,8 +97,6 @@ export function ShopScreen({ game }) {
             </Btn>
           </div>
         </div>
-        ); })()}
-        {(function() { var removeCost = Math.floor(10 * discount); return (
         <div>
           <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {SHOP_MAX_REMOVE - shopRemoved}회 남음)</h3>
           {deck.length <= 10 && (
@@ -104,16 +109,7 @@ export function ShopScreen({ game }) {
             <div style={{ fontSize: 12, color: "var(--rd)", marginBottom: 6 }}>골드 부족</div>
           )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {deck.slice().sort(function(a, b) {
-              var suitOrd = { red: 0, blue: 1, yellow: 2 };
-              if (a.isCommon !== b.isCommon) return a.isCommon ? 1 : -1;
-              if (!a.isCommon && !b.isCommon) {
-                if (a.suitId !== b.suitId) return (suitOrd[a.suitId] || 0) - (suitOrd[b.suitId] || 0);
-                return a.grade - b.grade;
-              }
-              if (a.isCommon && b.isCommon) return a.common.id.localeCompare(b.common.id);
-              return 0;
-            }).map(function(c) {
+            {sortedDeck.map(function(c) {
               var canRemove = gold >= removeCost && deck.length > 10 && shopRemoved < SHOP_MAX_REMOVE;
               return (
                 <div
@@ -127,7 +123,6 @@ export function ShopScreen({ game }) {
             })}
           </div>
         </div>
-        ); })()}
       </div>
       <div style={{ padding: "clamp(8px, 1.5vh, 14px)", borderTop: "1px solid var(--bd)", textAlign: "center" }}>
         <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: 14, padding: "clamp(8px, 1.5vh, 14px) 36px" }}>

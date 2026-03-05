@@ -80,6 +80,7 @@ export default function DungeonHand() {
   var [poison, setPoison] = s(0); // poison on monster: dmg per turn
   var [erodedIds, setErodedIds] = s([]); // eroded card ids (grade temporarily -1)
   var [tenacityUsed, setTenacityUsed] = s(false); // tenacity: revive once per run
+  var tenacityUsedRef = useRef(false);
   var [frozenIds, setFrozenIds] = s([]); // frozen card ids
   var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
   var [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
@@ -189,7 +190,7 @@ export default function DungeonHand() {
     setPassiveState(cDef.passive.init(upgradeLevels.awaken > 0));
     setPoison(0);
     setErodedIds([]);
-    setTenacityUsed(false);
+    setTenacityUsed(false); tenacityUsedRef.current = false;
     gambitPendingRef.current = false;
     setGambitChoices([]);
     beginBattle(d, [], 1, 1);
@@ -261,8 +262,8 @@ export default function DungeonHand() {
         setEnemyDmgShow(ambushDmg);
         setHp(function(prev) {
           if (prev - ambushDmg <= 0) {
-            if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
-              setTenacityUsed(true);
+            if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
+              setTenacityUsed(true); tenacityUsedRef.current = true;
               laterTimers.forEach(function(tid) { clearTimeout(tid); });
               showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
               return 1;
@@ -391,8 +392,8 @@ export default function DungeonHand() {
       var burnDmg = burnPlayed.length * 3;
       setHp(function(prev) {
         if (prev - burnDmg <= 0) {
-          if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
-            setTenacityUsed(true);
+          if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
+            setTenacityUsed(true); tenacityUsedRef.current = true;
             showPassive("💀 집념! 화상에도 쓰러지지 않는다!");
             return 1;
           }
@@ -532,7 +533,7 @@ export default function DungeonHand() {
 
     var atkDmg = rollEnemyDmg(mon.atk);
 
-    // === Warrior 🔷 blue: damage reduction ===
+    // === damage reduction (passive hook) ===
     if (dmgResult && dmgResult.dmgReduction > 0) {
       atkDmg = Math.max(0, atkDmg - dmgResult.dmgReduction);
     }
@@ -573,8 +574,8 @@ export default function DungeonHand() {
         setHp(function(prev) {
           if (prev - atkDmg <= 0) {
             // 💀 Tenacity: revive once
-            if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
-              setTenacityUsed(true);
+            if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
+              setTenacityUsed(true); tenacityUsedRef.current = true;
               showPassive("💀 집념! 쓰러지지 않는다!");
               return 1;
             }
@@ -1078,8 +1079,8 @@ export default function DungeonHand() {
         setEnemyDmgShow(ambushDmg);
         setHp(function(prev) {
           if (prev - ambushDmg <= 0) {
-            if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
-              setTenacityUsed(true);
+            if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
+              setTenacityUsed(true); tenacityUsedRef.current = true;
               showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
               return 1;
             }

@@ -683,3 +683,12 @@ public/audio/          총 1.54MB
 - [ ] stealth 투자 대비 효율 vs critMastery 비교
 - [ ] bgmOn("home") 마을 BGM 실제 동작 확인
 - [ ] 🌀 이모지 중복 (심연의 군주 / 대마법사) 수정
+
+---
+
+## 세션 31 (2026-03-05) — P3 코드 품질 정리 3건
+
+### 완료
+- [x] tenacityUsed stale closure → useRef 추적 (setHp 콜백 내 이중 발동 방지)
+- [x] dead comment 정리 ("Warrior 🔷 blue" → "passive hook")
+- [x] ShopScreen IIFE 3개 → 렌더 전 변수 추출 (relicCost/healCost/removeCost/sortedDeck)

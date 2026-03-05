@@ -4,6 +4,11 @@ import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOO
 import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
+import { PendingRelicOverlay, MenuScreen, ClassSelectScreen, RewardScreen, EnhanceScreen, RelicRewardScreen, VictoryScreen, DefeatScreen } from "./screens/SmallScreens.jsx";
+import { CampfireScreen } from "./screens/CampfireScreen.jsx";
+import { VillageScreen } from "./screens/VillageScreen.jsx";
+import { BattleScreen } from "./screens/BattleScreen.jsx";
+import { ShopScreen } from "./screens/ShopScreen.jsx";
 
 // === MAIN GAME ===
 export default function DungeonHand() {
@@ -984,7 +989,127 @@ export default function DungeonHand() {
     advanceBattle(newDeck);
   }
 
-  // === WRAPPER STYLE (iPhone 14 Pro Portrait: 393x852 CSS px) ===
+  // === CAMPFIRE FUNCTIONS (hoisted from campfire screen) ===
+  function enterPhase2() {
+    setHp(function(h) { return Math.min(MAX_HP, h + 10); });
+    setCampPhase(2);
+  }
+
+  function enterPhase3() {
+    var roll = Math.random();
+    if (roll < 0.5) {
+      setCampEvent({ id: "none" });
+    } else {
+      var evt = CAMPFIRE_EVENTS[Math.floor(Math.random() * CAMPFIRE_EVENTS.length)];
+      setCampEvent(evt);
+    }
+    setCampPhase(3);
+  }
+
+  function leaveCampfire() {
+    setCampEvent(null);
+    setCampPhase(1);
+    var nb = 4;
+    setBattleNum(nb);
+    beginBattle(deck, relics, floor, nb);
+  }
+
+  function resolveCampfire() {
+    if (!campEvent) return;
+    var evtId = campEvent.id;
+
+    if (evtId === "fairy") {
+      var campResult = classData.passive.onCamp(passiveState);
+      setPassiveState(campResult.state);
+    }
+    if (evtId === "rest") {
+      setHp(function(h) { return Math.min(MAX_HP, h + 5); });
+    }
+    if (evtId === "thief") {
+      setDeck(function(d) {
+        if (d.length <= 10) { setStolenCard(null); return d; }
+        var ri = Math.floor(Math.random() * d.length);
+        setStolenCard(d[ri]);
+        return d.filter(function(_, i) { return i !== ri; });
+      });
+    }
+    if (evtId === "ambush") {
+      setCampEvent(null);
+      setCampPhase(1);
+      var ambushIdx = (floor - 1) * 4;
+      var am = MONSTERS[ambushIdx];
+      var amhp = Math.floor(am.hp * (1 + (floor - 1) * 0.45));
+      var amatk = Math.floor(am.atk * (1 + (floor - 1) * 0.1));
+      setMonster({ name: am.name, emoji: am.emoji, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
+      var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
+      setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
+      setRoundNum(1);
+      setDamageInfo(null);
+      setCurrentHand(null);
+      setSelected([]);
+      setBusy(false);
+      setEnemyDmgShow(null);
+      setFrozenIds([]);
+      setSplitMon(null);
+      setBook2Used(false);
+      setAimedBonus(0);
+      setPoison(0);
+      setErodedIds([]);
+      setGambleBuff(0);
+      setGambleAnim(null);
+      setNewCardIds([]);
+      var shuffled = shuffle(deck);
+      setDrawPile(shuffled.slice(HAND_SIZE));
+      setHand(shuffled.slice(0, HAND_SIZE));
+      setDiscardPile([]);
+      setScreen("battle");
+      if (sfx.getOn()) sfx.bgmOn("battle");
+      var ambushDmg = amatk + Math.floor(Math.random() * 3);
+      setTimeout(function() {
+        showPassive("⚡ 기습! " + am.name + "의 선제 공격!");
+        sfx.enemy();
+        setEnemyAttacking(true);
+        setPlayerShake(true);
+        setEnemyDmgShow(ambushDmg);
+        setHp(function(prev) {
+          if (prev - ambushDmg <= 0) {
+            if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
+              setTenacityUsed(true);
+              showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
+              return 1;
+            }
+            setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
+            return 0;
+          }
+          return prev - ambushDmg;
+        });
+        setTimeout(function() {
+          setEnemyAttacking(false);
+          setPlayerShake(false);
+          setEnemyDmgShow(null);
+        }, 800);
+      }, 600);
+      return;
+    }
+    if (evtId === "merchant") {
+      return;
+    }
+    leaveCampfire();
+  }
+
+  function sellCard(card) {
+    var earnedGold = card.grade * 3;
+    setGold(function(g) { return g + earnedGold; });
+    setDeck(function(d) { return d.filter(function(c) { return c.id !== card.id; }); });
+    sfx.gold();
+    setCampEvent(null);
+    setCampPhase(1);
+    var nb = 4;
+    setBattleNum(nb);
+    beginBattle(deck.filter(function(c) { return c.id !== card.id; }), relics, floor, nb);
+  }
+
+  // === WRAPPER STYLE ===
   var wrapStyle = {
     width: "100%",
     height: "100vh",
@@ -1015,1054 +1140,6 @@ export default function DungeonHand() {
     </div>
   );
 
-  // === RELIC SWAP OVERLAY ===
-  if (pendingRelic) {
-    var prBorder = pendingRelic.tier >= 3 ? "var(--gd)" : pendingRelic.tier >= 2 ? "#a855f7" : "var(--bd)";
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
-          <div style={{ background: "var(--cd)", border: "1px solid var(--bd)", borderRadius: 16, padding: 24, maxWidth: 340, width: "90%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#ef4444" }}>인벤토리가 가득 찼습니다!</div>
-            <div style={{ fontSize: 13, color: "var(--dm)" }}>새 유물을 장착하려면 기존 유물 하나를 교체하세요</div>
-            <div style={{ padding: 14, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + prBorder, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "80%" }}>
-              <span style={{ fontSize: 28 }}>{pendingRelic.emoji}</span>
-              <span style={{ fontSize: 14, fontWeight: 700 }}>{pendingRelic.name}</span>
-              <span style={{ fontSize: 13, color: "var(--dm)", textAlign: "center" }}>{pendingRelic.desc}</span>
-              <span style={{ fontSize: 11, color: "#22c55e" }}>NEW</span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, marginTop: 4 }}>교체할 유물을 선택하세요:</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-              {relics.map(function(r) {
-                var bCol = r.tier >= 3 ? "var(--gd)" : r.tier >= 2 ? "#a855f7" : "var(--bd)";
-                return (
-                  <div
-                    key={r.id}
-                    onClick={function() { swapRelic(r); }}
-                    style={{ width: 90, padding: 10, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + bCol, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}
-                  >
-                    <span style={{ fontSize: 22 }}>{r.emoji}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700 }}>{r.name}</span>
-                    <span style={{ fontSize: 10, color: "var(--dm)", textAlign: "center" }}>{r.desc}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <Btn onClick={discardPendingRelic} style={{ marginTop: 6, background: "#7f1d1d" }}>버리기 (영구 삭제)</Btn>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // === SCREENS ===
-  if (screen === "village") {
-    var totalInvested = 0;
-    SKILL_TREES.forEach(function(tree) {
-      tree.nodes.forEach(function(node) {
-        var lv = upgradeLevels[node.id] || 0;
-        for (var i = 0; i < lv; i++) {
-          totalInvested += node.cost + i * Math.ceil(node.cost * 0.5);
-        }
-      });
-    });
-    var ulUnlocked = totalInvested >= ULTIMATE_SKILL.unlockCost;
-    var ulOwned = upgradeLevels.fatedDice > 0;
-    var visibleTrees = SKILL_TREES.filter(function(t) {
-      return t.classId === null || t.classId === classId || CLASSES.length === 1;
-    });
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 12 }}>
-            <h2 style={{ fontSize: 16 }}>🌟 스킬 트리</h2>
-            <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>⭐ {metaPoints} 포인트</div>
-            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>총 투자: {totalInvested}⭐</div>
-          </div>
-          <div style={{ display: "flex", gap: 4, marginBottom: 10, flexWrap: "wrap", justifyContent: "center" }}>
-            {visibleTrees.map(function(tree) {
-              var isActive = skillTab === tree.id;
-              var tColor = tree.classId ? (tree.id.indexOf("red") >= 0 ? "#e64b35" : tree.id.indexOf("blue") >= 0 ? "#4e79a7" : "#f0b930") : "#888";
-              return (
-                <button key={tree.id} onClick={function() { setSkillTab(tree.id); }} style={{ padding: "5px 12px", fontSize: 12, fontWeight: 700, border: "1px solid " + (isActive ? tColor : "var(--bd)"), borderRadius: 6, background: isActive ? tColor + "22" : "var(--cd)", color: isActive ? tColor : "var(--dm)", cursor: "pointer" }}>
-                  {tree.icon} {tree.name}
-                </button>
-              );
-            })}
-          </div>
-          {visibleTrees.filter(function(t) { return t.id === skillTab; }).map(function(tree) {
-            return (
-              <div key={tree.id} style={{ marginBottom: 14 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  {tree.nodes.map(function(node) {
-                    var lv = upgradeLevels[node.id] || 0;
-                    var maxed = lv >= node.max;
-                    var actualCost = node.cost + lv * Math.ceil(node.cost * 0.5);
-                    var canBuy = metaPoints >= actualCost && !maxed;
-                    return (
-                      <div key={node.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: maxed ? "#22c55e11" : "var(--cd)", border: "1px solid " + (maxed ? "#22c55e44" : "var(--bd)"), borderRadius: 8, padding: "6px 10px" }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ fontSize: 13 }}>{node.icon}</span>
-                          <span style={{ fontWeight: 700, marginLeft: 4, fontSize: 13 }}>{node.name}</span>
-                          <span style={{ color: "var(--dm)", fontSize: 12, marginLeft: 6 }}>{node.desc}</span>
-                          <span style={{ color: "#a855f7", fontSize: 12, marginLeft: 6 }}>{lv}/{node.max}</span>
-                        </div>
-                        {maxed ? (
-                          <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>MAX</span>
-                        ) : (
-                          <Btn
-                            onClick={function() {
-                              var nodeId = node.id;
-                              var cost = node.cost + (upgradeLevels[nodeId] || 0) * Math.ceil(node.cost * 0.5);
-                              if (metaPoints < cost) return;
-                              setMetaPoints(function(p) { return p - cost; });
-                              setUpgradeLevels(function(prev) {
-                                var n = Object.assign({}, prev);
-                                n[nodeId] = (n[nodeId] || 0) + 1;
-                                return n;
-                              });
-                            }}
-                            disabled={!canBuy}
-                            style={{ padding: "3px 10px", fontSize: 12, whiteSpace: "nowrap" }}
-                          >
-                            ⭐{actualCost}
-                          </Btn>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-          <div style={{ marginBottom: 14, padding: 10, background: ulUnlocked ? "#f59e0b11" : "#1a1a2e", border: "1px solid " + (ulUnlocked ? "#f59e0b44" : "var(--bd)"), borderRadius: 10, textAlign: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: ulUnlocked ? "#f59e0b" : "var(--dm)" }}>{ULTIMATE_SKILL.icon} {ULTIMATE_SKILL.name}</div>
-            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 2 }}>{ULTIMATE_SKILL.desc}</div>
-            {ulOwned ? (
-              <span style={{ color: "#22c55e", fontSize: 13, fontWeight: 700 }}>활성화됨</span>
-            ) : ulUnlocked ? (
-              <Btn
-                onClick={function() {
-                  setUpgradeLevels(function(prev) {
-                    return Object.assign({}, prev, { fatedDice: 1 });
-                  });
-                }}
-                style={{ padding: "4px 14px", fontSize: 13, marginTop: 6 }}
-                color="#f59e0b"
-              >
-                해금
-              </Btn>
-            ) : (
-              <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{ULTIMATE_SKILL.unlockCost}⭐ 투자 시 해금 (현재 {totalInvested}⭐)</div>
-            )}
-          </div>
-          {resetCount < 3 && (function() {
-            var resetCost = [2, 3, 4][resetCount];
-            var canReset = metaPoints >= resetCost && totalInvested > 0;
-            return (
-              <div style={{ textAlign: "center", marginTop: 8, marginBottom: 4 }}>
-                <Btn
-                  onClick={function() {
-                    if (!canReset) return;
-                    setMetaPoints(function(p) { return p + totalInvested - resetCost; });
-                    setUpgradeLevels(function(prev) {
-                      var n = {};
-                      Object.keys(prev).forEach(function(k) { n[k] = 0; });
-                      return n;
-                    });
-                    setResetCount(function(c) { return c + 1; });
-                  }}
-                  disabled={!canReset}
-                  color="#ef4444"
-                  style={{ padding: "6px 18px", fontSize: 12 }}
-                >
-                  🔄 스킬 초기화 ({resetCount + 1}/3회) — ⭐{resetCost}
-                </Btn>
-              </div>
-            );
-          })()}
-          <div style={{ textAlign: "center", marginTop: 4 }}>
-            <Btn onClick={function() { setScreen("menu"); sfx.bgmOn("home"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (screen === "menu") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-          <div style={{ fontSize: 48, animation: "popIn 0.5s ease" }}>🗡️</div>
-          <h1 style={{ fontSize: 28, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#fbbf24,#ef4444,#a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center", lineHeight: 1.5 }}>
-            DUNGEON HAND
-          </h1>
-          <p style={{ color: "var(--dm)", fontSize: 13 }}>도적의 카드로 던전을 정복하라!</p>
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <Btn onClick={function() { if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
-              ⚔️ 던전 입장
-            </Btn>
-            <Btn onClick={function() { setScreen("village"); }} color="#22c55e" style={{ fontSize: 14, padding: "14px 32px" }}>
-              🌳 스킬 트리
-            </Btn>
-          </div>
-          {metaPoints > 0 && (
-            <div style={{ color: "#f97316", fontSize: 14 }}>⭐ {metaPoints} 포인트 보유</div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (screen === "classSelect") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
-          <h2 style={{ fontSize: 16 }}>직업을 선택하세요</h2>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-            {CLASSES.map(function(c) {
-              return (
-                <div
-                  key={c.id}
-                  onClick={function() { startRun(c.id); }}
-                  style={{ width: 200, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid var(--bd)", borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", padding: "16px 12px" }}
-                >
-                  <span style={{ fontSize: 42 }}>{c.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
-                  <div style={{ fontSize: 14, color: "#a855f7", textAlign: "center", lineHeight: 1.4 }}>
-                    {c.passive.desc}
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--dm)", textAlign: "center", lineHeight: 1.6 }}>
-                    {c.passive.suitDescs.join("  ")}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (screen === "campfire") {
-
-    // Generate event once when entering phase 3
-    function enterPhase2() {
-      setHp(function(h) { return Math.min(MAX_HP, h + 10); });
-      setCampPhase(2);
-    }
-
-    function enterPhase3() {
-      var roll = Math.random();
-      if (roll < 0.5) {
-        setCampEvent({ id: "none" });
-      } else {
-        var evt = CAMPFIRE_EVENTS[Math.floor(Math.random() * CAMPFIRE_EVENTS.length)];
-        setCampEvent(evt);
-      }
-      setCampPhase(3);
-    }
-
-    function leaveCampfire() {
-      setCampEvent(null);
-      setCampPhase(1);
-      var nb = 4;
-      setBattleNum(nb);
-      beginBattle(deck, relics, floor, nb);
-    }
-
-    function resolveCampfire() {
-      if (!campEvent) return;
-      var evtId = campEvent.id;
-
-      if (evtId === "fairy") {
-        var campResult = classData.passive.onCamp(passiveState);
-        setPassiveState(campResult.state);
-      }
-      if (evtId === "rest") {
-        setHp(function(h) { return Math.min(MAX_HP, h + 5); });
-      }
-      if (evtId === "thief") {
-        setDeck(function(d) {
-          if (d.length <= 10) { setStolenCard(null); return d; }
-          var ri = Math.floor(Math.random() * d.length);
-          setStolenCard(d[ri]);
-          return d.filter(function(_, i) { return i !== ri; });
-        });
-      }
-      if (evtId === "ambush") {
-        setCampEvent(null);
-        setCampPhase(1);
-        var ambushIdx = (floor - 1) * 4;
-        var am = MONSTERS[ambushIdx];
-        var amhp = Math.floor(am.hp * (1 + (floor - 1) * 0.45));
-        var amatk = Math.floor(am.atk * (1 + (floor - 1) * 0.1));
-        setMonster({ name: am.name, emoji: am.emoji, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
-        var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
-        setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
-        setRoundNum(1);
-        setDamageInfo(null);
-        setCurrentHand(null);
-        setSelected([]);
-        setBusy(false);
-        setEnemyDmgShow(null);
-        setFrozenIds([]);
-        setSplitMon(null);
-        setBook2Used(false);
-        setAimedBonus(0);
-        setPoison(0);
-        setErodedIds([]);
-        setGambleBuff(0);
-        setGambleAnim(null);
-        setNewCardIds([]);
-        var shuffled = shuffle(deck);
-        setDrawPile(shuffled.slice(HAND_SIZE));
-        setHand(shuffled.slice(0, HAND_SIZE));
-        setDiscardPile([]);
-        setScreen("battle");
-        if (sfx.getOn()) sfx.bgmOn("battle");
-        // 화톳불 습격: 100% 기습 (선제 공격)
-        var ambushDmg = amatk + Math.floor(Math.random() * 3);
-        setTimeout(function() {
-          showPassive("⚡ 기습! " + am.name + "의 선제 공격!");
-          sfx.enemy();
-          setEnemyAttacking(true);
-          setPlayerShake(true);
-          setEnemyDmgShow(ambushDmg);
-          setHp(function(prev) {
-            if (prev - ambushDmg <= 0) {
-              if (upgradeLevels.tenacity > 0 && !tenacityUsed) {
-                setTenacityUsed(true);
-                showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
-                return 1;
-              }
-              setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
-              return 0;
-            }
-            return prev - ambushDmg;
-          });
-          setTimeout(function() {
-            setEnemyAttacking(false);
-            setPlayerShake(false);
-            setEnemyDmgShow(null);
-          }, 800);
-        }, 600);
-        return;
-      }
-      if (evtId === "merchant") {
-        return; // merchant UI handles its own flow
-      }
-      // All other events: go to next battle
-      leaveCampfire();
-    }
-
-    function sellCard(card) {
-      var earnedGold = card.grade * 3;
-      setGold(function(g) { return g + earnedGold; });
-      setDeck(function(d) { return d.filter(function(c) { return c.id !== card.id; }); });
-      sfx.gold();
-      setCampEvent(null);
-      setCampPhase(1);
-      var nb = 4;
-      setBattleNum(nb);
-      beginBattle(deck.filter(function(c) { return c.id !== card.id; }), relics, floor, nb);
-    }
-
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 16 }}>
-
-          {/* Phase 1: Arrival */}
-          {campPhase === 1 && (
-            <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
-              <div style={{ fontSize: 56, marginBottom: 12 }}>🔥</div>
-              <div style={{ fontSize: 14, color: "var(--dm)", marginBottom: 4 }}>{floor}층 {FLOOR_NAMES[floor]}</div>
-              <h2 style={{ fontSize: 15, color: "#f97316", marginBottom: 12 }}>화톳불을 발견했다</h2>
-              <div style={{ background: "#ffffff08", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                <p style={{ color: "var(--dm)", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                  저 앞에 따뜻한 빛이 보인다.
-                  <br />지친 몸을 이끌고 불 옆에 다가간다.
-                </p>
-              </div>
-              <div style={{ fontSize: 14, color: "var(--dm)", marginBottom: 8 }}>❤️ {hp}/{MAX_HP}</div>
-              <Btn onClick={enterPhase2} color="#f97316" style={{ padding: "10px 28px", fontSize: 13 }}>
-                불 옆에 앉다 →
-              </Btn>
-            </div>
-          )}
-
-          {/* Phase 2: Rest & Heal */}
-          {campPhase === 2 && (
-            <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
-              <div style={{ fontSize: 48, marginBottom: 12, animation: "victBounce 2s ease infinite" }}>🔥</div>
-              <h2 style={{ fontSize: 15, color: "#f97316", marginBottom: 12 }}>휴식</h2>
-              <div style={{ background: "#22c55e11", border: "1px solid #22c55e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                  따뜻한 불빛이 몸을 감싼다.
-                  <br />잠시 눈을 감고 상처를 돌본다.
-                </p>
-                <div style={{ marginTop: 10, fontSize: 14, color: "#22c55e", fontWeight: 700 }}>
-                  ❤️ HP +10 회복!
-                </div>
-                <div style={{ fontSize: 13, color: "var(--dm)", marginTop: 4 }}>
-                  {hp}/{MAX_HP}
-                </div>
-              </div>
-              <Btn onClick={enterPhase3} color="#f97316" style={{ padding: "10px 28px", fontSize: 13 }}>
-                눈을 뜨다 →
-              </Btn>
-            </div>
-          )}
-
-          {/* Phase 3: Event */}
-          {campPhase === 3 && campEvent && (
-            <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
-              <div style={{ fontSize: 56, marginBottom: 12 }}>🔥</div>
-
-              {/* No event */}
-              {campEvent.id === "none" && (
-                <div style={{ background: "#ffffff08", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                  <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                    고요한 밤이었다.
-                    <br />충분히 쉬었으니 발걸음을 옮긴다.
-                  </p>
-                  <Btn onClick={leaveCampfire} color="#f97316" style={{ marginTop: 14, padding: "10px 28px", fontSize: 13 }}>
-                    출발 →
-                  </Btn>
-                </div>
-              )}
-
-              {/* Fairy */}
-              {campEvent.id === "fairy" && (
-                <div style={{ background: "#a855f722", border: "1px solid #a855f7", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                  <div style={{ fontSize: 24, marginBottom: 8 }}>🧚</div>
-                  <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                    잠에서 깨니 작은 빛이 주위를 맴돌고 있다.
-                    <br />요정이 손끝으로 이마를 어루만졌다.
-                    <br />몸 안에서 힘이 솟아오른다!
-                  </p>
-                  <div style={{ marginTop: 10, fontSize: 14, color: "#a855f7", fontWeight: 700 }}>
-                    {classData.passive.onCamp(passiveState).msg}
-                  </div>
-                  <Btn onClick={resolveCampfire} color="#a855f7" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
-                    감사히 받다 →
-                  </Btn>
-                </div>
-              )}
-
-              {/* Rest */}
-              {campEvent.id === "rest" && (
-                <div style={{ background: "#22c55e11", border: "1px solid #22c55e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                  <div style={{ fontSize: 24, marginBottom: 8 }}>😴</div>
-                  <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                    깊고 편안한 잠에 빠졌다.
-                    <br />꿈속에서 따뜻한 빛이 상처를 감싸안았다.
-                  </p>
-                  <div style={{ marginTop: 10, fontSize: 14, color: "#22c55e", fontWeight: 700 }}>
-                    ❤️ 추가 HP +5 회복! (총 +15)
-                  </div>
-                  <Btn onClick={resolveCampfire} color="#22c55e" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
-                    개운하다 →
-                  </Btn>
-                </div>
-              )}
-
-              {/* Ambush */}
-              {campEvent.id === "ambush" && (
-                <div style={{ background: "#ef444422", border: "1px solid #ef4444", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                  <div style={{ fontSize: 24, marginBottom: 8 }}>🐺</div>
-                  <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                    갑자기 덤불에서 바스락거리는 소리가 들린다!
-                    <br />눈을 떠보니 적이 다가오고 있다!
-                  </p>
-                  <div style={{ marginTop: 10, fontSize: 14, color: "var(--rd)", fontWeight: 700 }}>
-                    ⚔️ 전투 발생!
-                  </div>
-                  <Btn onClick={resolveCampfire} color="var(--rd)" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
-                    ⚔️ 맞서 싸운다!
-                  </Btn>
-                </div>
-              )}
-
-              {/* Thief */}
-              {campEvent.id === "thief" && (
-                <div style={{ background: "#ef444422", border: "1px solid #ef4444", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16 }}>
-                  <div style={{ fontSize: 24, marginBottom: 8 }}>🤡</div>
-                  <p style={{ color: "#d4d4d8", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                    잠에서 깨니 뭔가 허전하다...
-                    <br />도둑이 카드를 훔쳐 달아났다!
-                  </p>
-                  {stolenCard ? (
-                    <div style={{ marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                      <div style={{ fontSize: 14, color: "var(--rd)", fontWeight: 700 }}>빼앗긴 카드:</div>
-                      <CardView card={stolenCard} cls={classData} small />
-                    </div>
-                  ) : (
-                    <div style={{ marginTop: 10, fontSize: 16, color: "var(--dm)" }}>
-                      덱이 너무 적어 훔치지 못했다!
-                    </div>
-                  )}
-                  <Btn onClick={resolveCampfire} color="var(--rd)" style={{ marginTop: 12, padding: "8px 24px", fontSize: 14 }}>
-                    어쩔 수 없다... →
-                  </Btn>
-                </div>
-              )}
-
-              {/* Merchant */}
-              {campEvent.id === "merchant" && (
-                <div style={{ background: "#fbbf2422", border: "1px solid #fbbf24", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16 }}>
-                  <div style={{ fontSize: 22, marginBottom: 6 }}>🏪</div>
-                  <p style={{ color: "#d4d4d8", fontSize: 16, lineHeight: 1.6, margin: 0 }}>
-                    "좋은 카드가 있으면 제값에 사겠소."
-                  </p>
-                  <div style={{ fontSize: 14, color: "var(--dm)", margin: "6px 0" }}>탭하여 판매 (등급×3 골드)</div>
-                  <div style={{ maxHeight: 280, overflow: "auto", display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", padding: "4px 0" }}>
-                    {deck.map(function(c) {
-                      return (
-                        <div key={c.id} onClick={function() { sellCard(c); }} style={{ cursor: "pointer", position: "relative" }}>
-                          <CardView card={c} cls={classData} small={true} />
-                          <div style={{ position: "absolute", bottom: 2, right: 2, background: "#fbbf24", color: "#000", borderRadius: 4, padding: "1px 4px", fontSize: 11, fontWeight: 700 }}>
-                            💰{c.grade * 3}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <Btn onClick={function() { leaveCampfire(); }} style={{ marginTop: 8, fontSize: 16, padding: "8px 20px" }}>
-                    안 팔고 진행 →
-                  </Btn>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (screen === "battle") {
-    var handTierColor = "var(--tx)";
-    if (currentHand && currentHand.tier >= 4) handTierColor = "var(--gd)";
-    else if (currentHand && currentHand.tier >= 3) handTierColor = "var(--rd)";
-
-    return (
-      <div style={Object.assign({}, wrapStyle, { height: "100vh", minHeight: "auto", overflow: "hidden", position: "relative" })}>
-        <style>{CSS}</style>
-        {audioButton}
-        {encounterOverlay && (
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 100,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            background: encounterOverlay.boss
-              ? "radial-gradient(circle, #2d1040 0%, #0c0c14 70%)"
-              : "radial-gradient(circle, #1a2040 0%, #0c0c14 70%)",
-            animation: "encounterIn 0.6s ease",
-          }}>
-            <div style={{ fontSize: 72, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
-              {encounterOverlay.emoji}
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "#fbbf24" : "#a855f7", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
-              {encounterOverlay.name}
-            </div>
-            <div style={{ fontSize: 14, color: "var(--dm)", marginTop: 6, fontWeight: 700 }}>
-              {encounterOverlay.boss ? "⚠️ BOSS ⚠️" : "⚔️ 엘리트 ⚔️"}
-            </div>
-          </div>
-        )}
-        {gambitChoices.length > 0 && (
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            background: "rgba(0,0,0,0.85)",
-          }}>
-            <div style={{ fontSize: 18, fontWeight: 900, color: "#fbbf24", marginBottom: 16 }}>🎰 투기 — 1장을 선택하세요</div>
-            <div style={{ display: "flex", gap: 12 }}>
-              {gambitChoices.map(function(c) {
-                return (
-                  <div key={c.id} onClick={function() { pickGambitCard(c); }} style={{ cursor: "pointer", transition: "transform 0.15s" }}>
-                    <CardView card={c} cls={classData} />
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ fontSize: 12, color: "var(--dm)", marginTop: 12 }}>나머지 2장은 버린카드 더미로</div>
-          </div>
-        )}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 10px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0 }}>
-          <div style={{ fontSize: 13 }}>
-            <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>
-            <span style={{ color: "var(--dm)", fontSize: 12, marginLeft: 4 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 14, color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
-            <div style={{ display: "flex", gap: 1 }}>
-              {relics.map(function(r) {
-                return <span key={r.id} title={r.name + ": " + r.desc} style={{ fontSize: 16 }}>{r.emoji}</span>;
-              })}
-            </div>
-            <div
-              onClick={function() { setOverlay("deck"); }}
-              style={{ background: "var(--bd)", borderRadius: 4, padding: "1px 5px", fontSize: 13, cursor: "pointer", color: "var(--dm)" }}
-            >
-              덱{deck.length}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "6px 0" }}>
-          {/* Gamble Roulette Animation */}
-          {gambleAnim && (
-            <div style={{ textAlign: "center", padding: "4px 0", animation: "popIn 0.2s ease" }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: gambleAnim.includes("🎉") ? "#22c55e" : gambleAnim.includes("💀") ? "#ef4444" : "#fbbf24", background: "rgba(0,0,0,0.6)", borderRadius: 8, padding: "4px 16px" }}>
-                {gambleAnim}
-              </span>
-            </div>
-          )}
-          {/* Passive Status */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 4, padding: "2px 0", flexWrap: "wrap", flexShrink: 0 }}>
-            {(function() {
-              var badge = classData.passive.renderBadge(passiveState, upgradeLevels.stealth * 5);
-              if (!badge) return null;
-              return (
-                <div style={{ background: badge.bg, border: "1px solid " + badge.border, borderRadius: 6, padding: "2px 8px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-                  <span>{badge.label}</span>
-                  {badge.detail && <span style={{ color: classData.passive.color, fontSize: 11 }}>{badge.detail}</span>}
-                </div>
-              );
-            })()}
-            {poison > 0 && (
-              <div style={{ background: "#a855f722", border: "1px solid #a855f7", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-                ☠️독{poison}
-              </div>
-            )}
-            {gambleBuff !== 0 && (
-              <div style={{ background: gambleBuff > 0 ? "#22c55e22" : "#ef444422", border: "1px solid " + (gambleBuff > 0 ? "#22c55e" : "#ef4444"), borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-                🎲{gambleBuff > 0 ? "+" : ""}{gambleBuff}
-              </div>
-            )}
-            {upgradeLevels.tenacity > 0 && !tenacityUsed && (
-              <div style={{ background: "#78716c22", border: "1px solid #78716c", borderRadius: 6, padding: "2px 8px", fontSize: 12 }}>
-                💀집념
-              </div>
-            )}
-          </div>
-
-          <div style={{ textAlign: "center", padding: "2px 0", flexShrink: 0 }}>
-            {monster && (
-              <div>
-                <HpBar current={monster.hp} max={monster.maxHp} name={monster.name} emoji={monster.emoji} boss={monster.boss} miniboss={monster.miniboss} shaking={monShake} hardShake={monShakeHard} enemyAttacking={enemyAttacking} />
-                {monster.hp > 0 && (
-                  <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 2 }}>
-                    <span style={{ fontSize: 13, color: "var(--rd)", animation: "intentPulse 2s ease infinite" }}>
-                      ⚔️{monster.atk}~{monster.atk + 2}
-                    </span>
-                    {monster.freeze > 0 && <span style={{ fontSize: 12, color: "#60a5fa" }}>❄️{monster.freeze}</span>}
-                    {monster.erode > 0 && <span style={{ fontSize: 12, color: "#a855f7" }}>🌑{monster.erode}</span>}
-                    {monster.burn > 0 && <span style={{ fontSize: 12, color: "#f97316" }}>🔥{monster.burn}</span>}
-                    {monster.split && !monster.hasSplit && <span style={{ fontSize: 12, color: "#f97316" }}>💥분열</span>}
-                  </div>
-                )}
-                {splitMon && (
-                  <div style={{ marginTop: 2, fontSize: 12, color: "var(--dm)", background: "var(--cd)", borderRadius: 4, padding: "1px 6px", display: "inline-block" }}>
-                    대기: {splitMon.emoji} HP{splitMon.hp}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {bossDialogue && (
-            <div style={{ textAlign: "center", padding: "4px 0", flexShrink: 0, animation: "slideUp 0.4s ease" }}>
-              <span style={{ display: "inline-block", background: "#1c1c32ee", border: "1px solid #a855f7", borderRadius: 8, padding: "4px 14px", fontSize: 13, fontWeight: 700, color: "#e0d0ff", maxWidth: "80%" }}>
-                "{bossDialogue}"
-              </span>
-            </div>
-          )}
-
-          {damageInfo && currentHand ? (
-            <div style={{ height: damageInfo.fatedRoll > 0 ? 72 : 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, flexShrink: 0 }}>
-              <div style={{ fontSize: currentHand.tier >= 4 ? 18 : 16, fontWeight: 900, color: handTierColor, animation: "popIn 0.4s ease" }}>
-                {currentHand.emoji} {currentHand.name}! {currentHand.emoji}
-              </div>
-              {damageInfo.fatedRoll > 0 && (
-                <div style={{ fontSize: 13, fontWeight: 700, color: damageInfo.fatedMult <= 0.5 ? "#e64b35" : damageInfo.fatedMult <= 1.5 ? "#4e79a7" : "#f0b930", animation: "dmgPop 0.4s ease 0.1s both" }}>
-                  🎲 [{damageInfo.fatedRoll}] → x{damageInfo.fatedMult}
-                </div>
-              )}
-              <div style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Silkscreen', cursive", position: "relative" }}>
-                {damageInfo.isCrit && (
-                  <div style={{ position: "absolute", inset: -12, background: "radial-gradient(circle, #f0b93044 0%, transparent 70%)", animation: "critFlash 0.8s ease", borderRadius: "50%", pointerEvents: "none" }} />
-                )}
-                <span style={{ fontSize: 16, color: "var(--bl)", animation: "multIn 0.3s ease 0.2s both" }}>{damageInfo.atk}</span>
-                <span style={{ fontSize: 14, color: "var(--dm)", animation: "multIn 0.3s ease 0.4s both" }}>x{damageInfo.mult}</span>
-                <span style={{ fontSize: 14, color: "var(--dm)" }}>=</span>
-                <span style={{ fontSize: damageInfo.isCrit ? 28 : (currentHand.tier >= 4 ? 24 : 18), color: damageInfo.isCrit ? "#f0b930" : handTierColor, animation: damageInfo.isCrit ? "critBurst 0.7s ease 0.3s both" : "dmgPop 0.5s ease 0.3s both", textShadow: damageInfo.isCrit ? "0 0 20px #f0b930aa" : "none" }}>{damageInfo.total}</span>
-                <span style={{ fontSize: 18, animation: "dmgPop 0.3s ease 0.5s both" }}>{damageInfo.isCrit ? "💥⭐" : "💥"}</span>
-              </div>
-            </div>
-          ) : (
-            <div style={{ height: 56, flexShrink: 0 }} />
-          )}
-
-          {/* Passive Trigger Message */}
-          {passiveMsg && (
-            <div style={{ textAlign: "center", flexShrink: 0, animation: "passivePop 0.4s ease, passiveFade 2s ease forwards" }}>
-              <span style={{ display: "inline-block", background: "#a855f733", border: "1px solid #a855f7", borderRadius: 6, padding: "2px 10px", fontSize: 12, fontWeight: 700, color: "#e0d0ff" }}>
-                {passiveMsg}
-              </span>
-            </div>
-          )}
-
-          <div style={{ textAlign: "center", position: "relative", flexShrink: 0, padding: "2px 0" }}>
-            <div style={{ animation: playerShake ? "playerHit 0.5s ease" : "none", display: "inline-block" }}>
-              <HpBar current={hp} max={MAX_HP} name={classData.name} emoji={classData.icon} isPlayer />
-            </div>
-            {enemyDmgShow !== null && (
-              <>
-                {enemyDmgShow === "MISS" && (
-                  <div style={{ position: "absolute", inset: -20, background: "radial-gradient(circle, #22c55e33 0%, transparent 70%)", animation: "missFlash 0.6s ease", borderRadius: "50%", pointerEvents: "none" }} />
-                )}
-                <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", fontSize: enemyDmgShow === "MISS" ? 22 : 20, fontWeight: 900, color: enemyDmgShow === "MISS" ? "#22c55e" : "var(--rd)", fontFamily: "'Silkscreen', cursive", animation: enemyDmgShow === "MISS" ? "missBounce 0.7s ease, dmgFloat 1.4s ease 0.7s forwards" : "dmgPop 0.4s ease, dmgFloat 1.2s ease 0.4s forwards", textShadow: enemyDmgShow === "MISS" ? "0 0 15px #22c55eaa" : "0 0 10px #ef444488" }}>
-                  {enemyDmgShow === "MISS" ? "✨MISS!✨" : "-" + enemyDmgShow}
-                </div>
-              </>
-            )}
-          </div>
-
-          <div style={{ padding: "2px 6px", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "hidden", flex: 1 }}>
-            {hand.map(function(c, idx) {
-              var isNew = newCardIds.indexOf(c.id) >= 0;
-              var isFrozen = frozenIds.indexOf(c.id) >= 0;
-              var isEroded = c.eroded;
-              var isBurning = c.burning;
-              var overlap = hand.length > 7 ? -10 : hand.length > 6 ? -6 : hand.length > 5 ? -2 : 3;
-              return (
-                <div key={c.id} style={{
-                  animation: isNew ? "cardDraw 0.35s ease forwards" : "none",
-                  position: "relative",
-                  marginLeft: idx === 0 ? 0 : overlap,
-                  zIndex: selected.indexOf(c.id) >= 0 ? 10 : idx,
-                }}>
-                  <div style={{ opacity: isFrozen ? 0.5 : 1, filter: isFrozen ? "saturate(0.3)" : isEroded ? "brightness(0.6) saturate(0.5)" : isBurning ? "sepia(0.5) brightness(1.1)" : "none" }}>
-                    <CardView
-                      card={c}
-                      cls={classData}
-                      selected={selected.indexOf(c.id) >= 0}
-                      onClick={function() { toggleCard(c.id); }}
-                      disabled={busy}
-                    />
-                  </div>
-                  {isFrozen && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", fontSize: 14, pointerEvents: "none" }}>❄️</div>}
-                  {isEroded && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", fontSize: 14, pointerEvents: "none" }}>🌑</div>}
-                  {isBurning && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", fontSize: 14, pointerEvents: "none" }}>🔥</div>}
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ padding: "2px 8px 4px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 38, flexShrink: 0 }}>
-            <div style={{ fontSize: 12, overflow: "hidden", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
-              {preview ? (
-                <span>
-                  {preview.emoji}{" "}
-                  <b style={{ color: preview.tier >= 3 ? "var(--gd)" : "var(--tx)" }}>{preview.name}</b>
-                  <span style={{ color: "var(--dm)", marginLeft: 2 }}>x{preview.mult}</span>
-                  {previewDmg && (
-                    <span style={{ marginLeft: 4 }}>
-                      <span style={{ color: "#3b82f6" }}>{previewDmg.atk}</span>
-                      <span style={{ color: "var(--dm)" }}>×</span>
-                      <span style={{ color: "#f97316" }}>{previewDmg.mult}</span>
-                      <span style={{ color: "var(--dm)" }}>=</span>
-                      <span style={{ color: "var(--rd)", fontWeight: 700, fontSize: 14 }}>{previewDmg.total}</span>
-                      {previewDmg.critChance > 0 && (
-                        <span style={{ color: "#f0b930", fontSize: 10, marginLeft: 2 }}>⭐{previewDmg.critChance}%</span>
-                      )}
-                    </span>
-                  )}
-                </span>
-              ) : (
-                <span style={{ color: "var(--dm)" }}>최대 {submitLimit}장 R{roundNum}</span>
-              )}
-            </div>
-            <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-              <Btn onClick={doDiscard} disabled={discards <= 0 || selected.length === 0 || busy} style={{ padding: "4px 10px", fontSize: 13 }}>
-                🔄{discards}
-              </Btn>
-              <Btn onClick={submitCards} disabled={selected.length === 0 || busy} color="var(--rd)" style={{ padding: "6px 16px", fontSize: 15 }}>
-                ⚡제출
-              </Btn>
-            </div>
-          </div>
-        </div>
-
-        {overlay === "deck" && (
-          <DeckViewer
-            deck={deck}
-            cls={classData}
-            show={true}
-            sortMode={deckSort}
-            onSort={function(m) { setDeckSort(m); }}
-            onClose={function() { setOverlay(null); }}
-          />
-        )}
-      </div>
-    );
-  }
-
-  if (screen === "reward") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
-          <div style={{ fontSize: 38, animation: "popIn 0.4s ease" }}>⚔️ 승리!</div>
-          <h3 style={{ fontSize: 15 }}>보상 카드 선택</h3>
-          <div style={{ display: "flex", gap: 10 }}>
-            {rewardCards.map(function(c) {
-              return (
-                <div key={c.id} style={{ cursor: "pointer", textAlign: "center" }} onClick={function() { addCardToDeck(c); }}>
-                  <CardView card={c} cls={classData} />
-                  {c.keyword && (
-                    <div style={{ fontSize: 14, color: "#a855f7", marginTop: 4 }}>
-                      {c.keyword.icon} {c.keyword.name}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Btn onClick={function() { setScreen("enhance"); }} color="#7c3aed">⬆️강화</Btn>
-            <Btn onClick={function() { setDeckView(true); }}>📦덱 보기</Btn>
-            <Btn onClick={skipReward}>건너뛰기</Btn>
-          </div>
-        </div>
-        <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-      </div>
-    );
-  }
-
-  if (screen === "enhance") {
-    var enhanceable = deck.filter(function(c) { return (c.enhanceCount || 0) < 2; });
-    var suitOrder = { red: 0, blue: 1, yellow: 2 };
-    var sorted = enhanceable.slice().sort(function(a, b) {
-      // Class cards first, then common cards
-      if (a.isCommon !== b.isCommon) return a.isCommon ? 1 : -1;
-      // Within class cards: group by suit, then grade
-      if (!a.isCommon && !b.isCommon) {
-        if (a.suitId !== b.suitId) return (suitOrder[a.suitId] || 0) - (suitOrder[b.suitId] || 0);
-        return a.grade - b.grade;
-      }
-      // Within common cards: group by type, then grade
-      if (a.isCommon && b.isCommon) {
-        if (a.common.id !== b.common.id) return a.common.id.localeCompare(b.common.id);
-        return a.grade - b.grade;
-      }
-      return 0;
-    });
-    // Group into sections for visual separation
-    var groups = [];
-    var currentGroup = null;
-    sorted.forEach(function(c) {
-      var key = c.isCommon ? "common-" + c.common.id : "class-" + c.suitId;
-      if (currentGroup === null || currentGroup.key !== key) {
-        currentGroup = { key: key, cards: [], label: c.isCommon ? c.common.icon + c.common.name : c.suitEmoji };
-        groups.push(currentGroup);
-      }
-      currentGroup.cards.push(c);
-    });
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 16, overflow: "auto" }}>
-          <h3 style={{ fontSize: 14 }}>강화할 카드 (등급+1, 카드당 최대2회)</h3>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", maxWidth: 800 }}>
-            {groups.map(function(grp) {
-              return (
-                <div key={grp.key} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ fontSize: 13, color: "var(--dm)", fontWeight: 700 }}>{grp.label}</div>
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
-                    {grp.cards.map(function(c) {
-                      return (
-                        <div key={c.id} style={{ cursor: "pointer" }} onClick={function() { enhanceCard(c); }}>
-                          <CardView card={c} cls={classData} small />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Btn onClick={function() { setDeckView(true); }}>📦덱 보기</Btn>
-            <Btn onClick={skipReward}>건너뛰기</Btn>
-          </div>
-        </div>
-        <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-      </div>
-    );
-  }
-
-  if (screen === "relicReward") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
-          <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>👑 보스 처치!</div>
-          <h3 style={{ fontSize: 15 }}>유물 선택</h3>
-          <div style={{ display: "flex", gap: 10 }}>
-            {rewardRelics.map(function(r) {
-              var borderCol = r.tier >= 3 ? "var(--gd)" : r.tier >= 2 ? "#a855f7" : "var(--bd)";
-              return (
-                <div
-                  key={r.id}
-                  onClick={function() { pickRelic(r); }}
-                  style={{ width: 170, padding: 20, background: "linear-gradient(145deg,var(--cd),#12121f)", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
-                >
-                  <span style={{ fontSize: 24 }}>{r.emoji}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>{r.name}</span>
-                  <span style={{ fontSize: 14, color: "var(--dm)", textAlign: "center" }}>{r.desc}</span>
-                </div>
-              );
-            })}
-          </div>
-          <Btn onClick={function() { setDeckView(true); }} style={{ marginTop: 6 }}>📦덱 보기</Btn>
-        </div>
-        <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-      </div>
-    );
-  }
-
-  if (screen === "shop") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ padding: "12px 14px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ fontSize: 16 }}>🏪 대장간</h2>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <span style={{ fontSize: 14 }}>❤️{hp}/{MAX_HP}</span>
-            <span style={{ color: "var(--gd)", fontWeight: 700 }}>💰{gold}</span>
-            <button
-              onClick={function() { setDeckView(true); }}
-              style={{ background: "var(--bd)", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 13, color: "var(--tx)", cursor: "pointer", fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700 }}
-            >
-              📦덱
-            </button>
-          </div>
-        </div>
-        {(function() { var discount = upgradeLevels.merchant > 0 ? 0.8 : 1; return (
-        <div style={{ flex: 1, padding: 16, display: "flex", flexDirection: "column", gap: 18, overflow: "auto" }}>
-          <div>
-            <h3 style={{ fontSize: 14, marginBottom: 8 }}>📦 카드</h3>
-            <div style={{ display: "flex", gap: 8 }}>
-              {shopCards.map(function(c) {
-                var cost = Math.floor((c.grade * 3 + (c.isCommon ? 2 : 0) + (c.keyword ? 5 : 0)) * discount);
-                return (
-                  <div key={c.id} style={{ textAlign: "center" }}>
-                    <CardView card={c} cls={classData} small />
-                    <Btn onClick={function() { buyCard(c, cost); }} disabled={gold < cost} style={{ fontSize: 14, padding: "5px 12px", marginTop: 4 }}>
-                      💰{cost}
-                    </Btn>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          {shopRelic && (
-            <div>
-              <h3 style={{ fontSize: 14, marginBottom: 8 }}>🔮 유물</h3>
-              {(function() {
-                var relicCost = Math.floor((shopRelic.tier === 1 ? 30 : shopRelic.tier === 2 ? 50 : 75) * discount);
-                return (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid " + (shopRelic.tier >= 3 ? "#f97316" : shopRelic.tier >= 2 ? "#a855f7" : "var(--bd)"), textAlign: "center" }}>
-                      <div style={{ fontSize: 20 }}>{shopRelic.emoji}</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>{shopRelic.name}</div>
-                      <div style={{ fontSize: 16, color: "var(--dm)" }}>{shopRelic.desc}</div>
-                    </div>
-                    <Btn onClick={function() { buyRelic(shopRelic, relicCost); }} disabled={gold < relicCost} color="#7c3aed">💰{relicCost}</Btn>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-          {(function() { var healCost = Math.floor(10 * discount); return (
-          <div>
-            <h3 style={{ fontSize: 14, marginBottom: 8 }}>❤️ 회복 (1회 한정)</h3>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ padding: 10, background: "var(--cd)", borderRadius: 10, border: "1px solid var(--bd)", textAlign: "center", minWidth: 100 }}>
-                <div style={{ fontSize: 20 }}>🧪</div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginTop: 3 }}>회복 물약</div>
-                <div style={{ fontSize: 13, color: "var(--dm)" }}>HP +15</div>
-              </div>
-              <Btn
-                onClick={function() {
-                  if (shopHealed || gold < healCost || hp >= MAX_HP) return;
-                  sfx.heal();
-                  setGold(function(g) { return g - healCost; });
-                  setHp(function(h) { return Math.min(MAX_HP, h + 15); });
-                  setShopHealed(true);
-                }}
-                disabled={shopHealed || gold < healCost || hp >= MAX_HP}
-                color="#22c55e"
-              >
-                {shopHealed ? "완료" : hp >= MAX_HP ? "만탄" : "💰" + healCost}
-              </Btn>
-            </div>
-          </div>
-          ); })()}
-          {(function() { var removeCost = Math.floor(10 * discount); return (
-          <div>
-            <h3 style={{ fontSize: 14, marginBottom: 8 }}>🗑️ 제거 (💰{removeCost}, {2 - shopRemoved}회 남음)</h3>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {deck.slice().sort(function(a, b) {
-                var suitOrd = { red: 0, blue: 1, yellow: 2 };
-                if (a.isCommon !== b.isCommon) return a.isCommon ? 1 : -1;
-                if (!a.isCommon && !b.isCommon) {
-                  if (a.suitId !== b.suitId) return (suitOrd[a.suitId] || 0) - (suitOrd[b.suitId] || 0);
-                  return a.grade - b.grade;
-                }
-                if (a.isCommon && b.isCommon) return a.common.id.localeCompare(b.common.id);
-                return 0;
-              }).map(function(c) {
-                var canRemove = gold >= removeCost && deck.length > 10 && shopRemoved < 2;
-                return (
-                  <div
-                    key={c.id}
-                    onClick={function() { removeCard(c, removeCost); }}
-                    style={{ cursor: canRemove ? "pointer" : "default", opacity: canRemove ? 1 : 0.3 }}
-                  >
-                    <CardView card={c} cls={classData} small />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          ); })()}
-        </div>
-        ); })()}
-        <div style={{ padding: 12, borderTop: "1px solid var(--bd)", textAlign: "center" }}>
-          <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: 14, padding: "12px 36px" }}>
-            {floor >= 5 ? "🏆 클리어!" : "다음 층 →"}
-          </Btn>
-        </div>
-        <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-      </div>
-    );
-  }
-
   // Compute earned points for this run
   var runPoints = bossesKilled.reduce(function(sum, p) { return sum + p; }, 0);
   var isVictory = screen === "victory";
@@ -2077,59 +1154,57 @@ export default function DungeonHand() {
     if (dest === "menu") sfx.bgmOn("home");
   }
 
-  if (screen === "victory") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14 }}>
-          <div style={{ fontSize: 48, animation: "victBounce 1.5s ease infinite" }}>🏆</div>
-          <h1 style={{ fontSize: 16, fontFamily: "'Silkscreen', cursive", background: "linear-gradient(135deg,#fbbf24,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            VICTORY!
-          </h1>
-          <div style={{ display: "flex", gap: 16 }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--gd)" }}>💰{gold}</div>
-              <div style={{ fontSize: 14, color: "var(--dm)" }}>골드</div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#a855f7" }}>{relics.length}</div>
-              <div style={{ fontSize: 14, color: "var(--dm)" }}>유물</div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#f97316" }}>+{runPoints}⭐</div>
-              <div style={{ fontSize: 14, color: "var(--dm)" }}>포인트</div>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>
-            <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // === GAME PROPS OBJECT ===
+  var game = {
+    wrapStyle: wrapStyle, audioButton: audioButton, CSS: CSS, sfx: sfx,
+    screen: screen, classId: classId, classData: classData,
+    floor: floor, battleNum: battleNum, gold: gold, hp: hp, MAX_HP: MAX_HP,
+    metaPoints: metaPoints, upgradeLevels: upgradeLevels, resetCount: resetCount, skillTab: skillTab,
+    relics: relics, deck: deck, hand: hand, selected: selected,
+    monster: monster, discards: discards, roundNum: roundNum,
+    damageInfo: damageInfo, currentHand: currentHand,
+    monShake: monShake, monShakeHard: monShakeHard,
+    playerShake: playerShake, enemyAttacking: enemyAttacking, busy: busy,
+    rewardCards: rewardCards, rewardRelics: rewardRelics,
+    shopCards: shopCards, shopRelic: shopRelic, shopHealed: shopHealed, shopRemoved: shopRemoved,
+    campEvent: campEvent, stolenCard: stolenCard, campPhase: campPhase,
+    overlay: overlay, enemyDmgShow: enemyDmgShow,
+    passiveState: passiveState, gambleBuff: gambleBuff, gambleAnim: gambleAnim,
+    poison: poison, frozenIds: frozenIds, tenacityUsed: tenacityUsed,
+    bossDialogue: bossDialogue, encounterOverlay: encounterOverlay,
+    gambitChoices: gambitChoices, splitMon: splitMon, passiveMsg: passiveMsg,
+    deckView: deckView, deckSort: deckSort, newCardIds: newCardIds,
+    pendingRelic: pendingRelic, runPoints: runPoints,
+    submitLimit: submitLimit, preview: preview, previewDmg: previewDmg,
+    // Setters
+    setScreen: setScreen, setMetaPoints: setMetaPoints, setUpgradeLevels: setUpgradeLevels,
+    setResetCount: setResetCount, setSkillTab: setSkillTab,
+    setGold: setGold, setHp: setHp, setShopHealed: setShopHealed,
+    setOverlay: setOverlay, setDeckView: setDeckView, setDeckSort: setDeckSort,
+    // Functions
+    startRun: startRun, toggleCard: toggleCard, submitCards: submitCards, doDiscard: doDiscard,
+    pickGambitCard: pickGambitCard, addCardToDeck: addCardToDeck, skipReward: skipReward,
+    enhanceCard: enhanceCard, pickRelic: pickRelic, swapRelic: swapRelic,
+    discardPendingRelic: discardPendingRelic,
+    buyCard: buyCard, buyRelic: buyRelic, removeCard: removeCard, leaveShop: leaveShop,
+    claimAndGo: claimAndGo,
+    enterPhase2: enterPhase2, enterPhase3: enterPhase3,
+    leaveCampfire: leaveCampfire, resolveCampfire: resolveCampfire, sellCard: sellCard,
+  };
 
-  if (screen === "defeat") {
-    return (
-      <div style={wrapStyle}>
-        <style>{CSS}</style>
-        {audioButton}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14 }}>
-          <div style={{ fontSize: 44 }}>💀</div>
-          <h1 style={{ fontSize: 18, fontFamily: "'Silkscreen', cursive", color: "var(--rd)" }}>DEFEAT</h1>
-          <p style={{ color: "var(--dm)" }}>{floor}층에서 쓰러졌습니다...</p>
-          {runPoints > 0 && (
-            <div style={{ fontSize: 14, color: "#f97316", fontWeight: 700 }}>+{runPoints}⭐ 획득</div>
-          )}
-          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <Btn onClick={function() { claimAndGo("menu"); }} color="#22c55e">🏠 홈 화면</Btn>
-            <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // === SCREEN ROUTING ===
+  if (pendingRelic) return <PendingRelicOverlay game={game} />;
+  if (screen === "village") return <VillageScreen game={game} />;
+  if (screen === "menu") return <MenuScreen game={game} />;
+  if (screen === "classSelect") return <ClassSelectScreen game={game} />;
+  if (screen === "campfire") return <CampfireScreen game={game} />;
+  if (screen === "battle") return <BattleScreen game={game} />;
+  if (screen === "reward") return <RewardScreen game={game} />;
+  if (screen === "enhance") return <EnhanceScreen game={game} />;
+  if (screen === "relicReward") return <RelicRewardScreen game={game} />;
+  if (screen === "shop") return <ShopScreen game={game} />;
+  if (screen === "victory") return <VictoryScreen game={game} />;
+  if (screen === "defeat") return <DefeatScreen game={game} />;
 
   return (
     <div style={wrapStyle}>

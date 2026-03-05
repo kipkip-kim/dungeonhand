@@ -174,6 +174,16 @@
 - sfx API 인터페이스 100% 유지 (DungeonHand_v3.jsx/components.jsx 변경 없음) ✅
 - iOS 오디오 잠금 해제 유지, 재생 실패 무음 처리 ✅
 
+### ~~세션 21: 화면별 파일 분리~~ ✅ 완료
+- screens/SmallScreens.jsx (293줄) — menu, classSelect, reward, enhance, relicReward, victory, defeat, pendingRelic ✅
+- screens/CampfireScreen.jsx (179줄) — 캠프파이어 3페이즈 + 6이벤트 ✅
+- screens/VillageScreen.jsx (141줄) — 스킬 트리 UI ✅
+- screens/BattleScreen.jsx (285줄) — 전투 UI + 인카운터/대사/갬빗 오버레이 ✅
+- screens/ShopScreen.jsx (130줄) — 상점 UI ✅
+- 캠프파이어 로컬 함수 5개 메인 본문으로 호이스팅 ✅
+- game 단일 props 객체로 화면 라우팅 ✅
+- DungeonHand_v3.jsx 2,140줄 → 1,215줄 ✅
+
 ---
 
 ## 기능 추가 체크리스트
@@ -207,14 +217,21 @@
 
 ### 현재 구조 (멀티 파일)
 ```
-audio.js          (97줄)  — sfx 객체 (HTMLAudioElement 기반)
-data.js           (240줄) — SUITS, CLASSES, MONSTERS, RELICS, SKILL_TREES 등 모든 상수
-utils.js          (247줄) — shuffle, makeDeck, detectHand, calcDamage 등
-styles.js         (31줄)  — CSS 문자열
-components.jsx    (350줄) — CardView, HpBar, Btn, DeckViewer
-DungeonHand_v3.jsx (1,998줄) — 메인 게임 컴포넌트 (useState + 로직 + JSX)
+audio.js              (97줄)  — sfx 객체 (HTMLAudioElement 기반)
+data.js               (240줄) — SUITS, CLASSES, MONSTERS, RELICS, SKILL_TREES 등 모든 상수
+utils.js              (247줄) — shuffle, makeDeck, detectHand, calcDamage 등
+styles.js             (31줄)  — CSS 문자열
+components.jsx        (350줄) — CardView, HpBar, Btn, DeckViewer
+DungeonHand_v3.jsx    (1,215줄) — 메인 게임 컴포넌트 (useState + 로직 + game 객체 + 화면 라우팅)
+screens/
+  SmallScreens.jsx    (293줄) — menu, classSelect, reward, enhance, relicReward, victory, defeat, pendingRelic
+  BattleScreen.jsx    (285줄) — 전투 UI + 인카운터/대사/갬빗 오버레이
+  CampfireScreen.jsx  (179줄) — 캠프파이어 3페이즈 + 6이벤트
+  VillageScreen.jsx   (141줄) — 스킬 트리 UI
+  ShopScreen.jsx      (130줄) — 상점 UI
 ```
 - DungeonHand 컴포넌트: useState 58개, 함수 ~40개
+- 화면 컴포넌트는 game 단일 props 객체로 필요한 state/callback 수신
 
 ### 확장 난이도
 | 작업 | 난이도 | 사유 |

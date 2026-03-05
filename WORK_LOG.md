@@ -495,7 +495,28 @@ public/audio/          총 1.54MB
 
 ---
 
-## 다음 세션 TODO (세션 20)
+## 세션 21 (2026-03-05) — 화면별 파일 분리
+
+### 완료
+- [x] screens/SmallScreens.jsx 생성 (293줄) — menu, classSelect, reward, enhance, relicReward, victory, defeat, pendingRelic 8개 컴포넌트
+- [x] screens/CampfireScreen.jsx 생성 (179줄) — 캠프파이어 3페이즈 + 6이벤트
+- [x] screens/VillageScreen.jsx 생성 (141줄) — 스킬 트리 UI
+- [x] screens/BattleScreen.jsx 생성 (285줄) — 전투 UI + 인카운터/대사/갬빗 오버레이
+- [x] screens/ShopScreen.jsx 생성 (130줄) — 상점 UI
+- [x] 캠프파이어 로컬 함수 5개 (enterPhase2/enterPhase3/leaveCampfire/resolveCampfire/sellCard) 메인 본문으로 호이스팅
+- [x] game 단일 props 객체 구성 + 화면 라우팅 12개 컴포넌트 호출로 교체
+- [x] CLAUDE.md/WORK_LOG.md 업데이트
+
+### 줄 수 변화
+- 분할 전: DungeonHand_v3.jsx 2,140줄
+- 분할 후: DungeonHand_v3.jsx 1,215줄 + screens/ 1,028줄 = 2,243줄 (import/export 추가분)
+
+### 검증
+- 빌드 성공 (221.13 kB)
+
+---
+
+## 다음 세션 TODO
 
 ### 게임 UI 전반 개선
 - 전반적인 게임 UI를 보기 좋고 사용하기 좋게 만들기

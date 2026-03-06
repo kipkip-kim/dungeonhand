@@ -39,21 +39,8 @@ export function BattleScreen({ game }) {
             : "radial-gradient(circle, #1a1808 0%, var(--bg) 70%)",
         }}>
           <div style={{ animation: "encounterIn 0.6s ease", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div style={{ fontSize: 72, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
-              {encounterOverlay.img ? (
-                <img
-                  src={import.meta.env.BASE_URL + "images/monsters/" + encounterOverlay.img + ".png"}
-                  alt={encounterOverlay.name}
-                  style={{
-                    width: "clamp(680px, calc(var(--gw) * 1.4), 1120px)",
-                    height: "auto",
-                    imageRendering: "pixelated",
-                    filter: "drop-shadow(0 6px 24px rgba(0,0,0,0.8))",
-                  }}
-                  onError={function(e) { e.target.style.display = "none"; e.target.nextSibling.style.display = "inline"; }}
-                />
-              ) : null}
-              <span style={{ display: encounterOverlay.img ? "none" : "inline" }}>{encounterOverlay.emoji}</span>
+            <div style={{ fontSize: 144, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
+              {encounterOverlay.emoji}
             </div>
             <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "var(--gd)" : "var(--ac)", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
               {encounterOverlay.name}
@@ -109,7 +96,7 @@ export function BattleScreen({ game }) {
         {/* === 1인칭 뷰: 몬스터(상) + 데미지(하) === */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", overflow: "hidden", position: "relative" }}>
         {/* --- 몬스터 그룹 (위쪽) --- */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", gap: "clamp(4px, 1vh, 8px)", paddingBottom: "clamp(50px, 10vh, 80px)" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", gap: "clamp(4px, 1vh, 8px)", paddingBottom: "clamp(10px, 2vh, 20px)" }}>
         <div style={{ textAlign: "center", padding: "2px 0", flexShrink: 0, position: "relative" }}>
           {monster && (
             <div>
@@ -123,23 +110,16 @@ export function BattleScreen({ game }) {
                 {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
                 {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
               </div>
-              <div style={{ fontSize: monster.boss ? "clamp(48px, calc(var(--gw) * 0.096), 88px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
-                {monster.img ? (
-                  <img
-                    src={import.meta.env.BASE_URL + "images/monsters/" + monster.img + ".png"}
-                    alt={monster.name}
-                    style={{
-                      width: monster.boss ? "clamp(600px, calc(var(--gw) * 1.4), 1120px)" : "clamp(480px, calc(var(--gw) * 1.16), 960px)",
-                      height: "auto",
-                      imageRendering: "pixelated",
-                      filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.7))",
-                      flexShrink: 0,
-                    }}
-                    onError={function(e) { e.target.style.display = "none"; e.target.nextSibling.style.display = "inline"; }}
-                  />
-                ) : null}
-                <span style={{ display: monster.img ? "none" : "inline" }}>{monster.emoji}</span>
+              <div style={{ fontSize: monster.boss ? "clamp(96px, calc(var(--gw) * 0.192), 176px)" : "clamp(80px, calc(var(--gw) * 0.16), 144px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
+                {monster.emoji}
               </div>
+              <div style={{
+                width: "40%",
+                height: 0,
+                margin: "-2px auto 0",
+                boxShadow: "0 0 clamp(20px,4vw,40px) clamp(10px,2vw,20px) rgba(0,0,0,0.5)",
+                borderRadius: "50%",
+              }} />
               <div style={{ marginTop: 3, fontSize: "clamp(12px, calc(var(--gw) * 0.024), 18px)", color: "var(--dm)", background: splitMon ? "var(--cd)" : "transparent", borderRadius: 4, padding: "2px 8px", display: "inline-block", visibility: splitMon ? "visible" : "hidden" }}>
                 {splitMon ? "대기: " + splitMon.emoji + " HP" + splitMon.hp : "\u00A0"}
               </div>
@@ -282,7 +262,7 @@ export function BattleScreen({ game }) {
         </div>
 
         {/* === 손패 고정 영역 === */}
-        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(4px, calc(var(--gw) * 0.008), 8px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, height: "clamp(110px, calc(var(--gw) * 0.22), 200px)" }}>
+        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(4px, calc(var(--gw) * 0.008), 8px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, height: "clamp(110px, calc(var(--gw) * 0.22), 200px)", background: "var(--bg)" }}>
           {hand.map(function(c, idx) {
             var isNew = newCardIds.indexOf(c.id) >= 0;
             var isFrozen = frozenIds.indexOf(c.id) >= 0;

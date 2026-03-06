@@ -235,20 +235,35 @@ const ULTIMATE_SKILL = {
 const BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
 
 const SCREEN_BG = {
-  menu: "images/bg/menu.webp",
-  village: "images/bg/village.webp",
-  shop: "images/bg/shop.webp",
+  menu: "images/bg/menu.png",
+  village: "images/bg/village.png",
+  shop: "images/bg/shop.png",
 };
 
 function getBattleBg(floor, battleNum) {
   var f = Math.max(1, Math.min(5, floor || 1));
   var prefix = battleNum === 5 ? "bossbattle" : "battle";
-  return "images/bg/" + prefix + "0" + f + ".webp";
+  return "images/bg/" + prefix + "0" + f + ".png";
 }
 
 function getCampfireBg(floor) {
   var f = Math.max(1, Math.min(5, floor || 1));
-  return "images/bg/campfire0" + f + ".webp";
+  return "images/bg/campfire0" + f + ".png";
 }
 
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG, getBattleBg, getCampfireBg };
+function getFloorFilter(floor, shadow) {
+  var presets = {
+    1: { sepia: 0.15, hue: -10, sat: 0.9, bright: 1.05, color: "34,51,20" },
+    2: { sepia: 0.12, hue: 170, sat: 0.8, bright: 1.0, color: "30,50,70" },
+    3: { sepia: 0.1, hue: 230, sat: 0.95, bright: 1.0, color: "80,40,120" },
+    4: { sepia: 0.2, hue: 250, sat: 0.7, bright: 0.9, color: "50,20,80" },
+    5: { sepia: 0.12, hue: 330, sat: 1.1, bright: 1.0, color: "120,40,20" },
+  };
+  var p = presets[Math.max(1, Math.min(5, floor || 1))] || presets[1];
+  var ds = shadow === "large"
+    ? "drop-shadow(0 6px 24px rgba(" + p.color + ",0.8))"
+    : "drop-shadow(0 4px 16px rgba(" + p.color + ",0.7))";
+  return "sepia(" + p.sepia + ") hue-rotate(" + p.hue + "deg) saturate(" + p.sat + ") brightness(" + p.bright + ") " + ds;
+}
+
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG, getBattleBg, getCampfireBg, getFloorFilter };

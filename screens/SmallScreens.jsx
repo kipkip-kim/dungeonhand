@@ -211,14 +211,14 @@ export function RelicRewardScreen({ game }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>👑 보스 처치!</div>
         <h3 style={{ fontSize: "var(--fs-lg)" }}>유물 선택</h3>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", padding: "0 8px" }}>
           {rewardRelics.map(function(r) {
             var borderCol = relicBorderColor(r.tier);
             return (
               <div
                 key={r.id}
                 onClick={function() { pickRelic(r); }}
-                style={{ width: "clamp(140px, calc(var(--gw) * 0.28), 200px)", padding: 20, background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
+                style={{ width: "clamp(100px, calc(var(--gw) * 0.26), 180px)", padding: "14px 10px", background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
               >
                 <span style={{ fontSize: 24 }}>{r.emoji}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{r.name}</span>

@@ -811,6 +811,7 @@ function HpBar(props) {
   const emojiSize = props.isPlayer ? "clamp(32px, calc(var(--gw) * 0.064), 58px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)";
   const nameSize = props.boss ? "clamp(18px, calc(var(--gw) * 0.036), 32px)" : props.isPlayer ? "clamp(14px, calc(var(--gw) * 0.028), 24px)" : "clamp(16px, calc(var(--gw) * 0.032), 28px)";
 
+  var txtShadow = "0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)";
   return (
     <div style={{ textAlign: "center", animation: anim }}>
       <div style={{
@@ -818,6 +819,7 @@ function HpBar(props) {
         fontWeight: 700,
         marginBottom: 3,
         fontFamily: "'Noto Sans KR', sans-serif",
+        textShadow: txtShadow,
       }}>
         {props.name}
         {props.boss && <span style={{ color: "var(--gd)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 22px)", marginLeft: 4 }}>BOSS</span>}
@@ -847,6 +849,7 @@ function HpBar(props) {
         color: "var(--dm)",
         marginTop: 2,
         fontFamily: "'Silkscreen', cursive",
+        textShadow: txtShadow,
       }}>
         {Math.max(0, props.current)}/{props.max}
       </div>
@@ -1224,14 +1227,14 @@ function RelicRewardScreen({ game }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>👑 보스 처치!</div>
         <h3 style={{ fontSize: "var(--fs-lg)" }}>유물 선택</h3>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", padding: "0 8px" }}>
           {rewardRelics.map(function(r) {
             var borderCol = relicBorderColor(r.tier);
             return (
               <div
                 key={r.id}
                 onClick={function() { pickRelic(r); }}
-                style={{ width: "clamp(140px, calc(var(--gw) * 0.28), 200px)", padding: 20, background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
+                style={{ width: "clamp(100px, calc(var(--gw) * 0.26), 180px)", padding: "14px 10px", background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
               >
                 <span style={{ fontSize: 24 }}>{r.emoji}</span>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{r.name}</span>
@@ -1322,7 +1325,7 @@ function CampfireScreen({ game }) {
             <div style={{ fontSize: 48, marginBottom: 12 }}>🔥</div>
             <div style={{ fontSize: "var(--fs-md)", color: "var(--dm)", marginBottom: 4 }}>{floor}층 {FLOOR_NAMES[floor]}</div>
             <h2 style={{ fontSize: "var(--fs-lg)", color: "var(--or)", marginBottom: 12 }}>화톳불을 발견했다</h2>
-            <div style={{ background: "#ffffff55", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+            <div style={{ background: "rgba(20,16,10,0.85)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
               <p style={{ color: "var(--dm)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                 저 앞에 따뜻한 빛이 보인다.
                 <br />지친 몸을 이끌고 불 옆에 다가간다.
@@ -1340,7 +1343,7 @@ function CampfireScreen({ game }) {
           <div style={{ textAlign: "center", animation: "slideUp 0.5s ease" }}>
             <div style={{ fontSize: 48, marginBottom: 12, animation: "victBounce 2s ease infinite" }}>🔥</div>
             <h2 style={{ fontSize: "var(--fs-lg)", color: "var(--or)", marginBottom: 12 }}>휴식</h2>
-            <div style={{ background: "#2d9b4e77", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+            <div style={{ background: "rgba(25,80,40,0.85)", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
               <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                 따뜻한 불빛이 몸을 감싼다.
                 <br />잠시 눈을 감고 상처를 돌본다.
@@ -1365,7 +1368,7 @@ function CampfireScreen({ game }) {
 
             {/* No event */}
             {campEvent.id === "none" && (
-              <div style={{ background: "#ffffff55", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "rgba(20,16,10,0.85)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                   고요한 밤이었다.
                   <br />충분히 쉬었으니 발걸음을 옮긴다.
@@ -1378,7 +1381,7 @@ function CampfireScreen({ game }) {
 
             {/* Fairy */}
             {campEvent.id === "fairy" && (
-              <div style={{ background: "#9b59b688", border: "1px solid var(--ac)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "rgba(80,30,100,0.85)", border: "1px solid var(--ac)", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🧚</div>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                   잠에서 깨니 작은 빛이 주위를 맴돌고 있다.
@@ -1396,7 +1399,7 @@ function CampfireScreen({ game }) {
 
             {/* Rest */}
             {campEvent.id === "rest" && (
-              <div style={{ background: "#2d9b4e77", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "rgba(25,80,40,0.85)", border: "1px solid #2d9b4e44", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>😴</div>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                   깊고 편안한 잠에 빠졌다.
@@ -1413,7 +1416,7 @@ function CampfireScreen({ game }) {
 
             {/* Ambush */}
             {campEvent.id === "ambush" && (
-              <div style={{ background: "#c0392b88", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "rgba(120,30,20,0.85)", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🐺</div>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                   갑자기 덤불에서 바스락거리는 소리가 들린다!
@@ -1430,7 +1433,7 @@ function CampfireScreen({ game }) {
 
             {/* Thief */}
             {campEvent.id === "thief" && (
-              <div style={{ background: "#c0392b88", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "rgba(120,30,20,0.85)", border: "1px solid #c0392b", borderRadius: 12, padding: "16px 24px", maxWidth: 300, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>🤡</div>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.7, margin: 0 }}>
                   잠에서 깨니 뭔가 허전하다...
@@ -1454,7 +1457,7 @@ function CampfireScreen({ game }) {
 
             {/* Merchant */}
             {campEvent.id === "merchant" && (
-              <div style={{ background: "#e8a82088", border: "1px solid var(--gd)", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+              <div style={{ background: "rgba(140,100,15,0.85)", border: "1px solid var(--gd)", borderRadius: 12, padding: "14px 16px", maxWidth: 400, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize: 24, marginBottom: 6 }}>🏪</div>
                 <p style={{ color: "var(--sb)", fontSize: "var(--fs-md)", lineHeight: 1.6, margin: 0 }}>
                   "좋은 카드가 있으면 제값에 사겠소."
@@ -1750,7 +1753,7 @@ function BattleScreen({ game }) {
           {monster && (
             <div>
               <HpBar current={monster.hp} max={monster.maxHp} name={monster.name} boss={monster.boss} miniboss={monster.miniboss} />
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 3, visibility: monster.hp > 0 ? "visible" : "hidden" }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 3, visibility: monster.hp > 0 ? "visible" : "hidden", textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)" }}>
                 <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 2s ease infinite" }}>
                   ⚔️{monster.atk}~{monster.atk + 2}
                 </span>

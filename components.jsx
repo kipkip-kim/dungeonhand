@@ -158,6 +158,7 @@ function HpBar(props) {
   const emojiSize = props.isPlayer ? "clamp(32px, calc(var(--gw) * 0.064), 58px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)";
   const nameSize = props.boss ? "clamp(18px, calc(var(--gw) * 0.036), 32px)" : props.isPlayer ? "clamp(14px, calc(var(--gw) * 0.028), 24px)" : "clamp(16px, calc(var(--gw) * 0.032), 28px)";
 
+  var txtShadow = "0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)";
   return (
     <div style={{ textAlign: "center", animation: anim }}>
       <div style={{
@@ -165,6 +166,7 @@ function HpBar(props) {
         fontWeight: 700,
         marginBottom: 3,
         fontFamily: "'Noto Sans KR', sans-serif",
+        textShadow: txtShadow,
       }}>
         {props.name}
         {props.boss && <span style={{ color: "var(--gd)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 22px)", marginLeft: 4 }}>BOSS</span>}
@@ -194,6 +196,7 @@ function HpBar(props) {
         color: "var(--dm)",
         marginTop: 2,
         fontFamily: "'Silkscreen', cursive",
+        textShadow: txtShadow,
       }}>
         {Math.max(0, props.current)}/{props.max}
       </div>

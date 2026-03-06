@@ -277,6 +277,13 @@
 - wrapStyle background 멀티레이어화 (gradient + url) ✅
 - imageRendering: pixelated 추가 ✅
 
+### ~~세션 41: 코드 품질 정리 5건~~ ✅ 완료
+- getFloorFilter() dead code 삭제 ✅
+- 매직넘버 상수 추출 (CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE) ✅
+- SUIT_ORDER 상수 추출 + 3곳 교체 ✅
+- 미사용/이중 import 정리 ✅
+- dead comment 제거 ✅
+
 ---
 
 ## 기능 추가 체크리스트

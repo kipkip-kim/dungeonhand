@@ -131,7 +131,7 @@ const MONSTERS = [
   { name: "그림자 포식자", emoji: "🌑", img: "shadow", hp: 78, atk: 9 },
   { name: "심연의 눈", emoji: "👁️", img: "abyss_eye", hp: 98, atk: 11, erode: 1 },
   { name: "공허의 사도", emoji: "🕳️", img: "void_apostle", hp: 124, atk: 12, miniboss: true, erode: 2 },
-  { name: "심연의 군주", emoji: "🌀", img: "abyss_lord", hp: 176, atk: 15, boss: true, erode: 2 },
+  { name: "심연의 군주", emoji: "👿", img: "abyss_lord", hp: 176, atk: 15, boss: true, erode: 2 },
   // Floor 5: 드래곤 둥지 (indices 16-19)
   { name: "드래곤 알지기", emoji: "🥚", img: "dragon_keeper", hp: 117, atk: 12 },
   { name: "드래곤 새끼", emoji: "🐉", img: "dragon_young", hp: 143, atk: 14, burn: 1 },
@@ -151,11 +151,11 @@ const CAMPFIRE_EVENTS = [
 const RELICS = [
   { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 }, classId: null },
   { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 }, classId: null },
-  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.5", tier: 1, eff: { type: "gamble", win: 1, lose: -0.5 }, classId: null },
-  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 2 반사", tier: 1, eff: { type: "thorns", val: 2 }, classId: null },
+  { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.3", tier: 1, eff: { type: "gamble", win: 1, lose: -0.3 }, classId: null },
+  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 3 반사", tier: 1, eff: { type: "thorns", val: 3 }, classId: null },
   { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 }, classId: null },
   { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 }, classId: null },
-  { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급4↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 4, val: 2 }, classId: null },
+  { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급5↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 5, val: 2 }, classId: null },
   { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 }, classId: null },
   { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 }, classId: null },
   { id: "inf", name: "무한의 덱", emoji: "♾️", desc: "매 턴 드로우 +1", tier: 3, eff: { type: "drawAdd", val: 1 }, classId: null },
@@ -219,7 +219,7 @@ const SKILL_TREES = [
     id: "ranger_yellow", name: "급소", icon: "⭐", classId: "ranger", color: "#f0b930",
     nodes: [
       { id: "yellowCollect", name: "⭐수집", icon: "⭐", desc: "보상시 ⭐카드 1장 보장", cost: 4, max: 1 },
-      { id: "critMastery", name: "급소숙련", icon: "🗡️", desc: "치명타 +10%", cost: 4, max: 2 },
+      { id: "critMastery", name: "급소숙련", icon: "🗡️", desc: "치명타 +10%", cost: 3, max: 2 },
       { id: "quickStrike", name: "속전속결", icon: "⚡", desc: "첫턴 치명타 2배", cost: 6, max: 1 },
       { id: "critDamage", name: "치명타격", icon: "💥", desc: "치명 x1.5→x2.0", cost: 8, max: 1 },
     ],
@@ -231,6 +231,12 @@ const ULTIMATE_SKILL = {
   desc: "제출마다 주사위! 데미지 배율 33% x0.5 / 33% x1.5 / 33% x3",
   unlockCost: 40,
 };
+
+const SUIT_ORDER = { red: 0, blue: 1, yellow: 2 };
+
+const CAMP_HEAL = 10;
+const CAMP_REST_HEAL = 5;
+const BURN_DAMAGE = 3;
 
 const BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
 
@@ -251,19 +257,4 @@ function getCampfireBg(floor) {
   return "images/bg/campfire0" + f + ".png";
 }
 
-function getFloorFilter(floor, shadow) {
-  var presets = {
-    1: { sepia: 0.15, hue: -10, sat: 0.9, bright: 1.05, color: "34,51,20" },
-    2: { sepia: 0.12, hue: 170, sat: 0.8, bright: 1.0, color: "30,50,70" },
-    3: { sepia: 0.1, hue: 230, sat: 0.95, bright: 1.0, color: "80,40,120" },
-    4: { sepia: 0.2, hue: 250, sat: 0.7, bright: 0.9, color: "50,20,80" },
-    5: { sepia: 0.12, hue: 330, sat: 1.1, bright: 1.0, color: "120,40,20" },
-  };
-  var p = presets[Math.max(1, Math.min(5, floor || 1))] || presets[1];
-  var ds = shadow === "large"
-    ? "drop-shadow(0 6px 24px rgba(" + p.color + ",0.8))"
-    : "drop-shadow(0 4px 16px rgba(" + p.color + ",0.7))";
-  return "sepia(" + p.sepia + ") hue-rotate(" + p.hue + "deg) saturate(" + p.sat + ") brightness(" + p.bright + ") " + ds;
-}
-
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG, getBattleBg, getCampfireBg, getFloorFilter };
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg };

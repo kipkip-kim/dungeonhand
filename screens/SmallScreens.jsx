@@ -1,6 +1,5 @@
-import { CLASSES } from "../data.js";
-import { relicBorderColor } from "../components.jsx";
-import { CardView, Btn, DeckViewer } from "../components.jsx";
+import { CLASSES, SUIT_ORDER } from "../data.js";
+import { relicBorderColor, CardView, Btn, DeckViewer } from "../components.jsx";
 
 // === RELIC SWAP OVERLAY ===
 export function PendingRelicOverlay({ game }) {
@@ -145,7 +144,7 @@ export function RewardScreen({ game }) {
 export function EnhanceScreen({ game }) {
   var { wrapStyle, CSS, audioButton, deck, classData, enhanceCard, skipReward, deckView, setDeckView, deckSort, setDeckSort } = game;
   var enhanceable = deck.filter(function(c) { return (c.enhanceCount || 0) < 2; });
-  var suitOrder = { red: 0, blue: 1, yellow: 2 };
+  var suitOrder = SUIT_ORDER;
   var sorted = enhanceable.slice().sort(function(a, b) {
     if (a.isCommon !== b.isCommon) return a.isCommon ? 1 : -1;
     if (!a.isCommon && !b.isCommon) {

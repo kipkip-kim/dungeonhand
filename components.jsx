@@ -1,4 +1,4 @@
-import { SUITS } from "./data.js";
+import { SUITS, SUIT_ORDER, BURN_DAMAGE } from "./data.js";
 import { getCardName } from "./utils.js";
 import { sfx } from "./audio.js";
 
@@ -34,7 +34,7 @@ function CardView(props) {
       >
         <span style={{ fontSize: "clamp(" + (small ? "20px, calc(var(--gw) * 0.04), 36px)" : "24px, calc(var(--gw) * 0.048), 44px)") }}>🔥</span>
         <span style={{ fontSize: "clamp(" + (small ? "9px, calc(var(--gw) * 0.018), 16px)" : "11px, calc(var(--gw) * 0.022), 20px)"), color: "var(--bn)", fontWeight: 700 }}>화상</span>
-        <span style={{ fontSize: "clamp(" + (small ? "8px, calc(var(--gw) * 0.016), 14px)" : "10px, calc(var(--gw) * 0.02), 18px)"), color: "var(--rd)" }}>제출시 -3HP</span>
+        <span style={{ fontSize: "clamp(" + (small ? "8px, calc(var(--gw) * 0.016), 14px)" : "10px, calc(var(--gw) * 0.02), 18px)"), color: "var(--rd)" }}>{"제출시 -" + BURN_DAMAGE + "HP"}</span>
       </div>
     );
   }
@@ -245,7 +245,7 @@ function DeckViewer(props) {
 
   if (!show) return null;
 
-  const suitOrder = { red: 0, blue: 1, yellow: 2 };
+  const suitOrder = SUIT_ORDER;
   const sorted = dk.slice();
 
   if (sortMode === "grade") {

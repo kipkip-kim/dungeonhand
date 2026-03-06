@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FLOOR_NAMES } from "../data.js";
+import { FLOOR_NAMES, CAMP_HEAL, CAMP_REST_HEAL } from "../data.js";
 import { CardView, Btn } from "../components.jsx";
 
 export function CampfireScreen({ game }) {
@@ -42,7 +42,7 @@ export function CampfireScreen({ game }) {
                 <br />잠시 눈을 감고 상처를 돌본다.
               </p>
               <div style={{ marginTop: 10, fontSize: "var(--fs-md)", color: "var(--gn)", fontWeight: 700 }}>
-                ❤️ HP +10 회복!
+                ❤️ HP +{CAMP_HEAL} 회복!
               </div>
               <div style={{ fontSize: "var(--fs-sm)", color: "var(--dm)", marginTop: 4 }}>
                 {hp}/{MAX_HP}
@@ -99,7 +99,7 @@ export function CampfireScreen({ game }) {
                   <br />꿈속에서 따뜻한 빛이 상처를 감싸안았다.
                 </p>
                 <div style={{ marginTop: 10, fontSize: "var(--fs-md)", color: "var(--gn)", fontWeight: 700 }}>
-                  ❤️ 추가 HP +5 회복! (총 +15)
+                  ❤️ 추가 HP +{CAMP_REST_HEAL} 회복! (총 +{CAMP_HEAL + CAMP_REST_HEAL})
                 </div>
                 <Btn onClick={resolveCampfire} color="var(--gn)" style={{ marginTop: 12, padding: "8px 24px", fontSize: "var(--fs-md)" }}>
                   개운하다 →

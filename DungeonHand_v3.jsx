@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG, getBattleBg, getCampfireBg } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg } from "./data.js";
 import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
-import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
+import { CardView, Btn, DeckViewer } from "./components.jsx";
 import { PendingRelicOverlay, MenuScreen, ClassSelectScreen, RewardScreen, EnhanceScreen, RelicRewardScreen, VictoryScreen, DefeatScreen } from "./screens/SmallScreens.jsx";
 import { CampfireScreen } from "./screens/CampfireScreen.jsx";
 import { VillageScreen } from "./screens/VillageScreen.jsx";
@@ -389,7 +389,7 @@ export default function DungeonHand() {
     // === Burn card penalty ===
     var burnPlayed = played.filter(function(c) { return c.burning; });
     if (burnPlayed.length > 0) {
-      var burnDmg = burnPlayed.length * 3;
+      var burnDmg = burnPlayed.length * BURN_DAMAGE;
       setHp(function(prev) {
         if (prev - burnDmg <= 0) {
           if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
@@ -417,9 +417,6 @@ export default function DungeonHand() {
     if (gambitPlayed.length > 0) {
       gambitPendingRef.current = true;
     }
-
-    // === Apply poison from previous turns ===
-    // (poison damage applied before attack in submitCards)
 
     // === Poison keyword: accumulate poison on monster ===
     var poisonAmt = played.reduce(function(sum, c) {
@@ -1005,7 +1002,7 @@ export default function DungeonHand() {
 
   // === CAMPFIRE FUNCTIONS (hoisted from campfire screen) ===
   function enterPhase2() {
-    setHp(function(h) { return Math.min(MAX_HP, h + 10); });
+    setHp(function(h) { return Math.min(MAX_HP, h + CAMP_HEAL); });
     setCampPhase(2);
   }
 
@@ -1037,7 +1034,7 @@ export default function DungeonHand() {
       setPassiveState(campResult.state);
     }
     if (evtId === "rest") {
-      setHp(function(h) { return Math.min(MAX_HP, h + 5); });
+      setHp(function(h) { return Math.min(MAX_HP, h + CAMP_REST_HEAL); });
     }
     if (evtId === "thief") {
       setDeck(function(d) {

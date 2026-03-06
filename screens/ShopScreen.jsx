@@ -1,6 +1,6 @@
 import { sfx } from "../audio.js";
-import { relicBorderColor } from "../components.jsx";
-import { CardView, Btn, DeckViewer } from "../components.jsx";
+import { SUIT_ORDER } from "../data.js";
+import { relicBorderColor, CardView, Btn, DeckViewer } from "../components.jsx";
 
 export function ShopScreen({ game }) {
   var {
@@ -17,7 +17,7 @@ export function ShopScreen({ game }) {
   var healCost = Math.floor(10 * discount);
   var removeCost = Math.floor(10 * discount);
   var sortedDeck = deck.slice().sort(function(a, b) {
-    var suitOrd = { red: 0, blue: 1, yellow: 2 };
+    var suitOrd = SUIT_ORDER;
     if (a.isCommon !== b.isCommon) return a.isCommon ? 1 : -1;
     if (!a.isCommon && !b.isCommon) {
       if (a.suitId !== b.suitId) return (suitOrd[a.suitId] || 0) - (suitOrd[b.suitId] || 0);

@@ -262,13 +262,13 @@ export function BattleScreen({ game }) {
         </div>
 
         {/* === 손패 고정 영역 === */}
-        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(4px, calc(var(--gw) * 0.008), 8px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, height: "clamp(110px, calc(var(--gw) * 0.22), 200px)", background: "var(--bg)" }}>
+        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, height: "clamp(110px, calc(var(--gw) * 0.22), 200px)", background: "var(--bg)" }}>
           {hand.map(function(c, idx) {
             var isNew = newCardIds.indexOf(c.id) >= 0;
             var isFrozen = frozenIds.indexOf(c.id) >= 0;
             var isEroded = c.eroded;
             var isBurning = c.burning;
-            var baseOverlap = hand.length > 7 ? -10 : hand.length > 6 ? -6 : hand.length > 5 ? -2 : 3;
+            var baseOverlap = hand.length > 7 ? -14 : hand.length > 6 ? -10 : hand.length > 5 ? -2 : 3;
             var overlap = "clamp(" + baseOverlap + "px, calc(var(--gw) * " + (baseOverlap * 0.002) + "), " + (baseOverlap < 0 ? Math.round(baseOverlap * 1.8) + "px" : Math.round(baseOverlap * 1.8) + "px") + ")";
             return (
               <div key={c.id} style={{

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG, getBattleBg, getCampfireBg } from "./data.js";
 import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, HpBar, Btn, DeckViewer } from "./components.jsx";
@@ -205,7 +205,7 @@ export default function DungeonHand() {
     var m = MONSTERS[idx] || MONSTERS[0];
     var mhp = scaleMonsterHp(m.hp, fl);
     var matk = scaleMonsterAtk(m.atk, fl);
-    setMonster({ name: m.name, emoji: m.emoji, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false });
+    setMonster({ name: m.name, emoji: m.emoji, img: m.img, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false });
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
     }, 0);
@@ -235,7 +235,7 @@ export default function DungeonHand() {
 
     // Phase 1: Encounter overlay (boss/miniboss only)
     if (m.boss || m.miniboss) {
-      setEncounterOverlay({ emoji: m.emoji, name: m.name, boss: !!m.boss });
+      setEncounterOverlay({ emoji: m.emoji, name: m.name, boss: !!m.boss, img: m.img });
       setTimeout(function() { setEncounterOverlay(null); }, 1800);
       t += 2000;
     }
@@ -490,7 +490,7 @@ export default function DungeonHand() {
         if (prev.split && !prev.hasSplit && newHp > 0 && newHp <= prev.maxHp * 0.5) {
           var splitHp = newHp;
           var spawnHp = Math.floor(prev.maxHp * 0.4);
-          setSplitMon({ name: "마법 골렘", emoji: "🗿", hp: spawnHp, maxHp: spawnHp, atk: Math.floor(prev.atk * 0.6), freeze: 1 });
+          setSplitMon({ name: "마법 골렘", emoji: "🗿", img: "golem", hp: spawnHp, maxHp: spawnHp, atk: Math.floor(prev.atk * 0.6), freeze: 1 });
           showPassive("💥 분열! 마법 골렘 출현!");
           setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: splitHp, hasSplit: true }), played, dmg, newPoison); }, 800);
           return Object.assign({}, prev, { hp: splitHp, hasSplit: true });
@@ -1054,7 +1054,7 @@ export default function DungeonHand() {
       var am = MONSTERS[ambushIdx];
       var amhp = scaleMonsterHp(am.hp, floor);
       var amatk = scaleMonsterAtk(am.atk, floor);
-      setMonster({ name: am.name, emoji: am.emoji, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
+      setMonster({ name: am.name, emoji: am.emoji, img: am.img, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
       var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
       setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
       setRoundNum(1);
@@ -1120,7 +1120,10 @@ export default function DungeonHand() {
     : screen === "reward" || screen === "enhance" || screen === "relicReward" ? "battle"
     : screen === "victory" || screen === "defeat" ? "menu"
     : screen;
-  var bgUrl = import.meta.env.BASE_URL + (SCREEN_BG[bgKey] || SCREEN_BG.menu);
+  var bgPath = bgKey === "battle" ? getBattleBg(floor, battleNum)
+    : bgKey === "campfire" ? getCampfireBg(floor)
+    : SCREEN_BG[bgKey] || SCREEN_BG.menu;
+  var bgUrl = import.meta.env.BASE_URL + bgPath;
 
   var wrapStyle = {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",

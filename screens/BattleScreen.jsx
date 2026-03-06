@@ -40,7 +40,20 @@ export function BattleScreen({ game }) {
         }}>
           <div style={{ animation: "encounterIn 0.6s ease", display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{ fontSize: 72, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
-              {encounterOverlay.emoji}
+              {encounterOverlay.img ? (
+                <img
+                  src={import.meta.env.BASE_URL + "images/monsters/" + encounterOverlay.img + ".png"}
+                  alt={encounterOverlay.name}
+                  style={{
+                    width: "clamp(680px, calc(var(--gw) * 1.4), 1120px)",
+                    height: "auto",
+                    imageRendering: "pixelated",
+                    filter: "drop-shadow(0 6px 24px rgba(0,0,0,0.8))",
+                  }}
+                  onError={function(e) { e.target.style.display = "none"; e.target.nextSibling.style.display = "inline"; }}
+                />
+              ) : null}
+              <span style={{ display: encounterOverlay.img ? "none" : "inline" }}>{encounterOverlay.emoji}</span>
             </div>
             <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "var(--gd)" : "var(--ac)", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
               {encounterOverlay.name}
@@ -110,8 +123,22 @@ export function BattleScreen({ game }) {
                 {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
                 {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
               </div>
-              <div style={{ fontSize: monster.boss ? "clamp(48px, calc(var(--gw) * 0.096), 88px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite" }}>
-                {monster.emoji}
+              <div style={{ fontSize: monster.boss ? "clamp(48px, calc(var(--gw) * 0.096), 88px)" : "clamp(40px, calc(var(--gw) * 0.08), 72px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
+                {monster.img ? (
+                  <img
+                    src={import.meta.env.BASE_URL + "images/monsters/" + monster.img + ".png"}
+                    alt={monster.name}
+                    style={{
+                      width: monster.boss ? "clamp(600px, calc(var(--gw) * 1.4), 1120px)" : "clamp(480px, calc(var(--gw) * 1.16), 960px)",
+                      height: "auto",
+                      imageRendering: "pixelated",
+                      filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.7))",
+                      flexShrink: 0,
+                    }}
+                    onError={function(e) { e.target.style.display = "none"; e.target.nextSibling.style.display = "inline"; }}
+                  />
+                ) : null}
+                <span style={{ display: monster.img ? "none" : "inline" }}>{monster.emoji}</span>
               </div>
               <div style={{ marginTop: 3, fontSize: "clamp(12px, calc(var(--gw) * 0.024), 18px)", color: "var(--dm)", background: splitMon ? "var(--cd)" : "transparent", borderRadius: 4, padding: "2px 8px", display: "inline-block", visibility: splitMon ? "visible" : "hidden" }}>
                 {splitMon ? "대기: " + splitMon.emoji + " HP" + splitMon.hp : "\u00A0"}

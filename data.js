@@ -113,30 +113,30 @@ const REWARD_COMMONS = COMMONS.concat([
 
 const MONSTERS = [
   // Floor 1: 고블린 소굴 (indices 0-3) — x1.3 적용
-  { name: "고블린", emoji: "👺", hp: 36, atk: 6 },
-  { name: "고블린 궁수", emoji: "🏹", hp: 50, atk: 8 },
-  { name: "고블린 대장", emoji: "💪", hp: 72, atk: 9, miniboss: true },
-  { name: "고블린 킹", emoji: "👑", hp: 94, atk: 11, boss: true },
+  { name: "고블린", emoji: "👺", img: "goblin", hp: 36, atk: 6 },
+  { name: "고블린 궁수", emoji: "🏹", img: "goblin_archer", hp: 50, atk: 8 },
+  { name: "고블린 대장", emoji: "💪", img: "goblin_chief", hp: 72, atk: 9, miniboss: true },
+  { name: "고블린 킹", emoji: "👑", img: "goblin_king", hp: 94, atk: 11, boss: true },
   // Floor 2: 언데드 묘지 (indices 4-7)
-  { name: "해골 병사", emoji: "💀", hp: 59, atk: 7 },
-  { name: "뱀파이어", emoji: "🧛", hp: 72, atk: 9 },
-  { name: "망령 기사", emoji: "⚔️", hp: 91, atk: 10, miniboss: true },
-  { name: "리치", emoji: "☠️", hp: 124, atk: 12, boss: true },
+  { name: "해골 병사", emoji: "💀", img: "skeleton", hp: 59, atk: 7 },
+  { name: "뱀파이어", emoji: "🧛", img: "vampire", hp: 72, atk: 9 },
+  { name: "망령 기사", emoji: "⚔️", img: "wraith", hp: 91, atk: 10, miniboss: true },
+  { name: "리치", emoji: "☠️", img: "lich", hp: 124, atk: 12, boss: true },
   // Floor 3: 마법 탑 (indices 8-11)
-  { name: "골렘", emoji: "🗿", hp: 72, atk: 8, freeze: 1 },
-  { name: "마녀", emoji: "🧙‍♀️", hp: 85, atk: 10, freeze: 2 },
-  { name: "불꽃 정령", emoji: "🔥", hp: 104, atk: 11, miniboss: true, freeze: 1 },
-  { name: "대마법사", emoji: "🌀", hp: 143, atk: 13, boss: true, freeze: 2, split: true },
+  { name: "골렘", emoji: "🗿", img: "golem", hp: 72, atk: 8, freeze: 1 },
+  { name: "마녀", emoji: "🧙‍♀️", img: "witch", hp: 85, atk: 10, freeze: 2 },
+  { name: "불꽃 정령", emoji: "🔥", img: "fire_elemental", hp: 104, atk: 11, miniboss: true, freeze: 1 },
+  { name: "대마법사", emoji: "🌀", img: "archmage", hp: 143, atk: 13, boss: true, freeze: 2, split: true },
   // Floor 4: 심연 (indices 12-15)
-  { name: "그림자 포식자", emoji: "🌑", hp: 78, atk: 9 },
-  { name: "심연의 눈", emoji: "👁️", hp: 98, atk: 11, erode: 1 },
-  { name: "공허의 사도", emoji: "🕳️", hp: 124, atk: 12, miniboss: true, erode: 2 },
-  { name: "심연의 군주", emoji: "🌀", hp: 176, atk: 15, boss: true, erode: 2 },
+  { name: "그림자 포식자", emoji: "🌑", img: "shadow", hp: 78, atk: 9 },
+  { name: "심연의 눈", emoji: "👁️", img: "abyss_eye", hp: 98, atk: 11, erode: 1 },
+  { name: "공허의 사도", emoji: "🕳️", img: "void_apostle", hp: 124, atk: 12, miniboss: true, erode: 2 },
+  { name: "심연의 군주", emoji: "🌀", img: "abyss_lord", hp: 176, atk: 15, boss: true, erode: 2 },
   // Floor 5: 드래곤 둥지 (indices 16-19)
-  { name: "드래곤 알지기", emoji: "🥚", hp: 117, atk: 12 },
-  { name: "드래곤 새끼", emoji: "🐉", hp: 143, atk: 14, burn: 1 },
-  { name: "드래곤 근위병", emoji: "🛡️", hp: 182, atk: 16, miniboss: true, burn: 1 },
-  { name: "드래곤 로드", emoji: "🐲", hp: 260, atk: 20, boss: true, burn: 2 },
+  { name: "드래곤 알지기", emoji: "🥚", img: "dragon_keeper", hp: 117, atk: 12 },
+  { name: "드래곤 새끼", emoji: "🐉", img: "dragon_young", hp: 143, atk: 14, burn: 1 },
+  { name: "드래곤 근위병", emoji: "🛡️", img: "dragon_guard", hp: 182, atk: 16, miniboss: true, burn: 1 },
+  { name: "드래곤 로드", emoji: "🐲", img: "dragon_lord", hp: 260, atk: 20, boss: true, burn: 2 },
 ];
 
 // Campfire events
@@ -238,8 +238,17 @@ const SCREEN_BG = {
   menu: "images/bg/menu.webp",
   village: "images/bg/village.webp",
   shop: "images/bg/shop.webp",
-  campfire: "images/bg/campfire.webp",
-  battle: "images/bg/battle.webp",
 };
 
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG };
+function getBattleBg(floor, battleNum) {
+  var f = Math.max(1, Math.min(5, floor || 1));
+  var prefix = battleNum === 5 ? "bossbattle" : "battle";
+  return "images/bg/" + prefix + "0" + f + ".webp";
+}
+
+function getCampfireBg(floor) {
+  var f = Math.max(1, Math.min(5, floor || 1));
+  return "images/bg/campfire0" + f + ".webp";
+}
+
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SCREEN_BG, getBattleBg, getCampfireBg };

@@ -1752,6 +1752,7 @@ function BattleScreen({ game }) {
         <div style={{ textAlign: "center", padding: "2px 0", flexShrink: 0, position: "relative" }}>
           {monster && (
             <div>
+              <div style={{ background: "rgba(10,8,6,0.6)", borderRadius: 10, padding: "6px 12px", margin: "0 auto", display: "inline-block" }}>
               <HpBar current={monster.hp} max={monster.maxHp} name={monster.name} boss={monster.boss} miniboss={monster.miniboss} />
               <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 3, visibility: monster.hp > 0 ? "visible" : "hidden", textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)" }}>
                 <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 2s ease infinite" }}>
@@ -1761,6 +1762,7 @@ function BattleScreen({ game }) {
                 {monster.erode > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--ac)", fontWeight: 700 }}>🌑{monster.erode}</span>}
                 {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
                 {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
+              </div>
               </div>
               <div style={{ fontSize: monster.boss ? "clamp(96px, calc(var(--gw) * 0.192), 176px)" : "clamp(80px, calc(var(--gw) * 0.16), 144px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
                 {monster.emoji}
@@ -1914,13 +1916,13 @@ function BattleScreen({ game }) {
         </div>
 
         {/* === 손패 고정 영역 === */}
-        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, height: "clamp(110px, calc(var(--gw) * 0.22), 200px)", background: "var(--bg)" }}>
+        <div style={{ padding: "clamp(8px, calc(var(--gw) * 0.016), 14px) clamp(6px, calc(var(--gw) * 0.012), 10px) clamp(2px, calc(var(--gw) * 0.004), 4px)", display: "flex", justifyContent: "center", alignItems: "flex-end", overflow: "visible", flexShrink: 0, height: "clamp(110px, calc(var(--gw) * 0.22), 200px)", background: "var(--bg)" }}>
           {hand.map(function(c, idx) {
             var isNew = newCardIds.indexOf(c.id) >= 0;
             var isFrozen = frozenIds.indexOf(c.id) >= 0;
             var isEroded = c.eroded;
             var isBurning = c.burning;
-            var baseOverlap = hand.length > 7 ? -14 : hand.length > 6 ? -10 : hand.length > 5 ? -2 : 3;
+            var baseOverlap = hand.length > 7 ? -18 : hand.length > 6 ? -14 : hand.length > 5 ? -6 : 3;
             var overlap = "clamp(" + baseOverlap + "px, calc(var(--gw) * " + (baseOverlap * 0.002) + "), " + (baseOverlap < 0 ? Math.round(baseOverlap * 1.8) + "px" : Math.round(baseOverlap * 1.8) + "px") + ")";
             return (
               <div key={c.id} style={{

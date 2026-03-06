@@ -1126,7 +1126,7 @@ export default function DungeonHand() {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",
     height: "min(100vh, calc(min(100vw, 960px) * 16 / 9))",
     margin: "auto",
-    background: "radial-gradient(ellipse at 50% 30%, rgba(26,21,16,0.3) 0%, rgba(15,12,8,0.43) 70%), url(" + bgUrl + ") center 65%/cover no-repeat",
+    background: "radial-gradient(ellipse at 50% 30%, rgba(26,21,16,0.55) 0%, rgba(15,12,8,0.7) 70%), url(" + bgUrl + ") center 65%/cover no-repeat",
     color: "var(--tx)",
     fontFamily: "'Noto Sans KR', sans-serif",
     fontSize: "clamp(15px, calc(var(--gw) * 0.025 + 5px), 22px)",

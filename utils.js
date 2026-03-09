@@ -188,7 +188,7 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   cards.forEach(function(c) {
     if (c.keyword && c.keyword.id === "resonance") {
       var sameSuit = cards.filter(function(x) { return x.suitId === c.suitId; }).length;
-      if (sameSuit >= 2) mult += 0.5;
+      if (sameSuit >= 2) mult += 0.8;
     }
   });
   // Relic effects

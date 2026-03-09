@@ -152,9 +152,9 @@ const RELICS = [
   { id: "whet", name: "낡은 숫돌", emoji: "🗡️", desc: "카드당 공격력 +1", tier: 1, eff: { type: "atk", val: 1 }, classId: null },
   { id: "glove", name: "가죽 장갑", emoji: "🧤", desc: "버리기 횟수 +1", tier: 1, eff: { type: "disc", val: 1 }, classId: null },
   { id: "dice", name: "도박사의 주사위", emoji: "🎲", desc: "매 전투 시작 시 50% 배율+1 / 50% 배율-0.3", tier: 1, eff: { type: "gamble", win: 1, lose: -0.3 }, classId: null },
-  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 3 반사", tier: 1, eff: { type: "thorns", val: 3 }, classId: null },
+  { id: "thorn", name: "가시 갑옷", emoji: "🦔", desc: "피격 시 적에게 5 반사", tier: 1, eff: { type: "thorns", val: 5 }, classId: null },
   { id: "ruby", name: "루비 반지", emoji: "💍", desc: "🔺카드 공격력 x2", tier: 2, eff: { type: "suitMul", suit: "red", val: 2 }, classId: null },
-  { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +2", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 2 }, classId: null },
+  { id: "chain", name: "연쇄의 고리", emoji: "⛓️", desc: "스트레이트 배율 +3", tier: 2, eff: { type: "handAdd", hand: "스트레이트", val: 3 }, classId: null },
   { id: "eye", name: "감정사의 눈", emoji: "👁️", desc: "등급5↑ 카드 1장당 배율 +2", tier: 2, eff: { type: "gradeAdd", grade: 5, val: 2 }, classId: null },
   { id: "book2", name: "전쟁의 서", emoji: "📖", desc: "매 전투 첫 제출 시 한도 +1", tier: 3, eff: { type: "submitOnce", val: 1 }, classId: null },
   { id: "hero", name: "영웅의 증표", emoji: "🏅", desc: "스트레이트 플러시 배율 x2", tier: 3, eff: { type: "handMul", hand: "스트레이트 플러시", val: 2 }, classId: null },
@@ -182,7 +182,7 @@ const KEYWORDS = [
   { id: "poison", icon: "☠️", name: "맹독", desc: "등급만큼 매턴 독 데미지" },
   { id: "chain", icon: "⛓️", name: "연쇄", desc: "제출 시 드로우 +1" },
   { id: "growth", icon: "🌱", name: "성장", desc: "제출마다 등급 영구 +1" },
-  { id: "resonance", icon: "🔔", name: "공명", desc: "같은 문양 2장+ 시 배율 +0.5" },
+  { id: "resonance", icon: "🔔", name: "공명", desc: "같은 문양 2장+ 시 배율 +0.8" },
 ];
 
 const SKILL_TREES = [
@@ -192,7 +192,7 @@ const SKILL_TREES = [
       { id: "hp", name: "생명력", icon: "❤️", desc: "HP +5", cost: 3, max: 2 },
       { id: "sharp", name: "강화", icon: "🗡️", desc: "시작시 중립카드 등급+1", cost: 4, max: 1 },
       { id: "merchant", name: "상인", icon: "🏪", desc: "상점 20% 할인", cost: 6, max: 1 },
-      { id: "loot", name: "약탈", icon: "💰", desc: "전투 골드 +3", cost: 6, max: 2 },
+      { id: "loot", name: "약탈", icon: "💰", desc: "전투 골드 +2", cost: 6, max: 2 },
       { id: "tenacity", name: "집념", icon: "💀", desc: "HP 0시 1회 부활", cost: 12, max: 1 },
       { id: "inventory", name: "유물슬롯", icon: "🎒", desc: "유물 슬롯 +1", cost: 8, max: 2 },
     ],
@@ -202,7 +202,7 @@ const SKILL_TREES = [
     nodes: [
       { id: "redCollect", name: "🔺수집", icon: "🔺", desc: "보상시 🔺카드 1장 보장", cost: 4, max: 1 },
       { id: "awaken", name: "각성", icon: "🌑", desc: "시작시 그림자 x1", cost: 10, max: 1 },
-      { id: "stealth", name: "은신", icon: "🌫️", desc: "기본 회피 +5%", cost: 3, max: 2 },
+      { id: "stealth", name: "은신", icon: "🌫️", desc: "기본 회피 +7%", cost: 3, max: 2 },
       { id: "shadowBurst", name: "그림자폭발", icon: "🌑", desc: "스택당 배율 +0.5→+0.8", cost: 8, max: 1 },
     ],
   },

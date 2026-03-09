@@ -216,8 +216,6 @@ export default function DungeonHand() {
     return Math.max(1, Math.min(g, 10));
   }
 
-  function scaleMonsterHp(baseHp, fl) { return Math.floor(baseHp * (1 + (fl - 1) * 0.45)); }
-  function scaleMonsterAtk(baseAtk, fl) { return Math.floor(baseAtk * (1 + (fl - 1) * 0.1)); }
   function rollEnemyDmg(baseAtk) { return baseAtk + Math.floor(Math.random() * 3); }
 
   function resetBattleState() {
@@ -262,7 +260,7 @@ export default function DungeonHand() {
 
   function buildPState() {
     return Object.assign({}, passiveState, {
-      stealthBonus: upgradeLevels.stealth * 5,
+      stealthBonus: upgradeLevels.stealth * 7,
       gambleBuff: gambleBuff,
       shadowBurst: upgradeLevels.shadowBurst > 0,
       chainBoost: upgradeLevels.chainBoost > 0,
@@ -323,8 +321,8 @@ export default function DungeonHand() {
     if (mi === undefined) return; // campfire, no monster
     var idx = (fl - 1) * MONSTERS_PER_FLOOR + mi;
     var m = MONSTERS[idx] || MONSTERS[0];
-    var mhp = scaleMonsterHp(m.hp, fl);
-    var matk = scaleMonsterAtk(m.atk, fl);
+    var mhp = m.hp;
+    var matk = m.atk;
     setMonster({ name: m.name, emoji: m.emoji, img: m.img, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false });
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
@@ -894,7 +892,7 @@ export default function DungeonHand() {
       setBossesKilled(function(prev) { return prev.concat([pts]); });
     }
     var isBoss = battleNum === 5;
-    var lootBonus = upgradeLevels.loot * 3;
+    var lootBonus = upgradeLevels.loot * 2;
     var earned = (isBoss ? 10 : battleNum === 4 ? 7 : 4) + Math.floor(Math.random() * 5) + lootBonus;
     setGold(function(g) { return g + earned; });
     if (isBoss) {
@@ -1148,8 +1146,8 @@ export default function DungeonHand() {
       setCampPhase(1);
       var ambushIdx = (floor - 1) * MONSTERS_PER_FLOOR;
       var am = MONSTERS[ambushIdx];
-      var amhp = scaleMonsterHp(am.hp, floor);
-      var amatk = scaleMonsterAtk(am.atk, floor);
+      var amhp = am.hp;
+      var amatk = am.atk;
       setMonster({ name: am.name, emoji: am.emoji, img: am.img, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
       var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
       setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));

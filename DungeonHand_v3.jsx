@@ -673,7 +673,7 @@ export default function DungeonHand() {
           var mon = monsterRef.current;
           var freezeCount = mon ? (mon.freeze || 0) : 0;
           if (freezeCount > 0) {
-            var freezable = allNewHand.filter(function(c) { return selected.indexOf(c.id) < 0; });
+            var freezable = allNewHand.filter(function(c) { return selectedRef.current.indexOf(c.id) < 0; });
             var toFreeze = pickN(freezable, freezeCount);
             var fIds = toFreeze.map(function(c) { return c.id; });
             setFrozenIds(fIds);
@@ -1162,9 +1162,8 @@ export default function DungeonHand() {
   );
 
   // Compute earned points for this run
-  const runPoints = bossesKilled.reduce(function(sum, p) { return sum + p; }, 0);
   const isVictory = screen === "victory";
-  if (isVictory) runPoints += 3; // clear bonus
+  const runPoints = bossesKilled.reduce(function(sum, p) { return sum + p; }, 0) + (isVictory ? 3 : 0);
 
   function claimAndGo(dest) {
     if (bossesKilled.length > 0 || isVictory) {

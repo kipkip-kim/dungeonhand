@@ -289,6 +289,10 @@
 - stale closure 방어적 ref 추가 (handRef/selectedRef/drawPileRef/discardPileRef/relicsRef) ✅
 - 메인 파일 state 선언부 var→const 통일 ✅
 - HAND_RANKINGS 상수 추출 (data.js → BattleScreen 참조) ✅
+- 핫픽스: runPoints const 재할당 버그 수정 ✅
+- showPassive 타이머 취소 (passiveTimerRef 도입) ✅
+- data.js passive 내부 var→const 통일 ✅
+- performAmbush 헬퍼 추출 (beginBattle/캠프 기습 중복 제거) ✅
 
 ---
 

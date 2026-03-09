@@ -36,18 +36,18 @@ const CLASSES = [
 
       applyMult: function(mult, pState) {
         if (pState.stacks > 0) {
-          var perStack = pState.shadowBurst ? 0.8 : 0.5;
+          const perStack = pState.shadowBurst ? 0.8 : 0.5;
           mult += pState.stacks * perStack;
         }
         return mult;
       },
 
       onSubmit: function(pState, playedCards) {
-        var perStack = pState.shadowBurst ? 0.8 : 0.5;
-        var hasRed = playedCards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
+        const perStack = pState.shadowBurst ? 0.8 : 0.5;
+        const hasRed = playedCards.some(function(c) { return !c.isCommon && c.suitId === "red"; });
         if (hasRed) {
-          var ns = pState.stacks + 1;
-          var evPct = Math.min(50, 10 + ns * 5);
+          const ns = pState.stacks + 1;
+          const evPct = Math.min(50, 10 + ns * 5);
           return { state: { stacks: ns }, msg: "🌑 그림자 x" + ns + "! 배율+" + (ns * perStack).toFixed(1) + " 회피" + evPct + "%" };
         }
         if (pState.stacks > 0) {
@@ -64,8 +64,8 @@ const CLASSES = [
       },
 
       onEvade: function(pState) {
-        var perStack = pState.shadowBurst ? 0.8 : 0.5;
-        var ns = pState.stacks + 1;
+        const perStack = pState.shadowBurst ? 0.8 : 0.5;
+        const ns = pState.stacks + 1;
         return { state: { stacks: ns }, msg: "🗡️ 회피! 그림자 x" + ns + " (배율+" + (ns * perStack).toFixed(1) + ")" };
       },
 
@@ -74,7 +74,7 @@ const CLASSES = [
       },
 
       suitMessages: function(suitBonuses, critChance, hasRed) {
-        var msgs = [];
+        const msgs = [];
         if (hasRed) msgs.push("🔺포함→그림자+1");
         if (suitBonuses.blue >= 2) msgs.push("🔷드로우+1");
         if (suitBonuses.yellow > 0) msgs.push("⭐급소" + critChance + "%");
@@ -82,7 +82,7 @@ const CLASSES = [
       },
 
       renderBadge: function(pState, stealthBonus) {
-        var perStack = pState.shadowBurst ? 0.8 : 0.5;
+        const perStack = pState.shadowBurst ? 0.8 : 0.5;
         if (pState.stacks > 0) {
           return {
             bg: "#7c3aed22", border: "var(--pu)",
@@ -263,13 +263,13 @@ const SCREEN_BG = {
 };
 
 function getBattleBg(floor, battleNum) {
-  var f = Math.max(1, Math.min(5, floor || 1));
-  var prefix = battleNum === 5 ? "bossbattle" : "battle";
+  const f = Math.max(1, Math.min(5, floor || 1));
+  const prefix = battleNum === 5 ? "bossbattle" : "battle";
   return "images/bg/" + prefix + "0" + f + ".png";
 }
 
 function getCampfireBg(floor) {
-  var f = Math.max(1, Math.min(5, floor || 1));
+  const f = Math.max(1, Math.min(5, floor || 1));
   return "images/bg/campfire0" + f + ".png";
 }
 

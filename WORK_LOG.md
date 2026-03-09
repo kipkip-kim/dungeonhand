@@ -8,6 +8,10 @@
 - [x] stale closure 방어적 ref 추가 (hand/selected/drawPile/discardPile/relics)
 - [x] 메인 파일 state 선언부 var→const 통일 (58개 useState + 파생 변수)
 - [x] BattleScreen 족보 하드코딩 → data.js HAND_RANKINGS 상수 추출
+- [x] 핫픽스: runPoints const 재할당 버그 + freeze selectedRef 일관성
+- [x] showPassive 타이머 취소 (연속 호출 시 이전 타이머 clearTimeout)
+- [x] data.js passive 내부 var→const 통일 (12곳)
+- [x] 기습 애니메이션 공유 함수 추출 (performAmbush → beginBattle/캠프 양쪽 사용)
 
 ---
 
@@ -721,7 +725,7 @@ public/audio/          총 1.54MB
 
 ### 🟢 P3: 코드 품질
 - [x] initUpgrades lazy initializer (`useState(() => {...})`) — 세션29B 완료
-- [x] 캠프 기습 ambush laterTimers 적용 (세션43 완료)
+- [x] 캠프 기습 ambush laterTimers 적용 + performAmbush 헬퍼 통합 (세션43 완료)
 - [ ] dead comment 정리 ("Warrior 🔷" 주석 등)
 - [ ] tenacityUsed stale closure → useRef 패턴 적용
 - [ ] ShopScreen IIFE → 렌더 전 계산 변수로 추출

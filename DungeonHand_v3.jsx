@@ -145,6 +145,33 @@ export default function DungeonHand() {
     setNewCardIds([]);
   }
 
+  function performAmbush(monName, ambushDmg, timers) {
+    showPassive("⚡ 기습! " + monName + "의 선제 공격!");
+    sfx.enemy();
+    setEnemyAttacking(true);
+    setPlayerShake(true);
+    setEnemyDmgShow(ambushDmg);
+    setHp(function(prev) {
+      if (prev - ambushDmg <= 0) {
+        if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
+          setTenacityUsed(true); tenacityUsedRef.current = true;
+          timers.forEach(function(tid) { clearTimeout(tid); });
+          showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
+          return 1;
+        }
+        timers.forEach(function(tid) { clearTimeout(tid); });
+        setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
+        return 0;
+      }
+      return prev - ambushDmg;
+    });
+    timers.push(setTimeout(function() {
+      setEnemyAttacking(false);
+      setPlayerShake(false);
+      setEnemyDmgShow(null);
+    }, 800));
+  }
+
   function buildPState() {
     return Object.assign({}, passiveState, {
       stealthBonus: upgradeLevels.stealth * 5,
@@ -259,32 +286,7 @@ export default function DungeonHand() {
     var isAmbush = Math.random() * 100 < ambushChance;
     if (isAmbush) {
       var ambushDmg = rollEnemyDmg(matk);
-      setTimeout(function() {
-        showPassive("⚡ 기습! " + m.name + "의 선제 공격!");
-        sfx.enemy();
-        setEnemyAttacking(true);
-        setPlayerShake(true);
-        setEnemyDmgShow(ambushDmg);
-        setHp(function(prev) {
-          if (prev - ambushDmg <= 0) {
-            if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
-              setTenacityUsed(true); tenacityUsedRef.current = true;
-              laterTimers.forEach(function(tid) { clearTimeout(tid); });
-              showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
-              return 1;
-            }
-            laterTimers.forEach(function(tid) { clearTimeout(tid); });
-            setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
-            return 0;
-          }
-          return prev - ambushDmg;
-        });
-        setTimeout(function() {
-          setEnemyAttacking(false);
-          setPlayerShake(false);
-          setEnemyDmgShow(null);
-        }, 800);
-      }, t);
+      setTimeout(function() { performAmbush(m.name, ambushDmg, laterTimers); }, t);
       t += 1000;
     }
 
@@ -347,9 +349,11 @@ export default function DungeonHand() {
     previewDmg = calcDamage(previewCards, preview, relics, buildPState(), classData, true);
   }
 
+  const passiveTimerRef = useRef(null);
   function showPassive(msg) {
+    if (passiveTimerRef.current) clearTimeout(passiveTimerRef.current);
     setPassiveMsg(msg);
-    setTimeout(function() { setPassiveMsg(null); }, 2000);
+    passiveTimerRef.current = setTimeout(function() { setPassiveMsg(null); passiveTimerRef.current = null; }, 2000);
   }
 
   function submitCards() {
@@ -1074,31 +1078,7 @@ export default function DungeonHand() {
       if (sfx.getOn()) sfx.bgmOn("battle");
       var ambushDmg = rollEnemyDmg(amatk);
       var campTimers = [];
-      campTimers.push(setTimeout(function() {
-        showPassive("⚡ 기습! " + am.name + "의 선제 공격!");
-        sfx.enemy();
-        setEnemyAttacking(true);
-        setPlayerShake(true);
-        setEnemyDmgShow(ambushDmg);
-        setHp(function(prev) {
-          if (prev - ambushDmg <= 0) {
-            if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
-              setTenacityUsed(true); tenacityUsedRef.current = true;
-              showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
-              return 1;
-            }
-            campTimers.forEach(function(tid) { clearTimeout(tid); });
-            setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
-            return 0;
-          }
-          return prev - ambushDmg;
-        });
-        campTimers.push(setTimeout(function() {
-          setEnemyAttacking(false);
-          setPlayerShake(false);
-          setEnemyDmgShow(null);
-        }, 800));
-      }, 600));
+      campTimers.push(setTimeout(function() { performAmbush(am.name, ambushDmg, campTimers); }, 600));
       return;
     }
     if (evtId === "merchant") {

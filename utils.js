@@ -256,4 +256,119 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   };
 }
 
-export { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage };
+// === MAP GENERATION ===
+// 7열 맵: row0(시작) + row1~5(선택) + row6(보스)
+// 열별 노드 수: row1=3, row2=3, row3=2, row4=3, row5=2, row6=1
+function generateFloorMap(floor) {
+  // Row configs: [nodeCount, typePool]
+  // 일반 몬스터 인덱스: 0~3 (4종), 미니보스: 4, 보스: 5
+  var ROW_CONFIGS = [
+    // row 1: 전투 위주
+    { count: 3, types: function() {
+      var t = ["battle", "battle"];
+      t.push(Math.random() < 0.4 ? "event" : "battle");
+      return shuffle(t);
+    }},
+    // row 2: 캠프파이어 1개 보장
+    { count: 3, types: function() {
+      var t = ["campfire", "battle"];
+      t.push(Math.random() < 0.4 ? "event" : "battle");
+      return shuffle(t);
+    }},
+    // row 3: 정예 1개 보장
+    { count: 2, types: function() {
+      return shuffle(["elite", Math.random() < 0.5 ? "shop" : "battle"]);
+    }},
+    // row 4: 상점 가능
+    { count: 3, types: function() {
+      var t = ["battle"];
+      t.push(Math.random() < 0.5 ? "shop" : "battle");
+      t.push(Math.random() < 0.4 ? "event" : "battle");
+      return shuffle(t);
+    }},
+    // row 5: 캠프파이어 1개 보장
+    { count: 2, types: function() {
+      return shuffle(["campfire", "battle"]);
+    }},
+  ];
+
+  var rows = [];
+
+  // Row 0: 시작점
+  rows.push([{ id: "0-0", type: "start", edges: [], visited: true }]);
+
+  // Rows 1~5: 선택 노드
+  var normalMons = [0, 1, 2, 3]; // 일반 몬스터 슬롯 인덱스
+  for (var r = 0; r < ROW_CONFIGS.length; r++) {
+    var cfg = ROW_CONFIGS[r];
+    var types = cfg.types();
+    var rowNodes = [];
+    for (var n = 0; n < cfg.count; n++) {
+      var node = {
+        id: (r + 1) + "-" + n,
+        type: types[n],
+        edges: [],
+        visited: false,
+      };
+      // 몬스터 인덱스 배정
+      if (node.type === "battle") {
+        node.monIdx = normalMons[Math.floor(Math.random() * normalMons.length)];
+      } else if (node.type === "elite") {
+        node.monIdx = 4; // 미니보스
+      }
+      rowNodes.push(node);
+    }
+    rows.push(rowNodes);
+  }
+
+  // Row 6: 보스
+  rows.push([{ id: "6-0", type: "boss", monIdx: 5, edges: [], visited: false }]);
+
+  // === 연결 생성 ===
+  for (var ri = 0; ri < rows.length - 1; ri++) {
+    var currRow = rows[ri];
+    var nextRow = rows[ri + 1];
+
+    if (ri === 0) {
+      // 시작점 → row1: 모든 노드 연결
+      currRow[0].edges = nextRow.map(function(_, i) { return i; });
+    } else if (ri === rows.length - 2) {
+      // row5 → 보스: 모든 노드 → 보스
+      currRow.forEach(function(node) { node.edges = [0]; });
+    } else {
+      // 중간 열: 같은 인덱스 직진 + 50% 확률 분기
+      currRow.forEach(function(node, ni) {
+        var directIdx = Math.min(ni, nextRow.length - 1);
+        node.edges = [directIdx];
+        // 분기: 인접 인덱스에도 연결
+        if (Math.random() < 0.5 && directIdx > 0 && node.edges.indexOf(directIdx - 1) < 0) {
+          node.edges.push(directIdx - 1);
+        }
+        if (Math.random() < 0.5 && directIdx < nextRow.length - 1 && node.edges.indexOf(directIdx + 1) < 0) {
+          node.edges.push(directIdx + 1);
+        }
+      });
+      // 수신 연결 없는 노드 보장
+      nextRow.forEach(function(_, ni) {
+        var hasIncoming = currRow.some(function(node) { return node.edges.indexOf(ni) >= 0; });
+        if (!hasIncoming) {
+          // 가장 가까운 이전 노드에서 연결
+          var closest = 0;
+          var minDist = 999;
+          currRow.forEach(function(_, ci) {
+            if (Math.abs(ci - ni) < minDist) { minDist = Math.abs(ci - ni); closest = ci; }
+          });
+          currRow[closest].edges.push(ni);
+        }
+      });
+    }
+  }
+
+  return {
+    rows: rows,
+    currentRow: 0,
+    currentNodeIdx: 0,
+  };
+}
+
+export { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage, generateFloorMap };

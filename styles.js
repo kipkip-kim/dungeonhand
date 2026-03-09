@@ -29,6 +29,7 @@ var CSS = [
   ".btn-base{border-bottom:3px solid rgba(0,0,0,0.35);transition:transform 0.08s,border-bottom 0.08s,box-shadow 0.08s}",
   ".btn-base:hover:not(:disabled){filter:brightness(1.15)}",
   ".btn-base:active{transform:translateY(2px)!important;border-bottom:1px solid rgba(0,0,0,0.2)!important;box-shadow:none!important}",
+  "@keyframes pulse{0%,100%{box-shadow:0 0 4px var(--ac)}50%{box-shadow:0 0 14px var(--ac)}}",
 ].join("\n");
 
 export { CSS };

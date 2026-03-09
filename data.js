@@ -112,29 +112,39 @@ const REWARD_COMMONS = COMMONS.concat([
 ]);
 
 const MONSTERS = [
-  // Floor 1: 고블린 소굴 (indices 0-3) — x1.3 적용
+  // Floor 1: 고블린 소굴 (indices 0-5) — 일반4 + 미니보스1 + 보스1
   { name: "고블린", emoji: "👺", img: "goblin", hp: 36, atk: 6 },
   { name: "고블린 궁수", emoji: "🏹", img: "goblin_archer", hp: 50, atk: 8 },
+  { name: "고블린 도둑", emoji: "🗝️", img: "goblin_thief", hp: 42, atk: 7, steal: 5 },
+  { name: "고블린 주술사", emoji: "🔮", img: "goblin_shaman", hp: 38, atk: 5, erode: 1 },
   { name: "고블린 대장", emoji: "💪", img: "goblin_chief", hp: 72, atk: 9, miniboss: true },
   { name: "고블린 킹", emoji: "👑", img: "goblin_king", hp: 94, atk: 11, boss: true },
-  // Floor 2: 언데드 묘지 (indices 4-7)
+  // Floor 2: 언데드 묘지 (indices 6-11)
   { name: "해골 병사", emoji: "💀", img: "skeleton", hp: 59, atk: 7 },
   { name: "뱀파이어", emoji: "🧛", img: "vampire", hp: 72, atk: 9 },
+  { name: "구울", emoji: "🧟", img: "ghoul", hp: 63, atk: 8, regen: 4 },
+  { name: "레이스", emoji: "👻", img: "wraith_ghost", hp: 52, atk: 9, steal: 7 },
   { name: "망령 기사", emoji: "⚔️", img: "wraith", hp: 91, atk: 10, miniboss: true },
   { name: "리치", emoji: "☠️", img: "lich", hp: 124, atk: 12, boss: true },
-  // Floor 3: 마법 탑 (indices 8-11)
+  // Floor 3: 마법 탑 (indices 12-17)
   { name: "골렘", emoji: "🗿", img: "golem", hp: 72, atk: 8, freeze: 1 },
   { name: "마녀", emoji: "🧙‍♀️", img: "witch", hp: 85, atk: 10, freeze: 2 },
+  { name: "가고일", emoji: "🦇", img: "gargoyle", hp: 88, atk: 7, rage: 2 },
+  { name: "원소술사", emoji: "🌪️", img: "elementalist", hp: 75, atk: 9, freeze: 1, burn: 1 },
   { name: "불꽃 정령", emoji: "🔥", img: "fire_elemental", hp: 104, atk: 11, miniboss: true, freeze: 1 },
   { name: "대마법사", emoji: "🌀", img: "archmage", hp: 143, atk: 13, boss: true, freeze: 2, split: true },
-  // Floor 4: 심연 (indices 12-15)
+  // Floor 4: 심연 (indices 18-23)
   { name: "그림자 포식자", emoji: "🌑", img: "shadow", hp: 78, atk: 9 },
   { name: "심연의 눈", emoji: "👁️", img: "abyss_eye", hp: 98, atk: 11, erode: 1 },
+  { name: "심연거미", emoji: "🕷️", img: "abyss_spider", hp: 85, atk: 10, freeze: 1, steal: 6 },
+  { name: "공허흡수자", emoji: "🌀", img: "void_absorber", hp: 92, atk: 11, erode: 1, rage: 2 },
   { name: "공허의 사도", emoji: "🕳️", img: "void_apostle", hp: 124, atk: 12, miniboss: true, erode: 2 },
   { name: "심연의 군주", emoji: "👿", img: "abyss_lord", hp: 176, atk: 15, boss: true, erode: 2 },
-  // Floor 5: 드래곤 둥지 (indices 16-19)
+  // Floor 5: 드래곤 둥지 (indices 24-29)
   { name: "드래곤 알지기", emoji: "🥚", img: "dragon_keeper", hp: 117, atk: 12 },
   { name: "드래곤 새끼", emoji: "🐉", img: "dragon_young", hp: 143, atk: 14, burn: 1 },
+  { name: "용암도마뱀", emoji: "🦎", img: "lava_lizard", hp: 130, atk: 13, rage: 3, burn: 1 },
+  { name: "드래곤 사제", emoji: "📿", img: "dragon_priest", hp: 125, atk: 11, regen: 10 },
   { name: "드래곤 근위병", emoji: "🛡️", img: "dragon_guard", hp: 182, atk: 16, miniboss: true, burn: 1 },
   { name: "드래곤 로드", emoji: "🐲", img: "dragon_lord", hp: 260, atk: 20, boss: true, burn: 2 },
 ];
@@ -232,13 +242,39 @@ const ULTIMATE_SKILL = {
   unlockCost: 40,
 };
 
+const NODE_TYPES = {
+  battle:   { icon: "⚔️", name: "전투" },
+  elite:    { icon: "💪", name: "정예" },
+  campfire: { icon: "🔥", name: "캠프" },
+  shop:     { icon: "🏪", name: "상점" },
+  event:    { icon: "❓", name: "이벤트" },
+  boss:     { icon: "👑", name: "보스" },
+};
+
+const MAP_ROWS = 7; // row0(시작) + row1~5(선택) + row6(보스)
+
+const MAP_EVENTS = [
+  { id: "chest", name: "보물 상자", icon: "🎁",
+    desc: "보물 상자를 발견했다!", effect: "gold", val: 15 },
+  { id: "shrine", name: "기도의 제단", icon: "⛪",
+    desc: "제단에 기도를 올렸다.", effect: "heal", val: 15 },
+  { id: "gambler", name: "도박꾼", icon: "🎰",
+    desc: "도박꾼이 내기를 제안한다. 15G를 걸겠는가?", effect: "gamble", cost: 15, winGold: 40 },
+  { id: "blacksmith", name: "떠돌이 대장장이", icon: "🔨",
+    desc: "카드 1장을 무료로 강화해준다.", effect: "enhance" },
+  { id: "cursed", name: "저주받은 샘", icon: "🪦",
+    desc: "HP -5, 하지만 무작위 카드 등급 +2", effect: "cursedWell", hpCost: 5, gradeBonus: 2 },
+  { id: "wanderer", name: "방랑자", icon: "🧙",
+    desc: "수상한 방랑자가 유물을 제안한다.", effect: "relicOffer" },
+];
+
 const SUIT_ORDER = { red: 0, blue: 1, yellow: 2 };
 
 const CAMP_HEAL = 10;
 const CAMP_REST_HEAL = 5;
 const BURN_DAMAGE = 3;
 
-const BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
+const BOSS_POINTS = { 5: 1, 11: 2, 17: 3, 23: 4, 29: 6 }; // monster index (0-based) → points
 
 const HAND_RANKINGS = [
   { emoji: "🌟", name: "스트레이트 플러시", mult: "x12", desc: "같은 문양 연속 3장+", tier: 5 },
@@ -262,9 +298,9 @@ const SCREEN_BG = {
   shop: "images/bg/shop.png",
 };
 
-function getBattleBg(floor, battleNum) {
+function getBattleBg(floor, isBoss) {
   const f = Math.max(1, Math.min(5, floor || 1));
-  const prefix = battleNum === 5 ? "bossbattle" : "battle";
+  const prefix = isBoss ? "bossbattle" : "battle";
   return "images/bg/" + prefix + "0" + f + ".png";
 }
 
@@ -273,4 +309,4 @@ function getCampfireBg(floor) {
   return "images/bg/campfire0" + f + ".png";
 }
 
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, HAND_RANKINGS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg };
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, HAND_RANKINGS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg, NODE_TYPES, MAP_ROWS, MAP_EVENTS };

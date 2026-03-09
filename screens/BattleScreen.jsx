@@ -74,7 +74,7 @@ export function BattleScreen({ game }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "clamp(5px, calc(var(--gw) * 0.01), 8px) clamp(10px, calc(var(--gw) * 0.02), 16px)", background: "var(--pn)", borderBottom: "1px solid var(--bd)", flexShrink: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
         <div style={{ fontSize: "clamp(15px, calc(var(--gw) * 0.03), 24px)" }}>
           <b>{classData.icon} {floor}층 {FLOOR_NAMES[floor]}</b>
-          <span style={{ color: "var(--dm)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", marginLeft: 6 }}>{battleNum === 3 ? "⚔️습격!" : "전투" + battleNum + "/5"}</span>
+          <span style={{ color: "var(--dm)", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", marginLeft: 6 }}>{monster && monster.boss ? "👑보스" : monster && monster.miniboss ? "💪정예" : battleNum === 3 ? "⚔️습격!" : "⚔️전투"}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "clamp(5px, calc(var(--gw) * 0.01), 10px)" }}>
           <div

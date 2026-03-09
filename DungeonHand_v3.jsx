@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg } from "./data.js";
-import { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage } from "./utils.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg, NODE_TYPES, MAP_EVENTS } from "./data.js";
+import { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage, generateFloorMap } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, Btn, DeckViewer } from "./components.jsx";
 import { PendingRelicOverlay, MenuScreen, ClassSelectScreen, RewardScreen, EnhanceScreen, RelicRewardScreen, VictoryScreen, DefeatScreen } from "./screens/SmallScreens.jsx";
@@ -9,6 +9,7 @@ import { CampfireScreen } from "./screens/CampfireScreen.jsx";
 import { VillageScreen } from "./screens/VillageScreen.jsx";
 import { BattleScreen } from "./screens/BattleScreen.jsx";
 import { ShopScreen } from "./screens/ShopScreen.jsx";
+import { MapScreen, EventScreen } from "./screens/MapScreen.jsx";
 
 const BASE_HP = 70;
 const SHOP_MAX_REMOVE = 2;
@@ -124,13 +125,13 @@ export default function DungeonHand() {
   const [pendingRelic, setPendingRelic] = s(null);          // 교체 대기 중인 유물
   const [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
   const [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
+  const [floorMap, setFloorMap] = s(null); // 층별 노드 맵
 
   const HAND_SIZE = 5 + (upgradeLevels.deft || 0);
   const MAX_HAND = 7;
   const RELIC_SLOTS = 3 + (upgradeLevels.inventory || 0);
   const BASE_SUBMIT = 3;
-  const MONSTERS_PER_FLOOR = 4;
-  const BATTLE_TO_SLOT = { 1: 0, 2: 1, 4: 2, 5: 3 };
+  const MONSTERS_PER_FLOOR = 6;
 
   const classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
 
@@ -148,10 +149,12 @@ export default function DungeonHand() {
     try {
       var maxId = deck.reduce(function(m, c) { return Math.max(m, c.id); }, 0);
       localStorage.setItem("dh_run", JSON.stringify({
-        classId: classId, floor: floor, battleNum: battleNum, gold: gold, hp: hp,
+        classId: classId, floor: floor, gold: gold, hp: hp,
         deck: deck, relics: relics, discardedRelicIds: discardedRelicIds,
         bossesKilled: bossesKilled, passiveState: passiveState, poison: poison,
-        tenacityUsed: tenacityUsed, maxCardId: maxId, v: SAVE_VERSION
+        tenacityUsed: tenacityUsed, maxCardId: maxId,
+        floorMap: floorMap,
+        v: 2
       }));
     } catch (e) { /* quota exceeded */ }
   }
@@ -165,7 +168,6 @@ export default function DungeonHand() {
     if (!data) return false;
     setClassId(data.classId);
     setFloor(data.floor);
-    setBattleNum(data.battleNum);
     setGold(data.gold);
     setHp(data.hp);
     setDeck(data.deck);
@@ -182,21 +184,15 @@ export default function DungeonHand() {
     setRelicSwapContext(null);
     gambitPendingRef.current = false;
     setGambitChoices([]);
-    // Restore nextId to avoid ID collision
     if (data.maxCardId) setNextId(data.maxCardId + 1);
-    // Navigate to last safe screen
-    var bn = data.battleNum;
-    if (bn === 3) {
-      setCampPhase(1);
-      setCampEvent(null);
-      setScreen("campfire");
-      if (sfx.getOn()) sfx.bgmOn("campfire");
-    } else if (bn >= 5) {
-      // Saved at shop (after boss) — regenerate shop
-      openShop(data.relics || []);
+    // v2 세이브: floorMap 복원 → 맵 화면
+    if (data.floorMap) {
+      setFloorMap(data.floorMap);
+      setScreen("map");
     } else {
-      // Fallback: start from beginning of current state
-      beginBattle(data.deck, data.relics || [], data.floor, bn);
+      // v1 세이브 호환: 맵 새로 생성
+      setFloorMap(generateFloorMap(data.floor));
+      setScreen("map");
     }
     return true;
   }
@@ -311,19 +307,15 @@ export default function DungeonHand() {
     setTenacityUsed(false); tenacityUsedRef.current = false;
     gambitPendingRef.current = false;
     setGambitChoices([]);
-    beginBattle(d, [], 1, 1);
+    setFloorMap(generateFloorMap(1));
+    setScreen("map");
   }
 
-  function beginBattle(curDeck, curRelics, fl, bn) {
-    // battleNum: 1,2=normal 3=campfire 4=miniboss 5=boss
-    // Monster index mapping: bn1→0, bn2→1, bn4→2, bn5→3
-    var mi = BATTLE_TO_SLOT[bn];
-    if (mi === undefined) return; // campfire, no monster
-    var idx = (fl - 1) * MONSTERS_PER_FLOOR + mi;
-    var m = MONSTERS[idx] || MONSTERS[0];
+  function beginBattle(curDeck, curRelics, fl, bn, monsterIdx) {
+    var m = MONSTERS[monsterIdx] || MONSTERS[0];
     var mhp = m.hp;
     var matk = m.atk;
-    setMonster({ name: m.name, emoji: m.emoji, img: m.img, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false });
+    setMonster({ name: m.name, emoji: m.emoji, img: m.img, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false, steal: m.steal || 0, rage: m.rage || 0, regen: m.regen || 0 });
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
     }, 0);
@@ -609,6 +601,16 @@ export default function DungeonHand() {
   }
 
   function enemyTurn(mon, played, dmgResult, poisonOverride) {
+    // === 🩸 Regen: 매턴 HP 회복 ===
+    if (mon.regen && mon.regen > 0 && mon.hp < mon.maxHp) {
+      var healed = Math.min(mon.regen, mon.maxHp - mon.hp);
+      setMonster(function(prev) {
+        return Object.assign({}, prev, { hp: Math.min(prev.maxHp, prev.hp + healed) });
+      });
+      mon = Object.assign({}, mon, { hp: Math.min(mon.maxHp, mon.hp + healed) });
+      showPassive("🩸 재생! HP +" + healed);
+    }
+
     // === ☠️ Poison tick ===
     var effectivePoison = poisonOverride !== undefined ? poisonOverride : poison;
     if (effectivePoison > 0) {
@@ -676,6 +678,10 @@ export default function DungeonHand() {
           }
           return prev - atkDmg;
         });
+        // === 🗝️ Steal: 피격 시 골드 훔침 ===
+        if (mon.steal && mon.steal > 0) {
+          setGold(function(g) { var stolen = Math.min(mon.steal, g); if (stolen > 0) showPassive("🗝️ " + mon.name + "이 " + stolen + "G 훔쳤다!"); return Math.max(0, g - mon.steal); });
+        }
       }
 
       setTimeout(function() {
@@ -809,6 +815,14 @@ export default function DungeonHand() {
             showPassive("🔥 화상! " + actualBurn + "장 주입!");
           }
 
+          // === 😤 Rage: 매턴 공격력 증가 ===
+          if (mon && mon.rage && mon.rage > 0) {
+            setMonster(function(prev) {
+              return Object.assign({}, prev, { atk: prev.atk + prev.rage });
+            });
+            showPassive("😤 분노! 공격력 +" + mon.rage + "!");
+          }
+
           // === Gambit: 3장 중 1장 선택 ===
           if (gambitPendingRef.current) {
             var gpDraw = tempDraw.slice();
@@ -884,16 +898,20 @@ export default function DungeonHand() {
   function onMonsterDied() {
     sfx.bgmOff();
     sfx.win();
-    // Track boss kills for meta points
-    var mi = BATTLE_TO_SLOT[battleNum];
-    var monIdx = (floor - 1) * MONSTERS_PER_FLOOR + (mi || 0);
-    if (battleNum === 5 && BOSS_POINTS[monIdx] !== undefined) {
-      var pts = BOSS_POINTS[monIdx];
-      setBossesKilled(function(prev) { return prev.concat([pts]); });
+    // Track boss kills for meta points — 맵 노드 기반
+    var mon = monsterRef.current;
+    var isBoss = mon && mon.boss;
+    var isElite = mon && mon.miniboss;
+    // 보스 포인트: floorMap에서 현재 노드의 monIdx로 계산
+    if (isBoss && floorMap) {
+      var bossMonIdx = (floor - 1) * MONSTERS_PER_FLOOR + 5;
+      if (BOSS_POINTS[bossMonIdx] !== undefined) {
+        var pts = BOSS_POINTS[bossMonIdx];
+        setBossesKilled(function(prev) { return prev.concat([pts]); });
+      }
     }
-    var isBoss = battleNum === 5;
     var lootBonus = upgradeLevels.loot * 2;
-    var earned = (isBoss ? 10 : battleNum === 4 ? 7 : 4) + Math.floor(Math.random() * 5) + lootBonus;
+    var earned = (isBoss ? 10 : isElite ? 7 : 4) + Math.floor(Math.random() * 5) + lootBonus;
     setGold(function(g) { return g + earned; });
     if (isBoss) {
       var avail = RELICS.filter(function(r) {
@@ -917,8 +935,9 @@ export default function DungeonHand() {
 
   function generateRewardCards() {
     var pool = [];
-    var isBoss = battleNum === 5 || battleNum === 4;
-    var kwChance = isBoss ? 0.3 : 0.15;
+    var curMon = monsterRef.current;
+    var isStrong = curMon && (curMon.boss || curMon.miniboss);
+    var kwChance = isStrong ? 0.3 : 0.15;
     // 문양수집: 보장할 문양 목록
     var collectSuits = [];
     if (upgradeLevels.redCollect > 0) collectSuits.push("red");
@@ -931,13 +950,13 @@ export default function DungeonHand() {
       } else {
         s2 = pickN(SUITS, 1)[0];
       }
-      var g2 = rollGrade(floor, isBoss);
+      var g2 = rollGrade(floor, isStrong);
       var kw = Math.random() < kwChance ? pickKw(g2) : null;
       pool.push(makeCard(s2.id, g2, classId, null, kw));
     }
     var ct = pickN(getRewardPool(), 1)[0];
     var s3 = collectSuits.length > 2 ? SUITS.find(function(ss) { return ss.id === collectSuits[2]; }) : pickN(SUITS, 1)[0];
-    var g3 = rollGrade(floor, isBoss);
+    var g3 = rollGrade(floor, isStrong);
     if (ct && (ct.fx === "reclaim" || ct.fx === "gambit") && g3 < 2) g3 = 2;
     var kw2 = Math.random() < kwChance ? pickKw(g3) : null;
     pool.push(makeCard(s3.id, g3, classId, ct, kw2));
@@ -954,37 +973,19 @@ export default function DungeonHand() {
   }
 
   function addCardToDeck(card) {
-    var newDeck = deck.concat([Object.assign({}, card, { id: getNextId() })]);
-    setDeck(newDeck);
-    advanceBattle(newDeck);
+    setDeck(function(d) { return d.concat([Object.assign({}, card, { id: getNextId() })]); });
+    goToMap();
   }
 
   function skipReward() {
-    advanceBattle(deck);
-  }
-
-  function advanceBattle(d) {
-    if (battleNum < 5) {
-      var nb = battleNum + 1;
-      setBattleNum(nb);
-      if (nb === 3) {
-        // Campfire
-        setCampPhase(1);
-        setCampEvent(null);
-        setScreen("campfire");
-        saveRun();
-        if (sfx.getOn()) sfx.bgmOn("campfire");
-      } else {
-        beginBattle(d, relics, floor, nb);
-      }
-    }
+    goToMap();
   }
 
   function pickRelic(r) {
     if (relics.length < RELIC_SLOTS) {
       var newRelics = relics.concat([r]);
       setRelics(newRelics);
-      openShop(newRelics);
+      goNextFloor();
     } else {
       setPendingRelic(r);
       setRelicSwapContext("boss");
@@ -1013,7 +1014,7 @@ export default function DungeonHand() {
     setPendingRelicCost(0);
     setRelicSwapContext(null);
     if (ctx === "boss") {
-      openShop(finalRelics);
+      goNextFloor();
     }
   }
 
@@ -1077,24 +1078,16 @@ export default function DungeonHand() {
   }
 
   function leaveShop() {
-    if (floor >= 5) {
-      sfx.bgmOff();
-      sfx.win();
-      setScreen("victory");
-      return;
-    }
-    var nextFloor = floor + 1;
-    setFloor(nextFloor);
-    setBattleNum(1);
-    beginBattle(deck, relics, nextFloor, 1);
+    goToMap();
   }
 
   function enhanceCard(card) {
-    var newDeck = deck.map(function(c) {
-      return c.id === card.id ? Object.assign({}, c, { grade: c.grade + 1, enhanceCount: (c.enhanceCount || 0) + 1 }) : c;
+    setDeck(function(d) {
+      return d.map(function(c) {
+        return c.id === card.id ? Object.assign({}, c, { grade: c.grade + 1, enhanceCount: (c.enhanceCount || 0) + 1 }) : c;
+      });
     });
-    setDeck(newDeck);
-    advanceBattle(newDeck);
+    goToMap();
   }
 
   // === CAMPFIRE FUNCTIONS (hoisted from campfire screen) ===
@@ -1117,9 +1110,7 @@ export default function DungeonHand() {
   function leaveCampfire() {
     setCampEvent(null);
     setCampPhase(1);
-    var nb = 4;
-    setBattleNum(nb);
-    beginBattle(deck, relics, floor, nb);
+    goToMap();
   }
 
   function resolveCampfire() {
@@ -1148,7 +1139,7 @@ export default function DungeonHand() {
       var am = MONSTERS[ambushIdx];
       var amhp = am.hp;
       var amatk = am.atk;
-      setMonster({ name: am.name, emoji: am.emoji, img: am.img, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false });
+      setMonster({ name: am.name, emoji: am.emoji, img: am.img, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false, steal: am.steal || 0, rage: am.rage || 0, regen: am.regen || 0 });
       var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
       setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
       setRoundNum(1);
@@ -1182,17 +1173,89 @@ export default function DungeonHand() {
     sfx.gold();
     setCampEvent(null);
     setCampPhase(1);
-    var nb = 4;
-    setBattleNum(nb);
-    beginBattle(deck.filter(function(c) { return c.id !== card.id; }), relics, floor, nb);
+    goToMap();
   }
+
+  // === MAP FUNCTIONS ===
+  function goToMap() {
+    if (!floorMap) return;
+    // 현재 노드 visited 표시 + 다음 열로 이동
+    setFloorMap(function(prev) {
+      var newRows = prev.rows.map(function(row, ri) {
+        if (ri !== prev.currentRow) return row;
+        return row.map(function(node, ni) {
+          if (ni !== prev.currentNodeIdx) return node;
+          return Object.assign({}, node, { visited: true });
+        });
+      });
+      return Object.assign({}, prev, { rows: newRows, currentRow: prev.currentRow + 1 });
+    });
+    setScreen("map");
+    saveRun();
+  }
+
+  function goNextFloor() {
+    if (floor >= 5) {
+      sfx.bgmOff();
+      sfx.win();
+      setScreen("victory");
+      return;
+    }
+    var nf = floor + 1;
+    setFloor(nf);
+    var newMap = generateFloorMap(nf);
+    setFloorMap(newMap);
+    setScreen("map");
+    saveRun();
+  }
+
+  function selectNode(nodeIdx) {
+    if (!floorMap) return;
+    var row = floorMap.rows[floorMap.currentRow];
+    if (!row || !row[nodeIdx]) return;
+    var node = row[nodeIdx];
+
+    // 현재 노드 인덱스 업데이트
+    setFloorMap(function(prev) {
+      return Object.assign({}, prev, { currentNodeIdx: nodeIdx });
+    });
+
+    if (node.type === "battle" || node.type === "elite") {
+      var mi = node.monIdx;
+      var idx = (floor - 1) * MONSTERS_PER_FLOOR + mi;
+      var bn = node.type === "elite" ? 4 : 1; // BGM 분기용 (1=normal, 4=elite)
+      setBattleNum(bn);
+      beginBattle(deck, relics, floor, bn, idx);
+    } else if (node.type === "campfire") {
+      setBattleNum(3); // 캠프 BGM용
+      setCampPhase(1);
+      setCampEvent(null);
+      setScreen("campfire");
+      saveRun();
+      if (sfx.getOn()) sfx.bgmOn("campfire");
+    } else if (node.type === "shop") {
+      openShop(relics);
+    } else if (node.type === "event") {
+      var evt = MAP_EVENTS[Math.floor(Math.random() * MAP_EVENTS.length)];
+      setMapEvent(evt);
+      setScreen("event");
+    } else if (node.type === "boss") {
+      var bossIdx = (floor - 1) * MONSTERS_PER_FLOOR + 5;
+      setBattleNum(5); // 보스 BGM용
+      beginBattle(deck, relics, floor, 5, bossIdx);
+    }
+  }
+
+  // 맵 이벤트 state
+  const [mapEvent, setMapEvent] = s(null);
 
   // === WRAPPER STYLE ===
   const bgKey = screen === "classSelect" ? "menu"
     : screen === "reward" || screen === "enhance" || screen === "relicReward" ? "battle"
     : screen === "victory" || screen === "defeat" ? "menu"
+    : screen === "map" || screen === "event" ? "village"
     : screen;
-  const bgPath = bgKey === "battle" ? getBattleBg(floor, battleNum)
+  const bgPath = bgKey === "battle" ? getBattleBg(floor, monster && monster.boss)
     : bgKey === "campfire" ? getCampfireBg(floor)
     : SCREEN_BG[bgKey] || SCREEN_BG.menu;
   const bgUrl = import.meta.env.BASE_URL + bgPath;
@@ -1272,7 +1335,7 @@ export default function DungeonHand() {
     bossDialogue: bossDialogue, encounterOverlay: encounterOverlay,
     gambitChoices: gambitChoices, splitMon: splitMon, passiveMsg: passiveMsg,
     deckView: deckView, deckSort: deckSort, newCardIds: newCardIds,
-    pendingRelic: pendingRelic, runPoints: runPoints,
+    pendingRelic: pendingRelic, runPoints: runPoints, floorMap: floorMap, mapEvent: mapEvent,
     submitLimit: submitLimit, preview: preview, previewDmg: previewDmg,
         // Setters
     setScreen: setScreen, setMetaPoints: setMetaPoints, setUpgradeLevels: setUpgradeLevels,
@@ -1285,7 +1348,7 @@ export default function DungeonHand() {
     enhanceCard: enhanceCard, pickRelic: pickRelic, swapRelic: swapRelic,
     discardPendingRelic: discardPendingRelic,
     buyCard: buyCard, buyRelic: buyRelic, removeCard: removeCard, leaveShop: leaveShop,
-    claimAndGo: claimAndGo,
+    claimAndGo: claimAndGo, goToMap: goToMap, selectNode: selectNode,
     enterPhase2: enterPhase2, enterPhase3: enterPhase3,
     leaveCampfire: leaveCampfire, resolveCampfire: resolveCampfire, sellCard: sellCard,
     // Save/Load
@@ -1294,6 +1357,8 @@ export default function DungeonHand() {
 
   // === SCREEN ROUTING ===
   if (pendingRelic) return <PendingRelicOverlay game={game} />;
+  if (screen === "map") return <MapScreen game={game} />;
+  if (screen === "event") return <EventScreen game={game} />;
   if (screen === "village") return <VillageScreen game={game} />;
   if (screen === "menu") return <MenuScreen game={game} />;
   if (screen === "classSelect") return <ClassSelectScreen game={game} />;

@@ -15,89 +15,94 @@ const SHOP_MAX_REMOVE = 2;
 
 // === MAIN GAME ===
 export default function DungeonHand() {
-  var s = useState;
-  var [screen, setScreen] = s("menu");
-  var [classId, setClassId] = s(null);
-  var [floor, setFloor] = s(1);
-  var [battleNum, setBattleNum] = s(1);
-  var [gold, setGold] = s(0);
-  var [hp, setHp] = s(BASE_HP);
+  const s = useState;
+  const [screen, setScreen] = s("menu");
+  const [classId, setClassId] = s(null);
+  const [floor, setFloor] = s(1);
+  const [battleNum, setBattleNum] = s(1);
+  const [gold, setGold] = s(0);
+  const [hp, setHp] = s(BASE_HP);
   // Meta progression (persists across runs)
-  var [metaPoints, setMetaPoints] = s(0);
-  var [upgradeLevels, setUpgradeLevels] = s(function() {
-    var init = {};
+  const [metaPoints, setMetaPoints] = s(0);
+  const [upgradeLevels, setUpgradeLevels] = s(function() {
+    const init = {};
     SKILL_TREES.forEach(function(t) { t.nodes.forEach(function(n) { init[n.id] = 0; }); });
     init[ULTIMATE_SKILL.id] = 0;
     return init;
   });
-  var [resetCount, setResetCount] = s(0);
-  var [skillTab, setSkillTab] = s("common");
-  var [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
+  const [resetCount, setResetCount] = s(0);
+  const [skillTab, setSkillTab] = s("common");
+  const [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
   const MAX_HP = BASE_HP + upgradeLevels.hp * 5;
-  var [relics, setRelics] = s([]);
-  var [deck, setDeck] = s([]);
-  var [drawPile, setDrawPile] = s([]);
-  var [hand, setHand] = s([]);
-  var [discardPile, setDiscardPile] = s([]);
-  var [selected, setSelected] = s([]);
-  var [monster, setMonster_] = s(null);
-  var monsterRef = useRef(null);
+  const [relics, setRelics] = s([]);
+  const relicsRef = useRef(relics); relicsRef.current = relics;
+  const [deck, setDeck] = s([]);
+  const [drawPile, setDrawPile] = s([]);
+  const drawPileRef = useRef(drawPile); drawPileRef.current = drawPile;
+  const [hand, setHand] = s([]);
+  const handRef = useRef(hand); handRef.current = hand;
+  const [discardPile, setDiscardPile] = s([]);
+  const discardPileRef = useRef(discardPile); discardPileRef.current = discardPile;
+  const [selected, setSelected] = s([]);
+  const selectedRef = useRef(selected); selectedRef.current = selected;
+  const [monster, setMonster_] = s(null);
+  const monsterRef = useRef(null);
   function setMonster(val) {
     if (typeof val === "function") {
-      setMonster_(function(prev) { var next = val(prev); monsterRef.current = next; return next; });
+      setMonster_(function(prev) { const next = val(prev); monsterRef.current = next; return next; });
     } else {
       monsterRef.current = val; setMonster_(val);
     }
   }
-  var [discards, setDiscards] = s(2);
-  var [roundNum, setRoundNum] = s(1);
-  var [damageInfo, setDamageInfo] = s(null);
-  var [currentHand, setCurrentHand] = s(null);
-  var [monShake, setMonShake] = s(false);
-  var [monShakeHard, setMonShakeHard] = s(false);
-  var [playerShake, setPlayerShake] = s(false);
-  var [enemyAttacking, setEnemyAttacking] = s(false);
-  var [busy, setBusy] = s(false);
-  var [rewardCards, setRewardCards] = s([]);
-  var [rewardRelics, setRewardRelics] = s([]);
-  var [shopCards, setShopCards] = s([]);
-  var [shopRelic, setShopRelic] = s(null);
-  var [shopHealed, setShopHealed] = s(false);
-  var [shopRemoved, setShopRemoved] = s(0);
-  var [campEvent, setCampEvent] = s(null); // current campfire event
-  var [stolenCard, setStolenCard] = s(null); // card stolen by thief
-  var [campPhase, setCampPhase] = s(1); // 1=arrive, 2=rest, 3=event
-  var [overlay, setOverlay] = s(null);
-  var [enemyDmgShow, setEnemyDmgShow] = s(null);
-  var [audioOn, setAudioOn] = s(false);
+  const [discards, setDiscards] = s(2);
+  const [roundNum, setRoundNum] = s(1);
+  const [damageInfo, setDamageInfo] = s(null);
+  const [currentHand, setCurrentHand] = s(null);
+  const [monShake, setMonShake] = s(false);
+  const [monShakeHard, setMonShakeHard] = s(false);
+  const [playerShake, setPlayerShake] = s(false);
+  const [enemyAttacking, setEnemyAttacking] = s(false);
+  const [busy, setBusy] = s(false);
+  const [rewardCards, setRewardCards] = s([]);
+  const [rewardRelics, setRewardRelics] = s([]);
+  const [shopCards, setShopCards] = s([]);
+  const [shopRelic, setShopRelic] = s(null);
+  const [shopHealed, setShopHealed] = s(false);
+  const [shopRemoved, setShopRemoved] = s(0);
+  const [campEvent, setCampEvent] = s(null); // current campfire event
+  const [stolenCard, setStolenCard] = s(null); // card stolen by thief
+  const [campPhase, setCampPhase] = s(1); // 1=arrive, 2=rest, 3=event
+  const [overlay, setOverlay] = s(null);
+  const [enemyDmgShow, setEnemyDmgShow] = s(null);
+  const [audioOn, setAudioOn] = s(false);
   // Passive state
-  var [passiveState, setPassiveState] = s({ stacks: 0 });
-  var passiveStateRef = useRef(passiveState);
+  const [passiveState, setPassiveState] = s({ stacks: 0 });
+  const passiveStateRef = useRef(passiveState);
   passiveStateRef.current = passiveState;
-  var [aimedBonus, setAimedBonus] = s(0); // aimed shot: next turn submit +1
-  var [gambleBuff, setGambleBuff] = s(0); // dice relic: +1 or -0.5 mult
-  var [gambleAnim, setGambleAnim] = s(null); // roulette animation text
-  var [poison, setPoison] = s(0); // poison on monster: dmg per turn
-  var [erodedIds, setErodedIds] = s([]); // eroded card ids (grade temporarily -1)
-  var [tenacityUsed, setTenacityUsed] = s(false); // tenacity: revive once per run
-  var tenacityUsedRef = useRef(false);
-  var [frozenIds, setFrozenIds] = s([]); // frozen card ids
-  var [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
-  var [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
-  var [book2Used, setBook2Used] = s(false); // book2: once per battle submit bonus
-  var gambitPendingRef = useRef(false); // gambit: next draw shows 3-pick-1 (ref for setTimeout closure)
-  var [gambitChoices, setGambitChoices] = s([]); // gambit: 3 cards to choose from
-  var [splitMon, setSplitMon_] = s(null); // split monster waiting
-  var splitMonRef = useRef(null);
+  const [aimedBonus, setAimedBonus] = s(0); // aimed shot: next turn submit +1
+  const [gambleBuff, setGambleBuff] = s(0); // dice relic: +1 or -0.5 mult
+  const [gambleAnim, setGambleAnim] = s(null); // roulette animation text
+  const [poison, setPoison] = s(0); // poison on monster: dmg per turn
+  const [erodedIds, setErodedIds] = s([]); // eroded card ids (grade temporarily -1)
+  const [tenacityUsed, setTenacityUsed] = s(false); // tenacity: revive once per run
+  const tenacityUsedRef = useRef(false);
+  const [frozenIds, setFrozenIds] = s([]); // frozen card ids
+  const [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
+  const [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
+  const [book2Used, setBook2Used] = s(false); // book2: once per battle submit bonus
+  const gambitPendingRef = useRef(false); // gambit: next draw shows 3-pick-1 (ref for setTimeout closure)
+  const [gambitChoices, setGambitChoices] = s([]); // gambit: 3 cards to choose from
+  const [splitMon, setSplitMon_] = s(null); // split monster waiting
+  const splitMonRef = useRef(null);
   function setSplitMon(val) { splitMonRef.current = val; setSplitMon_(val); }
-  var [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
-  var [deckView, setDeckView] = s(false);
-  var [deckSort, setDeckSort] = s("type");
-  var [newCardIds, setNewCardIds] = s([]);
-  var [discardedRelicIds, setDiscardedRelicIds] = s([]); // 영구 삭제된 유물 id
-  var [pendingRelic, setPendingRelic] = s(null);          // 교체 대기 중인 유물
-  var [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
-  var [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
+  const [passiveMsg, setPassiveMsg] = s(null); // passive trigger message
+  const [deckView, setDeckView] = s(false);
+  const [deckSort, setDeckSort] = s("type");
+  const [newCardIds, setNewCardIds] = s([]);
+  const [discardedRelicIds, setDiscardedRelicIds] = s([]); // 영구 삭제된 유물 id
+  const [pendingRelic, setPendingRelic] = s(null);          // 교체 대기 중인 유물
+  const [pendingRelicCost, setPendingRelicCost] = s(0);     // 상점 교체 대기 중 미차감 비용
+  const [relicSwapContext, setRelicSwapContext] = s(null);   // "boss" | "shop"
 
   const HAND_SIZE = 5 + (upgradeLevels.deft || 0);
   const MAX_HAND = 7;
@@ -106,7 +111,7 @@ export default function DungeonHand() {
   const MONSTERS_PER_FLOOR = 4;
   const BATTLE_TO_SLOT = { 1: 0, 2: 1, 4: 2, 5: 3 };
 
-  var classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
+  const classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
 
   function getRewardPool() {
     return floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
@@ -153,8 +158,8 @@ export default function DungeonHand() {
       roundNum: roundNum,
     });
   }
-  var book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
-  var submitLimit = BASE_SUBMIT + aimedBonus + book2Bonus;
+  const book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
+  const submitLimit = BASE_SUBMIT + aimedBonus + book2Bonus;
 
   function toggleAudio() {
     var val = sfx.toggle();
@@ -334,10 +339,10 @@ export default function DungeonHand() {
     });
   }
 
-  var selectedCards = hand.filter(function(c) { return selected.indexOf(c.id) >= 0; });
-  var previewCards = selectedCards.filter(function(c) { return !c.burning; });
-  var preview = previewCards.length > 0 ? detectHand(previewCards) : null;
-  var previewDmg = null;
+  const selectedCards = hand.filter(function(c) { return selected.indexOf(c.id) >= 0; });
+  const previewCards = selectedCards.filter(function(c) { return !c.burning; });
+  const preview = previewCards.length > 0 ? detectHand(previewCards) : null;
+  let previewDmg = null;
   if (preview && previewCards.length > 0) {
     previewDmg = calcDamage(previewCards, preview, relics, buildPState(), classData, true);
   }
@@ -547,7 +552,7 @@ export default function DungeonHand() {
 
     setEnemyAttacking(true);
     sfx.enemy();
-    var thorns = relics.reduce(function(sum, r) {
+    var thorns = relicsRef.current.reduce(function(sum, r) {
       return r.eff.type === "thorns" ? sum + r.eff.val : sum;
     }, 0);
     if (thorns > 0 && !evaded) {
@@ -587,8 +592,8 @@ export default function DungeonHand() {
         setPlayerShake(false);
         setEnemyDmgShow(null);
 
-        var remain = hand.filter(function(c) { return selected.indexOf(c.id) < 0; });
-        var used = hand.filter(function(c) { return selected.indexOf(c.id) >= 0; });
+        var remain = handRef.current.filter(function(c) { return selectedRef.current.indexOf(c.id) < 0; });
+        var used = handRef.current.filter(function(c) { return selectedRef.current.indexOf(c.id) >= 0; });
         // Remove burn cards (1-time use) and strip eroded flag before recycling
         var usedClean = used.filter(function(c) { return !c.burning; }).map(function(c) {
           if (c.eroded) return Object.assign({}, c, { grade: c.grade + 1, eroded: false });
@@ -601,7 +606,7 @@ export default function DungeonHand() {
           setDeck(function(d) { return d.filter(function(dc) { return glassIds.indexOf(dc.id) < 0; }); });
           showPassive("🔮 유리 카드 " + glassIds.length + "장 소멸!");
         }
-        var newDisc = discardPile.concat(usedClean);
+        var newDisc = discardPileRef.current.concat(usedClean);
 
         // === 회수(reclaim): 버린 카드 더미에서 드로우 더미로 복귀 ===
         var reclaimAmt = played.reduce(function(sum, c) {
@@ -626,15 +631,15 @@ export default function DungeonHand() {
         if (dmgResult && dmgResult.extraDraw) {
           extraDraw += dmgResult.extraDraw;
         }
-        extraDraw += relics.reduce(function(sum, r) {
+        extraDraw += relicsRef.current.reduce(function(sum, r) {
           return r.eff.type === "drawAdd" ? sum + r.eff.val : sum;
         }, 0);
-        var needed = selected.length + extraDraw;
+        var needed = selectedRef.current.length + extraDraw;
         // MAX_HAND 캡 적용
         var maxDraw = MAX_HAND - remain.length;
         if (needed > maxDraw) needed = maxDraw;
         if (needed < 0) needed = 0;
-        var tempDraw = reclaimedCards.concat(drawPile.slice());
+        var tempDraw = reclaimedCards.concat(drawPileRef.current.slice());
         var tempDisc = newDisc.slice();
         var drawn = tempDraw.splice(0, needed);
         if (drawn.length < needed && tempDisc.length > 0) {
@@ -1068,7 +1073,8 @@ export default function DungeonHand() {
       setScreen("battle");
       if (sfx.getOn()) sfx.bgmOn("battle");
       var ambushDmg = rollEnemyDmg(amatk);
-      setTimeout(function() {
+      var campTimers = [];
+      campTimers.push(setTimeout(function() {
         showPassive("⚡ 기습! " + am.name + "의 선제 공격!");
         sfx.enemy();
         setEnemyAttacking(true);
@@ -1081,17 +1087,18 @@ export default function DungeonHand() {
               showPassive("💀 집념! 기습에도 쓰러지지 않는다!");
               return 1;
             }
+            campTimers.forEach(function(tid) { clearTimeout(tid); });
             setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
             return 0;
           }
           return prev - ambushDmg;
         });
-        setTimeout(function() {
+        campTimers.push(setTimeout(function() {
           setEnemyAttacking(false);
           setPlayerShake(false);
           setEnemyDmgShow(null);
-        }, 800);
-      }, 600);
+        }, 800));
+      }, 600));
       return;
     }
     if (evtId === "merchant") {
@@ -1113,16 +1120,16 @@ export default function DungeonHand() {
   }
 
   // === WRAPPER STYLE ===
-  var bgKey = screen === "classSelect" ? "menu"
+  const bgKey = screen === "classSelect" ? "menu"
     : screen === "reward" || screen === "enhance" || screen === "relicReward" ? "battle"
     : screen === "victory" || screen === "defeat" ? "menu"
     : screen;
-  var bgPath = bgKey === "battle" ? getBattleBg(floor, battleNum)
+  const bgPath = bgKey === "battle" ? getBattleBg(floor, battleNum)
     : bgKey === "campfire" ? getCampfireBg(floor)
     : SCREEN_BG[bgKey] || SCREEN_BG.menu;
-  var bgUrl = import.meta.env.BASE_URL + bgPath;
+  const bgUrl = import.meta.env.BASE_URL + bgPath;
 
-  var wrapStyle = {
+  const wrapStyle = {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",
     height: "min(100vh, calc(min(100vw, 960px) * 16 / 9))",
     margin: "auto",
@@ -1139,7 +1146,7 @@ export default function DungeonHand() {
   };
 
   // === AUDIO BUTTON ===
-  var audioButton = (
+  const audioButton = (
     <div
       onClick={toggleAudio}
       style={{
@@ -1155,8 +1162,8 @@ export default function DungeonHand() {
   );
 
   // Compute earned points for this run
-  var runPoints = bossesKilled.reduce(function(sum, p) { return sum + p; }, 0);
-  var isVictory = screen === "victory";
+  const runPoints = bossesKilled.reduce(function(sum, p) { return sum + p; }, 0);
+  const isVictory = screen === "victory";
   if (isVictory) runPoints += 3; // clear bonus
 
   function claimAndGo(dest) {
@@ -1173,7 +1180,7 @@ export default function DungeonHand() {
   }
 
   // === GAME PROPS OBJECT ===
-  var game = {
+  const game = {
     wrapStyle: wrapStyle, audioButton: audioButton, CSS: CSS, sfx: sfx,
     screen: screen, classId: classId, classData: classData,
     floor: floor, battleNum: battleNum, gold: gold, hp: hp, MAX_HP: MAX_HP,

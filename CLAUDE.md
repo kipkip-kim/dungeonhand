@@ -284,6 +284,12 @@
 - 미사용/이중 import 정리 ✅
 - dead comment 제거 ✅
 
+### ~~세션 43: 코드 리뷰 기반 품질 개선~~ ✅ 완료
+- 캠프 기습 laterTimers 적용 (campTimers 배열 + 사망 시 clearTimeout) ✅
+- stale closure 방어적 ref 추가 (handRef/selectedRef/drawPileRef/discardPileRef/relicsRef) ✅
+- 메인 파일 state 선언부 var→const 통일 ✅
+- HAND_RANKINGS 상수 추출 (data.js → BattleScreen 참조) ✅
+
 ---
 
 ## 기능 추가 체크리스트

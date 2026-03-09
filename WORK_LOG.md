@@ -1,17 +1,13 @@
 # WORK_LOG
 
 ## 현재 세션 계획
-> 세션 42 (2026-03-06) — 모바일 가독성 + 아이폰 테스트 배포
+> 세션 43 (2026-03-09) — 코드 리뷰 기반 품질 개선
 
 ### 완료
-- [x] 아이폰14프로 테스트 버전 단일파일 번들 생성 (재화 무제한)
-- [x] 배경 이미지 위 텍스트 가독성 개선 (배경 오버레이 0.55/0.7 강화)
-- [x] 몬스터 HP/공격력 textShadow 추가
-- [x] 캠프파이어 메시지 박스 불투명도 85%로 상향
-- [x] 유물 선택 화면 flexWrap + 폭 축소로 잘림 해결
-- [x] 손패 7장 카드 겹침 간격 조정 (-18/-14px)
-- [x] HpBar 텍스트 그림자 추가
-- [x] GitHub Pages 배포
+- [x] 캠프 기습 laterTimers 적용 (사망 시 후속 타이머 정리)
+- [x] stale closure 방어적 ref 추가 (hand/selected/drawPile/discardPile/relics)
+- [x] 메인 파일 state 선언부 var→const 통일 (58개 useState + 파생 변수)
+- [x] BattleScreen 족보 하드코딩 → data.js HAND_RANKINGS 상수 추출
 
 ---
 
@@ -725,7 +721,7 @@ public/audio/          총 1.54MB
 
 ### 🟢 P3: 코드 품질
 - [x] initUpgrades lazy initializer (`useState(() => {...})`) — 세션29B 완료
-- [ ] 캠프 기습 ambush 코드 beginBattle과 통합 (laterTimers 미적용 문제 포함)
+- [x] 캠프 기습 ambush laterTimers 적용 (세션43 완료)
 - [ ] dead comment 정리 ("Warrior 🔷" 주석 등)
 - [ ] tenacityUsed stale closure → useRef 패턴 적용
 - [ ] ShopScreen IIFE → 렌더 전 계산 변수로 추출

@@ -240,6 +240,22 @@ const BURN_DAMAGE = 3;
 
 const BOSS_POINTS = { 3: 1, 7: 2, 11: 3, 15: 4, 19: 6 }; // monster index (0-based) → points
 
+const HAND_RANKINGS = [
+  { emoji: "🌟", name: "스트레이트 플러시", mult: "x12", desc: "같은 문양 연속 3장+", tier: 5 },
+  { emoji: "👑", name: "퍼펙트 포카", mult: "x9", desc: "같은 문양+등급 4장", tier: 4 },
+  { emoji: "👑", name: "포카", mult: "x8", desc: "같은 등급 4장", tier: 4 },
+  { emoji: "⛓️", name: "스트레이트5", mult: "x8", desc: "연속 등급 5장", tier: 4 },
+  { emoji: "🏠", name: "풀하우스", mult: "x6", desc: "트리플 + 페어", tier: 4 },
+  { emoji: "🔗", name: "스트레이트4", mult: "x6", desc: "연속 등급 4장", tier: 4 },
+  { emoji: "💎", name: "플러시", mult: "x5", desc: "같은 문양 5장", tier: 3 },
+  { emoji: "🔺", name: "퍼펙트 트리플", mult: "x4.5", desc: "같은 문양+등급 3장", tier: 3 },
+  { emoji: "🔺", name: "트리플", mult: "x4", desc: "같은 등급 3장", tier: 3 },
+  { emoji: "🔗", name: "스트레이트3", mult: "x4", desc: "연속 등급 3장", tier: 3 },
+  { emoji: "✌️", name: "투페어", mult: "x3", desc: "페어 2개", tier: 2 },
+  { emoji: "👯", name: "원페어", mult: "x2", desc: "같은 등급 2장", tier: 2 },
+  { emoji: "👊", name: "하이카드", mult: "x1", desc: "조합 없음", tier: 1 },
+];
+
 const SCREEN_BG = {
   menu: "images/bg/menu.png",
   village: "images/bg/village.png",
@@ -257,4 +273,4 @@ function getCampfireBg(floor) {
   return "images/bg/campfire0" + f + ".png";
 }
 
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg };
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, HAND_RANKINGS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg };

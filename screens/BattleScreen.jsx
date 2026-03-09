@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FLOOR_NAMES } from "../data.js";
+import { FLOOR_NAMES, HAND_RANKINGS } from "../data.js";
 import { CardView, HpBar, Btn, DeckViewer } from "../components.jsx";
 
 export function BattleScreen({ game }) {
@@ -350,21 +350,7 @@ export function BattleScreen({ game }) {
           >
             <h3 style={{ fontSize: 16, marginBottom: 12, textAlign: "center" }}>🃏 족보 목록</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {[
-                { emoji: "🌟", name: "스트레이트 플러시", mult: "x12", desc: "같은 문양 연속 3장+", tier: 5 },
-                { emoji: "👑", name: "퍼펙트 포카", mult: "x9", desc: "같은 문양+등급 4장", tier: 4 },
-                { emoji: "👑", name: "포카", mult: "x8", desc: "같은 등급 4장", tier: 4 },
-                { emoji: "⛓️", name: "스트레이트5", mult: "x8", desc: "연속 등급 5장", tier: 4 },
-                { emoji: "🏠", name: "풀하우스", mult: "x6", desc: "트리플 + 페어", tier: 4 },
-                { emoji: "🔗", name: "스트레이트4", mult: "x6", desc: "연속 등급 4장", tier: 4 },
-                { emoji: "💎", name: "플러시", mult: "x5", desc: "같은 문양 5장", tier: 3 },
-                { emoji: "🔺", name: "퍼펙트 트리플", mult: "x4.5", desc: "같은 문양+등급 3장", tier: 3 },
-                { emoji: "🔺", name: "트리플", mult: "x4", desc: "같은 등급 3장", tier: 3 },
-                { emoji: "🔗", name: "스트레이트3", mult: "x4", desc: "연속 등급 3장", tier: 3 },
-                { emoji: "✌️", name: "투페어", mult: "x3", desc: "페어 2개", tier: 2 },
-                { emoji: "👯", name: "원페어", mult: "x2", desc: "같은 등급 2장", tier: 2 },
-                { emoji: "👊", name: "하이카드", mult: "x1", desc: "조합 없음", tier: 1 },
-              ].map(function(h) {
+              {HAND_RANKINGS.map(function(h) {
                 var tierColor = h.tier >= 5 ? "var(--gd)" : h.tier >= 4 ? "var(--or)" : h.tier >= 3 ? "var(--rd)" : h.tier >= 2 ? "var(--bl)" : "var(--dm)";
                 return (
                   <div key={h.name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 6px", background: "var(--cd)", borderRadius: 6, borderLeft: "3px solid " + tierColor }}>

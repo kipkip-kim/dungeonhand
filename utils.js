@@ -16,6 +16,7 @@ function pickN(arr, n) {
 
 let nextId = 0;
 function getNextId() { return nextId++; }
+function setNextId(n) { nextId = n; }
 function makeCard(suitId, grade, classId, common, keyword) {
   const suit = SUITS.find(function(s) { return s.id === suitId; });
   return {
@@ -255,4 +256,4 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   };
 }
 
-export { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage };
+export { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage };

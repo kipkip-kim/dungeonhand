@@ -1,22 +1,24 @@
 # WORK_LOG
 
 ## 현재 세션 계획
-> 세션 43 (2026-03-09) — 코드 리뷰 기반 품질 개선
+> 세션 44 (2026-03-09) — 저장/불러오기 기능 구현
 
 ### 완료
-- [x] 캠프 기습 laterTimers 적용 (사망 시 후속 타이머 정리)
-- [x] stale closure 방어적 ref 추가 (hand/selected/drawPile/discardPile/relics)
-- [x] 메인 파일 state 선언부 var→const 통일 (58개 useState + 파생 변수)
-- [x] BattleScreen 족보 하드코딩 → data.js HAND_RANKINGS 상수 추출
-- [x] 핫픽스: runPoints const 재할당 버그 + freeze selectedRef 일관성
-- [x] showPassive 타이머 취소 (연속 호출 시 이전 타이머 clearTimeout)
-- [x] data.js passive 내부 var→const 통일 (12곳)
-- [x] 기습 애니메이션 공유 함수 추출 (performAmbush → beginBattle/캠프 양쪽 사용)
+- [x] localStorage 기반 저장/불러오기 전체 구현
+- [x] 메타 데이터 영구 저장 (metaPoints/upgradeLevels/resetCount)
+- [x] 런 진행 자동저장 (캠프/상점 진입 시)
+- [x] 런 종료 시 meta 저장 + run 데이터 삭제
+- [x] MenuScreen "이어하기" 버튼 + 새 게임 확인 팝업
+- [x] VillageScreen saveMeta (스킬 트리 나갈 때)
+- [x] setNextId (카드 ID 충돌 방지)
+
+### 이전 세션 (43)
+- [x] 코드 리뷰 기반 품질 개선 8건 (캠프 기습 타이머, stale ref, var→const 등)
 
 ---
 
 ## 현재 게임 스펙 스냅샷
-> 갱신: 2026-03-06
+> 갱신: 2026-03-09
 
 ### 유물 (10종)
 | 이름 | 효과 | 티어 |
@@ -718,7 +720,7 @@ public/audio/          총 1.54MB
 - [ ] 1~2층 몬스터 특수능력 추가 (고블린 도둑/뱀파이어 흡혈 등)
 
 ### 🟡 P2: 게임 시스템
-- [ ] 저장/불러오기 (localStorage) — 모바일 중간이탈 대응
+- [x] 저장/불러오기 (localStorage) — 세션44 완료
 - [ ] 승리 시 골드→메타포인트 변환 (현재 골드 무의미)
 - [ ] 유물 보상 "넘기기" 버튼 (슬롯 꽉 찼을 때 불필요한 교체 강요 방지)
 - [ ] 난이도 설정 (스케일링 계수 분기)
@@ -726,9 +728,9 @@ public/audio/          총 1.54MB
 ### 🟢 P3: 코드 품질
 - [x] initUpgrades lazy initializer (`useState(() => {...})`) — 세션29B 완료
 - [x] 캠프 기습 ambush laterTimers 적용 + performAmbush 헬퍼 통합 (세션43 완료)
-- [ ] dead comment 정리 ("Warrior 🔷" 주석 등)
-- [ ] tenacityUsed stale closure → useRef 패턴 적용
-- [ ] ShopScreen IIFE → 렌더 전 계산 변수로 추출
+- [x] dead comment 정리 — 세션43 완료
+- [x] tenacityUsed stale closure → useRef 패턴 적용 — 세션31 완료
+- [x] ShopScreen IIFE → 렌더 전 계산 변수로 추출 — 세션31 완료
 
 ## 세션 30 (2026-03-05) — 전투화면 UI 점검 P0+P1
 

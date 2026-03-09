@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CLASSES, SUIT_ORDER } from "../data.js";
 import { relicBorderColor, CardView, Btn, DeckViewer } from "../components.jsx";
 
@@ -44,7 +45,18 @@ export function PendingRelicOverlay({ game }) {
 
 // === MENU SCREEN ===
 export function MenuScreen({ game }) {
-  var { wrapStyle, CSS, audioButton, startRun, setScreen, metaPoints, sfx } = game;
+  var { wrapStyle, CSS, audioButton, startRun, setScreen, metaPoints, sfx, hasSavedRun, loadRun } = game;
+  var [confirmNew, setConfirmNew] = useState(false);
+  var savedExists = hasSavedRun();
+
+  function handleNewGame() {
+    if (savedExists) {
+      setConfirmNew(true);
+    } else {
+      if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); }
+    }
+  }
+
   return (
     <div style={wrapStyle}>
       <style>{CSS}</style>
@@ -55,18 +67,37 @@ export function MenuScreen({ game }) {
           DUNGEON HAND
         </h1>
         <p style={{ color: "var(--dm)", fontSize: "var(--fs-md)" }}>도적의 카드로 던전을 정복하라!</p>
-        <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-          <Btn onClick={function() { if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
-            ⚔️ 던전 입장
-          </Btn>
-          <Btn onClick={function() { setScreen("village"); }} color="var(--gn)" style={{ fontSize: 14, padding: "14px 32px" }}>
-            🌳 스킬 트리
-          </Btn>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12, alignItems: "center" }}>
+          {savedExists && (
+            <Btn onClick={function() { loadRun(); }} color="var(--ac)" style={{ fontSize: 14, padding: "14px 32px" }}>
+              ▶️ 이어하기
+            </Btn>
+          )}
+          <div style={{ display: "flex", gap: 10 }}>
+            <Btn onClick={handleNewGame} color="var(--rd)" style={{ fontSize: 14, padding: "14px 32px" }}>
+              ⚔️ 던전 입장
+            </Btn>
+            <Btn onClick={function() { setScreen("village"); }} color="var(--gn)" style={{ fontSize: 14, padding: "14px 32px" }}>
+              🌳 스킬 트리
+            </Btn>
+          </div>
         </div>
         {metaPoints > 0 && (
           <div style={{ color: "var(--or)", fontSize: 14 }}>⭐ {metaPoints} 포인트 보유</div>
         )}
       </div>
+      {confirmNew && (
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+          <div style={{ background: "var(--cd)", border: "1px solid var(--bd)", borderRadius: 16, padding: 24, maxWidth: 300, width: "85%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--or)" }}>진행 중인 데이터가 있습니다</div>
+            <div style={{ fontSize: 13, color: "var(--dm)" }}>새 게임을 시작하면 기존 진행이 삭제됩니다.</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <Btn onClick={function() { setConfirmNew(false); try { localStorage.removeItem("dh_run"); } catch(e) {} if (CLASSES.length === 1) { startRun(CLASSES[0].id); } else { setScreen("classSelect"); } }} color="var(--rd)">새 게임</Btn>
+              <Btn onClick={function() { setConfirmNew(false); }}>취소</Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

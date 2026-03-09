@@ -3,7 +3,7 @@ import { Btn } from "../components.jsx";
 import { sfx } from "../audio.js";
 
 export function VillageScreen({ game }) {
-  var { wrapStyle, CSS, audioButton, metaPoints, setMetaPoints, upgradeLevels, setUpgradeLevels, classId, skillTab, setSkillTab, resetCount, setResetCount, setScreen } = game;
+  var { wrapStyle, CSS, audioButton, metaPoints, setMetaPoints, upgradeLevels, setUpgradeLevels, classId, skillTab, setSkillTab, resetCount, setResetCount, setScreen, saveMeta } = game;
 
   var totalInvested = 0;
   SKILL_TREES.forEach(function(tree) {
@@ -66,12 +66,12 @@ export function VillageScreen({ game }) {
                             var nodeId = node.id;
                             var cost = node.cost + (upgradeLevels[nodeId] || 0) * Math.ceil(node.cost * 0.5);
                             if (metaPoints < cost) return;
-                            setMetaPoints(function(p) { return p - cost; });
-                            setUpgradeLevels(function(prev) {
-                              var n = Object.assign({}, prev);
-                              n[nodeId] = (n[nodeId] || 0) + 1;
-                              return n;
-                            });
+                            var newMp = metaPoints - cost;
+                            var newUl = Object.assign({}, upgradeLevels);
+                            newUl[nodeId] = (newUl[nodeId] || 0) + 1;
+                            setMetaPoints(newMp);
+                            setUpgradeLevels(newUl);
+                            saveMeta({ metaPoints: newMp, upgradeLevels: newUl });
                           }}
                           disabled={!canBuy}
                           style={{ padding: "6px 12px", fontSize: 13, whiteSpace: "nowrap" }}
@@ -94,9 +94,9 @@ export function VillageScreen({ game }) {
           ) : ulUnlocked ? (
             <Btn
               onClick={function() {
-                setUpgradeLevels(function(prev) {
-                  return Object.assign({}, prev, { fatedDice: 1 });
-                });
+                var newUl = Object.assign({}, upgradeLevels, { fatedDice: 1 });
+                setUpgradeLevels(newUl);
+                saveMeta({ upgradeLevels: newUl });
               }}
               style={{ padding: "8px 16px", fontSize: 13, marginTop: 6 }}
               color="var(--wn)"
@@ -122,13 +122,14 @@ export function VillageScreen({ game }) {
               <Btn
                 onClick={function() {
                   if (!canReset) return;
-                  setMetaPoints(function(p) { return p + totalInvested - resetCost; });
-                  setUpgradeLevels(function(prev) {
-                    var n = {};
-                    Object.keys(prev).forEach(function(k) { n[k] = 0; });
-                    return n;
-                  });
-                  setResetCount(function(c) { return c + 1; });
+                  var newMp = metaPoints + totalInvested - resetCost;
+                  var newUl = {};
+                  Object.keys(upgradeLevels).forEach(function(k) { newUl[k] = 0; });
+                  var newRc = resetCount + 1;
+                  setMetaPoints(newMp);
+                  setUpgradeLevels(newUl);
+                  setResetCount(newRc);
+                  saveMeta({ metaPoints: newMp, upgradeLevels: newUl, resetCount: newRc });
                 }}
                 disabled={!canReset}
                 color="var(--rd)"
@@ -146,7 +147,7 @@ export function VillageScreen({ game }) {
           );
         })()}
         <div style={{ textAlign: "center", marginTop: 4 }}>
-          <Btn onClick={function() { setScreen("menu"); sfx.bgmOn("home"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
+          <Btn onClick={function() { saveMeta(); setScreen("menu"); sfx.bgmOn("home"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { sfx } from "./audio.js";
 import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg } from "./data.js";
-import { shuffle, pickN, makeCard, makeDeck, getNextId, getCardName, detectHand, calcDamage } from "./utils.js";
+import { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, Btn, DeckViewer } from "./components.jsx";
 import { PendingRelicOverlay, MenuScreen, ClassSelectScreen, RewardScreen, EnhanceScreen, RelicRewardScreen, VictoryScreen, DefeatScreen } from "./screens/SmallScreens.jsx";
@@ -12,6 +12,23 @@ import { ShopScreen } from "./screens/ShopScreen.jsx";
 
 const BASE_HP = 70;
 const SHOP_MAX_REMOVE = 2;
+const SAVE_VERSION = 1;
+
+// === SAVE/LOAD HELPERS ===
+function loadMeta() {
+  try {
+    var raw = localStorage.getItem("dh_meta");
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* corrupt data */ }
+  return null;
+}
+function loadRunData() {
+  try {
+    var raw = localStorage.getItem("dh_run");
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* corrupt data */ }
+  return null;
+}
 
 // === MAIN GAME ===
 export default function DungeonHand() {
@@ -22,15 +39,19 @@ export default function DungeonHand() {
   const [battleNum, setBattleNum] = s(1);
   const [gold, setGold] = s(0);
   const [hp, setHp] = s(BASE_HP);
-  // Meta progression (persists across runs)
-  const [metaPoints, setMetaPoints] = s(0);
+  // Meta progression (persists across runs) — load from localStorage
+  const _savedMeta = loadMeta();
+  const [metaPoints, setMetaPoints] = s(_savedMeta ? _savedMeta.metaPoints : 0);
   const [upgradeLevels, setUpgradeLevels] = s(function() {
     const init = {};
     SKILL_TREES.forEach(function(t) { t.nodes.forEach(function(n) { init[n.id] = 0; }); });
     init[ULTIMATE_SKILL.id] = 0;
+    if (_savedMeta && _savedMeta.upgradeLevels) {
+      Object.keys(_savedMeta.upgradeLevels).forEach(function(k) { if (k in init) init[k] = _savedMeta.upgradeLevels[k]; });
+    }
     return init;
   });
-  const [resetCount, setResetCount] = s(0);
+  const [resetCount, setResetCount] = s(_savedMeta ? (_savedMeta.resetCount || 0) : 0);
   const [skillTab, setSkillTab] = s("common");
   const [bossesKilled, setBossesKilled] = s([]); // track boss kills this run for points
   const MAX_HP = BASE_HP + upgradeLevels.hp * 5;
@@ -112,6 +133,73 @@ export default function DungeonHand() {
   const BATTLE_TO_SLOT = { 1: 0, 2: 1, 4: 2, 5: 3 };
 
   const classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
+
+  // === SAVE/LOAD ===
+  function saveMeta(override) {
+    try {
+      var mp = override && override.metaPoints !== undefined ? override.metaPoints : metaPoints;
+      var ul = override && override.upgradeLevels !== undefined ? override.upgradeLevels : upgradeLevels;
+      var rc = override && override.resetCount !== undefined ? override.resetCount : resetCount;
+      localStorage.setItem("dh_meta", JSON.stringify({ metaPoints: mp, upgradeLevels: ul, resetCount: rc, v: SAVE_VERSION }));
+    } catch (e) { /* quota exceeded */ }
+  }
+  function saveRun() {
+    saveMeta();
+    try {
+      var maxId = deck.reduce(function(m, c) { return Math.max(m, c.id); }, 0);
+      localStorage.setItem("dh_run", JSON.stringify({
+        classId: classId, floor: floor, battleNum: battleNum, gold: gold, hp: hp,
+        deck: deck, relics: relics, discardedRelicIds: discardedRelicIds,
+        bossesKilled: bossesKilled, passiveState: passiveState, poison: poison,
+        tenacityUsed: tenacityUsed, maxCardId: maxId, v: SAVE_VERSION
+      }));
+    } catch (e) { /* quota exceeded */ }
+  }
+  function clearRunSave() {
+    try { localStorage.removeItem("dh_run"); } catch (e) {}
+  }
+  function hasSavedRun() { return !!loadRunData(); }
+
+  function loadRun() {
+    var data = loadRunData();
+    if (!data) return false;
+    setClassId(data.classId);
+    setFloor(data.floor);
+    setBattleNum(data.battleNum);
+    setGold(data.gold);
+    setHp(data.hp);
+    setDeck(data.deck);
+    setRelics(data.relics || []);
+    setDiscardedRelicIds(data.discardedRelicIds || []);
+    setBossesKilled(data.bossesKilled || []);
+    setPassiveState(data.passiveState || {});
+    passiveStateRef.current = data.passiveState || {};
+    setPoison(data.poison || 0);
+    setTenacityUsed(data.tenacityUsed || false);
+    tenacityUsedRef.current = data.tenacityUsed || false;
+    setErodedIds([]);
+    setPendingRelic(null);
+    setRelicSwapContext(null);
+    gambitPendingRef.current = false;
+    setGambitChoices([]);
+    // Restore nextId to avoid ID collision
+    if (data.maxCardId) setNextId(data.maxCardId + 1);
+    // Navigate to last safe screen
+    var bn = data.battleNum;
+    if (bn === 3) {
+      setCampPhase(1);
+      setCampEvent(null);
+      setScreen("campfire");
+      if (sfx.getOn()) sfx.bgmOn("campfire");
+    } else if (bn >= 5) {
+      // Saved at shop (after boss) — regenerate shop
+      openShop(data.relics || []);
+    } else {
+      // Fallback: start from beginning of current state
+      beginBattle(data.deck, data.relics || [], data.floor, bn);
+    }
+    return true;
+  }
 
   function getRewardPool() {
     return floor < 2 ? REWARD_COMMONS.filter(function(c) { return c.fx !== "gambit" && c.fx !== "reclaim"; }) : REWARD_COMMONS;
@@ -886,6 +974,7 @@ export default function DungeonHand() {
         setCampPhase(1);
         setCampEvent(null);
         setScreen("campfire");
+        saveRun();
         if (sfx.getOn()) sfx.bgmOn("campfire");
       } else {
         beginBattle(d, relics, floor, nb);
@@ -955,6 +1044,7 @@ export default function DungeonHand() {
     setShopHealed(false);
     setShopRemoved(0);
     setScreen("shop");
+    saveRun();
     if (sfx.getOn()) sfx.bgmOn("shop");
   }
 
@@ -1146,10 +1236,16 @@ export default function DungeonHand() {
   const runPoints = bossesKilled.reduce(function(sum, p) { return sum + p; }, 0) + (isVictory ? 3 : 0);
 
   function claimAndGo(dest) {
-    if (bossesKilled.length > 0 || isVictory) {
-      setMetaPoints(function(p) { return p + runPoints; });
+    var earnedPoints = (bossesKilled.length > 0 || isVictory) ? runPoints : 0;
+    if (earnedPoints > 0) {
+      setMetaPoints(function(p) { return p + earnedPoints; });
     }
     setBossesKilled([]);
+    // Run ended — save meta with updated value, clear run save
+    clearRunSave();
+    try {
+      localStorage.setItem("dh_meta", JSON.stringify({ metaPoints: metaPoints + earnedPoints, upgradeLevels: upgradeLevels, resetCount: resetCount, v: SAVE_VERSION }));
+    } catch (e) {}
     if (dest === "restart") {
       startRun(classId);
       return;
@@ -1194,6 +1290,8 @@ export default function DungeonHand() {
     claimAndGo: claimAndGo,
     enterPhase2: enterPhase2, enterPhase3: enterPhase3,
     leaveCampfire: leaveCampfire, resolveCampfire: resolveCampfire, sellCard: sellCard,
+    // Save/Load
+    saveMeta: saveMeta, hasSavedRun: hasSavedRun, loadRun: loadRun,
   };
 
   // === SCREEN ROUTING ===

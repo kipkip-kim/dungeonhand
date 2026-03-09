@@ -294,6 +294,16 @@
 - data.js passive 내부 var→const 통일 ✅
 - performAmbush 헬퍼 추출 (beginBattle/캠프 기습 중복 제거) ✅
 
+### ~~세션 44: 저장/불러오기 (localStorage)~~ ✅ 완료
+- loadMeta/loadRunData 모듈 레벨 헬퍼 (localStorage JSON 파싱) ✅
+- saveMeta/saveRun/clearRunSave/hasSavedRun/loadRun 컴포넌트 함수 ✅
+- useState 초기값 메타 로딩 (metaPoints/upgradeLevels/resetCount) ✅
+- 자동저장: 캠프 진입 + 상점 진입 (saveRun) ✅
+- 런 종료 시 clearRunSave + meta 저장 (claimAndGo) ✅
+- VillageScreen "던전으로" 버튼에서 saveMeta 호출 ✅
+- MenuScreen "이어하기" 버튼 + 새 게임 확인 팝업 ✅
+- utils.js setNextId 추가 (로드 시 카드 ID 충돌 방지) ✅
+
 ---
 
 ## 기능 추가 체크리스트

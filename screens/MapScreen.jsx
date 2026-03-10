@@ -1,11 +1,19 @@
-import { useEffect, useRef } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { FLOOR_NAMES, NODE_TYPES, MAP_EVENTS } from "../data.js";
+import { getCardName } from "../utils.js";
 import { Btn } from "../components.jsx";
 
 function MapScreen({ game }) {
   var g = game;
-  var scrollRef = useRef(null);
   var map = g.floorMap;
+  var areaRef = useRef(null);
+  var [areaH, setAreaH] = useState(null);
+
+  // useLayoutEffect: 페인트 전에 높이 측정 → 깜빡임 없음
+  useLayoutEffect(function() {
+    if (areaRef.current) setAreaH(areaRef.current.clientHeight);
+  });
+
   if (!map) return null;
 
   var rows = map.rows;
@@ -18,24 +26,30 @@ function MapScreen({ game }) {
     var prevNode = prevRow[map.currentNodeIdx] || prevRow[0];
     selectableIndices = prevNode.edges || [];
   } else if (currentRow === 0) {
-    // 시작점: row1 전부 선택 가능
     selectableIndices = rows[1] ? rows[1].map(function(_, i) { return i; }) : [];
   }
 
-  // 열 위치 계산 (가로 배치)
-  var colWidth = 56;
-  var rowGap = 12;
-  var nodeSize = 42;
+  // 세로 배치: 전부 픽셀 기반 (노드 + SVG 동일 좌표계)
+  var totalRows = rows.length;
+  var nodeSize = 52;
+  var containerWidth = 320;
+
+  // 가용 높이에서 행 간격 동적 계산
+  var usableH = (areaH || 600) - nodeSize - 20; // 상하 여백
+  var rowStep = usableH / (totalRows - 1);
 
   function getNodePos(ri, ni, rowLen) {
-    var x = ri * (colWidth + rowGap) + 10;
-    var totalH = rowLen * (nodeSize + 16) - 16;
-    var startY = (220 - totalH) / 2;
-    var y = startY + ni * (nodeSize + 16);
+    // Y: 보스(ri=last)=상단, 시작(ri=0)=하단
+    var y = (totalRows - 1 - ri) * rowStep + 10;
+    // X: 가로 중앙 정렬
+    var totalW = rowLen * (nodeSize + 16) - 16;
+    var startX = (containerWidth - totalW) / 2;
+    var x = startX + ni * (nodeSize + 16);
     return { x: x, y: y };
   }
 
-  // 연결선 SVG
+  // 연결선 데이터
+  var half = nodeSize / 2;
   var lines = [];
   for (var ri = 0; ri < rows.length - 1; ri++) {
     var srcRow = rows[ri];
@@ -51,10 +65,8 @@ function MapScreen({ game }) {
         var isVisited = srcNode.visited && dstNode.visited;
         lines.push({
           key: ri + "-" + si + "-" + di,
-          x1: srcPos.x + nodeSize / 2,
-          y1: srcPos.y + nodeSize / 2,
-          x2: dstPos.x + nodeSize / 2,
-          y2: dstPos.y + nodeSize / 2,
+          x1: srcPos.x + half, y1: srcPos.y + half,
+          x2: dstPos.x + half, y2: dstPos.y + half,
           active: isActive,
           visited: isVisited,
         });
@@ -62,14 +74,7 @@ function MapScreen({ game }) {
     }
   }
 
-  var mapWidth = rows.length * (colWidth + rowGap) + 20;
-
-  // 자동스크롤: 현재 선택 가능 열이 화면 중앙에 오도록
-  useEffect(function() {
-    if (!scrollRef.current) return;
-    var targetX = currentRow * (colWidth + rowGap) - scrollRef.current.clientWidth / 2 + colWidth / 2 + 10;
-    scrollRef.current.scrollTo({ left: Math.max(0, targetX), behavior: "smooth" });
-  }, [currentRow]);
+  var mapHeight = (totalRows - 1) * rowStep + nodeSize + 20;
 
   return (
     <div style={g.wrapStyle}>
@@ -87,71 +92,73 @@ function MapScreen({ game }) {
         </div>
       </div>
 
-      {/* Map area - horizontal scroll */}
-      <div ref={scrollRef} style={{ flex: 1, overflow: "auto", position: "relative" }}>
-        <div style={{ position: "relative", width: mapWidth, height: 240, margin: "10px auto" }}>
+      {/* Map area — flex:1로 남은 공간 전부 사용 */}
+      <div ref={areaRef} style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+        {areaH && (
+          <div style={{ position: "relative", width: containerWidth, height: mapHeight, margin: "0 auto" }}>
 
-          {/* SVG lines */}
-          <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-            {lines.map(function(l) {
-              return (
-                <line
-                  key={l.key}
-                  x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-                  stroke={l.active ? "var(--gd)" : l.visited ? "#555" : "#333"}
-                  strokeWidth={l.active ? 2.5 : 1.5}
-                  strokeDasharray={l.active || l.visited ? "none" : "4 4"}
-                  opacity={l.visited ? 0.5 : 1}
-                />
-              );
+            {/* SVG lines (동일 픽셀 좌표계) */}
+            <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+              {lines.map(function(l) {
+                return (
+                  <line
+                    key={l.key}
+                    x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
+                    stroke={l.active ? "var(--gd)" : l.visited ? "#555" : "#333"}
+                    strokeWidth={l.active ? 2.5 : 1.5}
+                    strokeDasharray={l.active || l.visited ? "none" : "4 4"}
+                    opacity={l.visited ? 0.5 : 1}
+                  />
+                );
+              })}
+            </svg>
+
+            {/* Nodes (동일 픽셀 좌표계) */}
+            {rows.map(function(row, ri) {
+              return row.map(function(node, ni) {
+                var pos = getNodePos(ri, ni, row.length);
+                var isCurrent = ri === currentRow - 1 && ni === map.currentNodeIdx && node.visited;
+                var isSelectable = ri === currentRow && selectableIndices.indexOf(ni) >= 0;
+                var isVisited = node.visited;
+                var nodeInfo = NODE_TYPES[node.type] || { icon: "●", name: "" };
+
+                var bg = isVisited ? "#2a2a2a"
+                  : isSelectable ? "#1a2a3a"
+                  : isCurrent ? "#2a1a0a"
+                  : "#151515";
+                var border = isCurrent ? "var(--gd)"
+                  : isSelectable ? "var(--ac)"
+                  : isVisited ? "#555"
+                  : "#333";
+                var opacity = isVisited ? 0.45 : isSelectable ? 1 : 0.35;
+
+                return (
+                  <div
+                    key={node.id}
+                    onClick={isSelectable ? function() { g.selectNode(ni); } : undefined}
+                    style={{
+                      position: "absolute",
+                      left: pos.x, top: pos.y,
+                      width: nodeSize, height: nodeSize,
+                      borderRadius: "50%",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 20,
+                      background: bg,
+                      border: "2px solid " + border,
+                      opacity: opacity,
+                      cursor: isSelectable ? "pointer" : "default",
+                      transition: "all 0.2s",
+                      boxShadow: isSelectable ? "0 0 8px " + border : "none",
+                      animation: isSelectable ? "pulse 1.5s infinite" : "none",
+                    }}
+                  >
+                    {node.type === "start" ? "●" : isVisited ? "✓" : nodeInfo.icon}
+                  </div>
+                );
+              });
             })}
-          </svg>
-
-          {/* Nodes */}
-          {rows.map(function(row, ri) {
-            return row.map(function(node, ni) {
-              var pos = getNodePos(ri, ni, row.length);
-              var isCurrent = ri === currentRow && ni === map.currentNodeIdx && ri > 0;
-              var isSelectable = ri === currentRow && selectableIndices.indexOf(ni) >= 0;
-              var isVisited = node.visited;
-              var nodeInfo = NODE_TYPES[node.type] || { icon: "●", name: "" };
-
-              var bg = isVisited ? "#2a2a2a"
-                : isSelectable ? "#1a2a3a"
-                : isCurrent ? "#2a1a0a"
-                : "#151515";
-              var border = isCurrent ? "var(--gd)"
-                : isSelectable ? "var(--ac)"
-                : isVisited ? "#555"
-                : "#333";
-              var opacity = isVisited ? 0.45 : isSelectable ? 1 : 0.35;
-
-              return (
-                <div
-                  key={node.id}
-                  onClick={isSelectable ? function() { g.selectNode(ni); } : undefined}
-                  style={{
-                    position: "absolute",
-                    left: pos.x, top: pos.y,
-                    width: nodeSize, height: nodeSize,
-                    borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 20,
-                    background: bg,
-                    border: "2px solid " + border,
-                    opacity: opacity,
-                    cursor: isSelectable ? "pointer" : "default",
-                    transition: "all 0.2s",
-                    boxShadow: isSelectable ? "0 0 8px " + border : "none",
-                    animation: isSelectable ? "pulse 1.5s infinite" : "none",
-                  }}
-                >
-                  {node.type === "start" ? "●" : isVisited ? "✓" : nodeInfo.icon}
-                </div>
-              );
-            });
-          })}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Legend */}
@@ -176,58 +183,63 @@ function MapScreen({ game }) {
 function EventScreen({ game }) {
   var g = game;
   var evt = g.mapEvent;
+  var [result, setResult] = useState(null);
   if (!evt) return null;
 
   function resolveEvent(choice) {
+    var msg = null;
     if (evt.effect === "gold") {
       g.setGold(function(v) { return v + evt.val; });
+      msg = "💰 +" + evt.val + "G 획득!";
     } else if (evt.effect === "heal") {
       g.setHp(function(h) { return Math.min(g.MAX_HP, h + evt.val); });
+      msg = "❤️ HP +" + evt.val + " 회복!";
     } else if (evt.effect === "gamble") {
-      if (choice === "accept" && g.gold >= evt.cost) {
-        g.setGold(function(v) { return v - evt.cost; });
-        if (Math.random() < 0.5) {
-          g.setGold(function(v) { return v + evt.winGold; });
-          g.setOverlay("🎰 승리! +" + evt.winGold + "G");
-        } else {
-          g.setOverlay("🎰 패배... -" + evt.cost + "G");
-        }
+      if (choice !== "accept") return; // 거절은 UI에서 직접 goToMap
+      g.setGold(function(v) { return v - evt.cost; });
+      if (Math.random() < 0.5) {
+        g.setGold(function(v) { return v + evt.winGold; });
+        msg = "🎰 승리! +" + evt.winGold + "G";
+      } else {
+        msg = "🎰 패배... -" + evt.cost + "G";
       }
     } else if (evt.effect === "enhance") {
-      // 랜덤 카드 1장 등급 +1
       if (g.deck.length > 0) {
         var ri = Math.floor(Math.random() * g.deck.length);
         var target = g.deck[ri];
+        var cardName = getCardName(target, g.classData);
         g.setDeck(function(prev) {
           return prev.map(function(c, i) {
             if (i === ri) return Object.assign({}, c, { grade: c.grade + 1 });
             return c;
           });
         });
-        g.setOverlay("🔨 " + (target.isCommon ? target.common.name : "카드") + " 등급 +1!");
+        msg = "🔨 " + cardName + " 등급 +1! (→" + (target.grade + 1) + ")";
+      } else {
+        msg = "강화할 카드가 없다...";
       }
     } else if (evt.effect === "cursedWell") {
       g.setHp(function(h) { return Math.max(1, h - evt.hpCost); });
-      // 랜덤 카드 등급 +2
       if (g.deck.length > 0) {
         var ci = Math.floor(Math.random() * g.deck.length);
         var tgt = g.deck[ci];
+        var cName = getCardName(tgt, g.classData);
         g.setDeck(function(prev) {
           return prev.map(function(c, i) {
             if (i === ci) return Object.assign({}, c, { grade: c.grade + evt.gradeBonus });
             return c;
           });
         });
-        g.setOverlay("🪦 HP -" + evt.hpCost + ", " + (tgt.isCommon ? tgt.common.name : "카드") + " 등급 +" + evt.gradeBonus + "!");
+        msg = "HP -" + evt.hpCost + "\n" + cName + " 등급 +" + evt.gradeBonus + "! (→" + (tgt.grade + evt.gradeBonus) + ")";
       } else {
-        g.setOverlay("🪦 HP -" + evt.hpCost);
+        msg = "HP -" + evt.hpCost;
       }
     } else if (evt.effect === "relicOffer") {
-      g.offerWandererRelic();
-      return; // offerWandererRelic handles screen transition
+      var offered = g.offerWandererRelic();
+      if (offered) return; // relicReward 화면으로 전환됨
+      msg = "🧙 방랑자가 10G를 건네주었다.";
     }
-    setTimeout(function() { g.setOverlay(null); }, 1500);
-    g.goToMap();
+    setResult(msg);
   }
 
   return (
@@ -238,25 +250,32 @@ function EventScreen({ game }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>{evt.icon}</div>
         <div style={{ fontSize: "var(--fs-lg)", fontWeight: 700, marginBottom: 8 }}>{evt.name}</div>
-        <div style={{ fontSize: "var(--fs-md)", color: "#ccc", marginBottom: 24, lineHeight: 1.5 }}>{evt.desc}</div>
 
-        {evt.effect === "gamble" ? (
-          <div style={{ display: "flex", gap: 12 }}>
-            <Btn
-              onClick={function() { resolveEvent("accept"); }}
-              disabled={g.gold < evt.cost}
-            >{"도전! (-" + evt.cost + "G)"}</Btn>
-            <Btn onClick={function() { g.goToMap(); }}>거절</Btn>
+        {result ? (
+          <div>
+            <div style={{ fontSize: "var(--fs-md)", color: "var(--gd)", marginBottom: 24, lineHeight: 1.8, whiteSpace: "pre-line" }}>{result}</div>
+            <Btn onClick={function() { setResult(null); g.goToMap(); }}>돌아가기</Btn>
           </div>
         ) : (
-          <Btn onClick={function() { resolveEvent(); }}>
-            {evt.effect === "cursedWell" ? "마신다 (HP -" + evt.hpCost + ")" : "확인"}
-          </Btn>
-        )}
+          <div>
+            <div style={{ fontSize: "var(--fs-md)", color: "#ccc", marginBottom: 24, lineHeight: 1.5 }}>{evt.desc}</div>
 
-        {evt.effect === "cursedWell" && (
-          <div style={{ marginTop: 8 }}>
-            <Btn onClick={function() { g.goToMap(); }}>지나친다</Btn>
+            {evt.effect === "gamble" ? (
+              <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                <Btn
+                  onClick={function() { resolveEvent("accept"); }}
+                  disabled={g.gold < evt.cost}
+                >{"도전! (-" + evt.cost + "G)"}</Btn>
+                <Btn onClick={function() { g.goToMap(); }}>거절</Btn>
+              </div>
+            ) : evt.effect === "cursedWell" ? (
+              <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                <Btn onClick={function() { resolveEvent(); }}>{"마신다 (HP -" + evt.hpCost + ")"}</Btn>
+                <Btn onClick={function() { g.goToMap(); }}>지나친다</Btn>
+              </div>
+            ) : (
+              <Btn onClick={function() { resolveEvent(); }}>확인</Btn>
+            )}
           </div>
         )}
       </div>

@@ -313,6 +313,7 @@ export default function DungeonHand() {
     setGambitChoices([]);
     setFloorMap(generateFloorMap(1));
     setScreen("map");
+    if (sfx.getOn()) sfx.bgmOn("campfire");
   }
 
   function beginBattle(curDeck, curRelics, fl, monsterIdx) {
@@ -1199,6 +1200,7 @@ export default function DungeonHand() {
       return Object.assign({}, prev, { rows: newRows, currentRow: prev.currentRow + 1 });
     });
     setScreen("map");
+    if (sfx.getOn()) sfx.bgmOn("campfire");
     saveRun();
   }
 
@@ -1211,13 +1213,12 @@ export default function DungeonHand() {
     });
     if (avail.length === 0) {
       setGold(function(v) { return v + 10; });
-      setOverlay("🧙 방랑자가 10G를 건네주었다.");
-      setTimeout(function() { setOverlay(null); }, 1500);
-      goToMap();
+      return false; // EventScreen에서 result 표시
     } else {
       setRelicContext("wanderer");
       setRewardRelics(pickN(avail, 1));
       setScreen("relicReward");
+      return true;
     }
   }
 

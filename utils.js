@@ -366,7 +366,7 @@ function generateFloorMap(floor) {
 
   return {
     rows: rows,
-    currentRow: 0,
+    currentRow: 1,
     currentNodeIdx: 0,
   };
 }

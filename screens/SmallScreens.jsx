@@ -234,13 +234,14 @@ export function EnhanceScreen({ game }) {
 
 // === RELIC REWARD SCREEN ===
 export function RelicRewardScreen({ game }) {
-  var { wrapStyle, CSS, audioButton, rewardRelics, pickRelic, deck, classData, deckView, setDeckView, deckSort, setDeckSort } = game;
+  var { wrapStyle, CSS, audioButton, rewardRelics, relicContext, pickRelic, deck, classData, deckView, setDeckView, deckSort, setDeckSort, goToMap } = game;
+  var isWanderer = relicContext === "wanderer";
   return (
     <div style={wrapStyle}>
       <style>{CSS}</style>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
-        <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>👑 보스 처치!</div>
+        <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>{isWanderer ? "🧙 방랑자" : "👑 보스 처치!"}</div>
         <h3 style={{ fontSize: "var(--fs-lg)" }}>유물 선택</h3>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", padding: "0 8px" }}>
           {rewardRelics.map(function(r) {
@@ -248,7 +249,7 @@ export function RelicRewardScreen({ game }) {
             return (
               <div
                 key={r.id}
-                onClick={function() { pickRelic(r); }}
+                onClick={function() { pickRelic(r, relicContext); }}
                 style={{ width: "clamp(100px, calc(var(--gw) * 0.26), 180px)", padding: "14px 10px", background: "linear-gradient(145deg,var(--cd),var(--card-dark))", border: "2px solid " + borderCol, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}
               >
                 <span style={{ fontSize: 24 }}>{r.emoji}</span>
@@ -258,6 +259,7 @@ export function RelicRewardScreen({ game }) {
             );
           })}
         </div>
+        {isWanderer && <Btn onClick={function() { goToMap(); }} style={{ marginTop: 6 }}>넘기기</Btn>}
         <Btn onClick={function() { setDeckView(true); }} style={{ marginTop: 6 }}>📦덱 보기</Btn>
       </div>
       <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />

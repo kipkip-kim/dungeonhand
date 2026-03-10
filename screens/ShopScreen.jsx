@@ -126,7 +126,7 @@ export function ShopScreen({ game }) {
       </div>
       <div style={{ padding: "clamp(8px, 1.5vh, 14px)", borderTop: "1px solid var(--bd)", textAlign: "center" }}>
         <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: "var(--fs-md)", padding: "clamp(8px, 1.5vh, 14px) 36px" }}>
-          {floor >= 5 ? "🏆 클리어!" : "다음 층 →"}
+          {floor >= 5 ? "🏆 클리어!" : "🗺️ 맵으로"}
         </Btn>
       </div>
       <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />

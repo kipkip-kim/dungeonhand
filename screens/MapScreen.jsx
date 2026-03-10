@@ -1,8 +1,10 @@
+import { useEffect, useRef } from "react";
 import { FLOOR_NAMES, NODE_TYPES, MAP_EVENTS } from "../data.js";
 import { Btn } from "../components.jsx";
 
 function MapScreen({ game }) {
   var g = game;
+  var scrollRef = useRef(null);
   var map = g.floorMap;
   if (!map) return null;
 
@@ -62,6 +64,13 @@ function MapScreen({ game }) {
 
   var mapWidth = rows.length * (colWidth + rowGap) + 20;
 
+  // 자동스크롤: 현재 선택 가능 열이 화면 중앙에 오도록
+  useEffect(function() {
+    if (!scrollRef.current) return;
+    var targetX = currentRow * (colWidth + rowGap) - scrollRef.current.clientWidth / 2 + colWidth / 2 + 10;
+    scrollRef.current.scrollTo({ left: Math.max(0, targetX), behavior: "smooth" });
+  }, [currentRow]);
+
   return (
     <div style={g.wrapStyle}>
       <style>{g.CSS}</style>
@@ -79,7 +88,7 @@ function MapScreen({ game }) {
       </div>
 
       {/* Map area - horizontal scroll */}
-      <div style={{ flex: 1, overflow: "auto", position: "relative" }}>
+      <div ref={scrollRef} style={{ flex: 1, overflow: "auto", position: "relative" }}>
         <div style={{ position: "relative", width: mapWidth, height: 240, margin: "10px auto" }}>
 
           {/* SVG lines */}
@@ -189,16 +198,33 @@ function EventScreen({ game }) {
       if (g.deck.length > 0) {
         var ri = Math.floor(Math.random() * g.deck.length);
         var target = g.deck[ri];
+        g.setDeck(function(prev) {
+          return prev.map(function(c, i) {
+            if (i === ri) return Object.assign({}, c, { grade: c.grade + 1 });
+            return c;
+          });
+        });
         g.setOverlay("🔨 " + (target.isCommon ? target.common.name : "카드") + " 등급 +1!");
       }
     } else if (evt.effect === "cursedWell") {
       g.setHp(function(h) { return Math.max(1, h - evt.hpCost); });
       // 랜덤 카드 등급 +2
-      g.setOverlay("🪦 HP -" + evt.hpCost + ", 카드 등급 +2!");
+      if (g.deck.length > 0) {
+        var ci = Math.floor(Math.random() * g.deck.length);
+        var tgt = g.deck[ci];
+        g.setDeck(function(prev) {
+          return prev.map(function(c, i) {
+            if (i === ci) return Object.assign({}, c, { grade: c.grade + evt.gradeBonus });
+            return c;
+          });
+        });
+        g.setOverlay("🪦 HP -" + evt.hpCost + ", " + (tgt.isCommon ? tgt.common.name : "카드") + " 등급 +" + evt.gradeBonus + "!");
+      } else {
+        g.setOverlay("🪦 HP -" + evt.hpCost);
+      }
     } else if (evt.effect === "relicOffer") {
-      // 간단 처리: 골드 보상으로 대체
-      g.setGold(function(v) { return v + 10; });
-      g.setOverlay("🧙 방랑자가 10G를 건네주었다.");
+      g.offerWandererRelic();
+      return; // offerWandererRelic handles screen transition
     }
     setTimeout(function() { g.setOverlay(null); }, 1500);
     g.goToMap();
@@ -217,22 +243,20 @@ function EventScreen({ game }) {
         {evt.effect === "gamble" ? (
           <div style={{ display: "flex", gap: 12 }}>
             <Btn
-              label={"도전! (-" + evt.cost + "G)"}
               onClick={function() { resolveEvent("accept"); }}
               disabled={g.gold < evt.cost}
-            />
-            <Btn label="거절" onClick={function() { g.goToMap(); }} />
+            >{"도전! (-" + evt.cost + "G)"}</Btn>
+            <Btn onClick={function() { g.goToMap(); }}>거절</Btn>
           </div>
         ) : (
-          <Btn
-            label={evt.effect === "cursedWell" ? "마신다 (HP -" + evt.hpCost + ")" : "확인"}
-            onClick={function() { resolveEvent(); }}
-          />
+          <Btn onClick={function() { resolveEvent(); }}>
+            {evt.effect === "cursedWell" ? "마신다 (HP -" + evt.hpCost + ")" : "확인"}
+          </Btn>
         )}
 
         {evt.effect === "cursedWell" && (
           <div style={{ marginTop: 8 }}>
-            <Btn label="지나친다" onClick={function() { g.goToMap(); }} />
+            <Btn onClick={function() { g.goToMap(); }}>지나친다</Btn>
           </div>
         )}
       </div>

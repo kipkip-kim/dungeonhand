@@ -304,6 +304,17 @@
 - MenuScreen "이어하기" 버튼 + 새 게임 확인 팝업 ✅
 - utils.js setNextId 추가 (로드 시 카드 ID 충돌 방지) ✅
 
+### ~~세션 46: 지도 시스템 (Slay the Spire 스타일)~~ ✅ 완료
+- **세션 A**: 데이터 레이어 — MONSTERS 20→30종 확장, NODE_TYPES/MAP_EVENTS 상수, generateFloorMap() ✅
+- **세션 B**: MapScreen/EventScreen UI — 7열 가로 노드 맵 + SVG 연결선 + 이벤트 6종 ✅
+- **세션 C**: 플로우 연결 — advanceBattle 제거 → goToMap/goNextFloor/selectNode 도입 ✅
+- **세션 D**: 갭 분석 + 반복 개선 (82%→90%→98%) — P0 5건 + P1 2건 + P2 4건 = 11건 수정 ✅
+- battleNum state 완전 제거 (node.type 기반 분기로 전환) ✅
+- 이벤트 효과 실제 적용 (대장장이 등급+1, 저주샘 등급+2, 방랑자 유물 제안) ✅
+- 저장/불러오기 floorMap+currentScreen 포함, SAVE_VERSION 2 ✅
+- MapScreen 자동스크롤 (useEffect + scrollRef) ✅
+- pickRelic ctx 파라미터 추가 (boss/wanderer/shop 컨텍스트 분기) ✅
+
 ---
 
 ## 기능 추가 체크리스트
@@ -337,20 +348,22 @@
 ### 현재 구조 (멀티 파일)
 ```
 audio.js              (97줄)  — sfx 객체 (HTMLAudioElement 기반)
-data.js               (240줄) — SUITS, CLASSES, MONSTERS, RELICS, SKILL_TREES 등 모든 상수
-utils.js              (247줄) — shuffle, makeDeck, detectHand, calcDamage 등
+data.js               (~350줄) — SUITS, CLASSES, MONSTERS(30종), RELICS, SKILL_TREES, NODE_TYPES, MAP_EVENTS 등
+utils.js              (~290줄) — shuffle, makeDeck, detectHand, calcDamage, generateFloorMap 등
 styles.js             (31줄)  — CSS 문자열
 components.jsx        (350줄) — CardView, HpBar, Btn, DeckViewer
-DungeonHand_v3.jsx    (1,215줄) — 메인 게임 컴포넌트 (useState + 로직 + game 객체 + 화면 라우팅)
+DungeonHand_v3.jsx    (~1,400줄) — 메인 게임 컴포넌트 (useState + 로직 + game 객체 + 화면 라우팅)
 screens/
-  SmallScreens.jsx    (293줄) — menu, classSelect, reward, enhance, relicReward, victory, defeat, pendingRelic
+  SmallScreens.jsx    (~300줄) — menu, classSelect, reward, enhance, relicReward, victory, defeat, pendingRelic
   BattleScreen.jsx    (285줄) — 전투 UI + 인카운터/대사/갬빗 오버레이
   CampfireScreen.jsx  (179줄) — 캠프파이어 3페이즈 + 6이벤트
   VillageScreen.jsx   (141줄) — 스킬 트리 UI
   ShopScreen.jsx      (130줄) — 상점 UI
+  MapScreen.jsx       (~250줄) — 지도 UI (7열 노드 맵 + SVG) + 이벤트 화면
 ```
-- DungeonHand 컴포넌트: useState 58개, 함수 ~40개
+- DungeonHand 컴포넌트: useState ~60개, 함수 ~45개
 - 화면 컴포넌트는 game 단일 props 객체로 필요한 state/callback 수신
+- 지도 시스템: floorMap state로 맵 관리, selectNode()로 노드 진입
 
 ### 확장 난이도
 | 작업 | 난이도 | 사유 |
@@ -365,6 +378,19 @@ screens/
 
 ---
 
-## 참고: 몬스터 HP (x1.3 적용 완료)
+## 참고: 몬스터 (30종, 층별 6마리)
 
-고블린 36 / 궁수 50 / 대장 72 / 킹 94 / 해골 59 / 뱀파이어 72 / 망령 91 / 리치 124 / 골렘 72 / 마녀 85 / 불꽃 104 / 대마법사 143 / 그림자 78 / 심연눈 98 / 공허 124 / 심연군주 176 / 알지기 117 / 새끼 143 / 근위병 182 / 드래곤로드 260
+### 1층 고블린 소굴
+고블린 36/6 / 궁수 50/8 / 도둑 42/7(steal5) / 주술사 38/5(erode1) / 대장 72/9 / 킹 94/11
+
+### 2층 언데드 묘지
+해골 59/7 / 뱀파이어 72/9 / 구울 63/8(regen4) / 레이스 52/9(steal7) / 망령 91/10 / 리치 124/12
+
+### 3층 마법 탑
+골렘 72/8(freeze1) / 마녀 85/10(freeze2) / 가고일 88/7(rage2) / 원소술사 75/9(freeze1,burn1) / 불꽃 104/11 / 대마법사 143/13(freeze2,split)
+
+### 4층 심연
+포식자 78/9 / 심연눈 98/11(erode1) / 심연거미 85/10(freeze1,steal6) / 공허흡수자 92/11(erode1,rage2) / 사도 124/12(erode2) / 군주 176/15(erode2)
+
+### 5층 드래곤 둥지
+알지기 117/12 / 새끼 143/14(burn1) / 용암도마뱀 130/13(rage3,burn1) / 사제 125/11(regen10) / 근위병 182/16(burn1) / 로드 260/20(burn2)

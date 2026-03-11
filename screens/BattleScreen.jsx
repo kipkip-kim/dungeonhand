@@ -10,7 +10,7 @@ export function BattleScreen({ game }) {
     discards, roundNum, damageInfo, currentHand,
     monShake, monShakeHard, playerShake, enemyAttacking, busy,
     overlay, enemyDmgShow, passiveState, gambleBuff, gambleAnim,
-    poison, frozenIds, tenacityUsed, bossDialogue, encounterOverlay,
+    poison, frozenIds, tenacityUsed, weakenDebuff, bossDialogue, encounterOverlay,
     gambitChoices, splitMon, passiveMsg, newCardIds, upgradeLevels,
     deckSort, submitLimit, preview, previewDmg,
     toggleCard, submitCards, doDiscard, pickGambitCard,
@@ -108,6 +108,11 @@ export function BattleScreen({ game }) {
                 {monster.freeze > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--fr)", fontWeight: 700 }}>❄️{monster.freeze}</span>}
                 {monster.erode > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--ac)", fontWeight: 700 }}>🌑{monster.erode}</span>}
                 {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
+                {monster.shield > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#5dade2", fontWeight: 700 }}>🛡️{monster.shield}</span>}
+                {monster.enrage && !monster.enraged && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--wn)", fontWeight: 700 }}>😤격노</span>}
+                {monster.enraged && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 1s ease infinite" }}>😤폭주!</span>}
+                {monster.mPoison > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#9b59b6", fontWeight: 700 }}>🧪{monster.mPoison}</span>}
+                {monster.weaken > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#3498db", fontWeight: 700 }}>💧{monster.weaken}</span>}
                 {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
               </div>
               <div style={{ fontSize: monster.boss ? "clamp(96px, calc(var(--gw) * 0.192), 176px)" : "clamp(80px, calc(var(--gw) * 0.16), 144px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
@@ -210,6 +215,11 @@ export function BattleScreen({ game }) {
               {poison > 0 && (
                 <div style={{ background: "#9b59b622", border: "1px solid var(--ac)", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
                   ☠️독{poison}
+                </div>
+              )}
+              {weakenDebuff > 0 && (
+                <div style={{ background: "#3498db22", border: "1px solid #3498db", borderRadius: 5, padding: "2px 8px", fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", fontWeight: 700 }}>
+                  💧약화-{weakenDebuff}
                 </div>
               )}
               {gambleBuff !== 0 && (

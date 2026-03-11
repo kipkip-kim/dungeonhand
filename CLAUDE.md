@@ -378,19 +378,35 @@ screens/
 
 ---
 
-## 참고: 몬스터 (30종, 층별 6마리)
+### ~~세션 48: 몬스터 30→50종 확장~~ ✅ 완료
+- MONSTERS 30→50종 확장 (층당 일반6+엘리트3+보스1) ✅
+- BOSS_DIALOGUES 신규 엘리트 10종 대사 추가 ✅
+- MONSTERS_PER_FLOOR 6→10, BOSS_POINTS 재계산 ✅
+- generateFloorMap 엘리트 3종 랜덤 + 보스 monIdx=9 ✅
+
+### ~~세션 49: 몬스터 특수능력 4종 구현~~ ✅ 완료
+- **shield(방어)**: 몬스터 피격 시 데미지 감소 (submitCards) ✅
+- **enrage(격노)**: HP 50% 이하 시 ATK x1.5 (submitCards) ✅
+- **mPoison(독)**: 매턴 플레이어 HP 감소 + 집념 연동 (enemyTurn, 회피 무관) ✅
+- **weaken(약화)**: 매턴 배율 감소 디버프 + calcDamage 적용 (enemyTurn, 회피 무관) ✅
+- weakenDebuff state + resetBattleState/buildPState/game 객체 ✅
+- BattleScreen UI: 몬스터 상태 아이콘 5종 + 플레이어 약화 뱃지 ✅
+
+---
+
+## 참고: 몬스터 (50종, 층별 10마리)
 
 ### 1층 고블린 소굴
-고블린 36/6 / 궁수 50/8 / 도둑 42/7(steal5) / 주술사 38/5(erode1) / 대장 72/9 / 킹 94/11
+고블린 36/6 / 궁수 50/8 / 도둑 42/7(steal5) / 주술사 38/5(erode1) / 방패병 48/6(shield2) / 독침수 40/5(mPoison2) / 대장 72/9(엘리트) / 전투광 68/10(enrage,steal4,엘리트) / 마술사 60/8(weaken1,freeze1,엘리트) / 킹 94/11(보스)
 
 ### 2층 언데드 묘지
-해골 59/7 / 뱀파이어 72/9 / 구울 63/8(regen4) / 레이스 52/9(steal7) / 망령 91/10 / 리치 124/12
+해골 59/7 / 뱀파이어 72/9 / 구울 63/8(regen4) / 레이스 52/9(steal7) / 좀비기사 65/8(shield3) / 독안개유령 55/7(mPoison3) / 망령 91/10(엘리트) / 흡혈백작 85/11(regen6,enrage,엘리트) / 저주술사 78/9(weaken2,erode1,엘리트) / 리치 124/12(보스)
 
 ### 3층 마법 탑
-골렘 72/8(freeze1) / 마녀 85/10(freeze2) / 가고일 88/7(rage2) / 원소술사 75/9(freeze1,burn1) / 불꽃 104/11 / 대마법사 143/13(freeze2,split)
+골렘 72/8(freeze1) / 마녀 85/10(freeze2) / 가고일 88/7(rage2) / 원소술사 75/9(freeze1,burn1) / 마법인형 80/8(shield4,weaken1) / 독염술사 76/9(mPoison2,burn1) / 불꽃 104/11(엘리트) / 수정골렘 120/10(shield5,rage2,엘리트) / 마력폭주자 95/12(enrage,freeze2,burn1,엘리트) / 대마법사 143/13(freeze2,split,보스)
 
 ### 4층 심연
-포식자 78/9 / 심연눈 98/11(erode1) / 심연거미 85/10(freeze1,steal6) / 공허흡수자 92/11(erode1,rage2) / 사도 124/12(erode2) / 군주 176/15(erode2)
+포식자 78/9 / 심연눈 98/11(erode1) / 심연거미 85/10(freeze1,steal6) / 공허흡수자 92/11(erode1,rage2) / 심연독충 88/10(mPoison4) / 공허감시자 82/9(shield3,erode1) / 사도 124/12(erode2,엘리트) / 심연포식왕 135/13(mPoison3,steal8,enrage,엘리트) / 공허직조자 118/11(weaken3,freeze2,엘리트) / 군주 176/15(erode2,보스)
 
 ### 5층 드래곤 둥지
-알지기 117/12 / 새끼 143/14(burn1) / 용암도마뱀 130/13(rage3,burn1) / 사제 125/11(regen10) / 근위병 182/16(burn1) / 로드 260/20(burn2)
+알지기 117/12 / 새끼 143/14(burn1) / 용암도마뱀 130/13(rage3,burn1) / 사제 125/11(regen10) / 용암독사 135/13(mPoison5,burn1) / 수호병 148/12(shield6) / 근위병 182/16(burn1,엘리트) / 화염폭군 195/17(burn2,enrage,rage2,엘리트) / 고대용사제 170/14(regen12,shield4,weaken2,엘리트) / 로드 260/20(burn2,보스)

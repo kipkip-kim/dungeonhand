@@ -108,6 +108,7 @@ export default function DungeonHand() {
   const [erodedIds, setErodedIds] = s([]); // eroded card ids (grade temporarily -1)
   const [tenacityUsed, setTenacityUsed] = s(false); // tenacity: revive once per run
   const tenacityUsedRef = useRef(false);
+  const [weakenDebuff, setWeakenDebuff] = s(0); // weaken: mult reduction
   const [frozenIds, setFrozenIds] = s([]); // frozen card ids
   const [bossDialogue, setBossDialogue] = s(null); // boss/miniboss dialogue text
   const [encounterOverlay, setEncounterOverlay] = s(null); // boss encounter overlay { emoji, name, boss }
@@ -230,6 +231,7 @@ export default function DungeonHand() {
     setGambleBuff(0);
     setGambleAnim(null);
     setNewCardIds([]);
+    setWeakenDebuff(0);
   }
 
   function performAmbush(monName, ambushDmg, timers) {
@@ -270,6 +272,7 @@ export default function DungeonHand() {
       critDamage: upgradeLevels.critDamage > 0,
       fatedDice: upgradeLevels.fatedDice > 0,
       roundNum: roundNum,
+      weakenDebuff: weakenDebuff,
     });
   }
   const book2Bonus = (!book2Used && relics.some(function(r) { return r.id === "book2"; })) ? 1 : 0;
@@ -320,7 +323,7 @@ export default function DungeonHand() {
     var m = MONSTERS[monsterIdx] || MONSTERS[0];
     var mhp = m.hp;
     var matk = m.atk;
-    setMonster({ name: m.name, emoji: m.emoji, img: m.img, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false, steal: m.steal || 0, rage: m.rage || 0, regen: m.regen || 0 });
+    setMonster({ name: m.name, emoji: m.emoji, img: m.img, hp: mhp, maxHp: mhp, atk: matk, boss: m.boss, miniboss: m.miniboss, freeze: m.freeze || 0, erode: m.erode || 0, burn: m.burn || 0, split: m.split || false, hasSplit: false, steal: m.steal || 0, rage: m.rage || 0, regen: m.regen || 0, shield: m.shield || 0, enrage: m.enrage || false, enraged: false, mPoison: m.mPoison || 0, weaken: m.weaken || 0 });
     var discBonus = curRelics.reduce(function(sum, r) {
       return r.eff.type === "disc" ? sum + r.eff.val : sum;
     }, 0);
@@ -573,7 +576,23 @@ export default function DungeonHand() {
       setMonShakeHard(false);
 
       setMonster(function(prev) {
-        var newHp = Math.max(0, prev.hp - dmg.total);
+        // === Shield: 데미지 감소 ===
+        var actualDmg = Math.max(0, dmg.total - (prev.shield || 0));
+        if (prev.shield > 0 && dmg.total > 0) {
+          showPassive("🛡️ 방어! 데미지 -" + Math.min(prev.shield, dmg.total));
+        }
+        var newHp = Math.max(0, prev.hp - actualDmg);
+
+        // === Enrage: HP 50% 이하 시 ATK 1.5배 ===
+        var newAtk = prev.atk;
+        var nowEnraged = prev.enraged;
+        if (prev.enrage && !prev.enraged && newHp > 0 && newHp <= prev.maxHp * 0.5) {
+          newAtk = Math.floor(prev.atk * 1.5);
+          nowEnraged = true;
+          showPassive("😤 격노! 공격력 " + prev.atk + " → " + newAtk + "!");
+        }
+
+        var updatedPrev = Object.assign({}, prev, { hp: newHp, atk: newAtk, enraged: nowEnraged });
 
         // === Split mechanic: boss splits at 50% HP ===
         if (prev.split && !prev.hasSplit && newHp > 0 && newHp <= prev.maxHp * 0.5) {
@@ -581,8 +600,9 @@ export default function DungeonHand() {
           var spawnHp = Math.floor(prev.maxHp * 0.4);
           setSplitMon({ name: "마법 골렘", emoji: "🗿", img: "golem", hp: spawnHp, maxHp: spawnHp, atk: Math.floor(prev.atk * 0.6), freeze: 1 });
           showPassive("💥 분열! 마법 골렘 출현!");
-          setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: splitHp, hasSplit: true }), played, dmg, newPoison); }, 800);
-          return Object.assign({}, prev, { hp: splitHp, hasSplit: true });
+          var splitState = Object.assign({}, updatedPrev, { hasSplit: true });
+          setTimeout(function() { enemyTurn(splitState, played, dmg, newPoison); }, 800);
+          return splitState;
         }
 
         // Monster killed
@@ -597,10 +617,10 @@ export default function DungeonHand() {
             return sm;
           }
           setTimeout(function() { onMonsterDied(); }, 400);
-          return Object.assign({}, prev, { hp: 0 });
+          return Object.assign({}, updatedPrev, { hp: 0 });
         }
-        setTimeout(function() { enemyTurn(Object.assign({}, prev, { hp: newHp }), played, dmg, newPoison); }, 800);
-        return Object.assign({}, prev, { hp: newHp });
+        setTimeout(function() { enemyTurn(updatedPrev, played, dmg, newPoison); }, 800);
+        return updatedPrev;
       });
     }, 700);
   }
@@ -687,6 +707,29 @@ export default function DungeonHand() {
         if (mon.steal && mon.steal > 0) {
           setGold(function(g) { var stolen = Math.min(mon.steal, g); if (stolen > 0) showPassive("🗝️ " + mon.name + "이 " + stolen + "G 훔쳤다!"); return Math.max(0, g - mon.steal); });
         }
+      }
+
+      // === 💧 Weaken: 배율 감소 디버프 (회피 무관) ===
+      if (mon.weaken && mon.weaken > 0) {
+        setWeakenDebuff(mon.weaken);
+        showPassive("💧 약화! 배율 -" + mon.weaken);
+      }
+      // === 🧪 mPoison: 몬스터 독 → 플레이어 HP 감소 (회피 무관) ===
+      if (mon.mPoison && mon.mPoison > 0) {
+        setHp(function(prev) {
+          var newVal = prev - mon.mPoison;
+          if (newVal <= 0) {
+            if (upgradeLevels.tenacity > 0 && !tenacityUsedRef.current) {
+              setTenacityUsed(true); tenacityUsedRef.current = true;
+              showPassive("💀 집념! 독에도 쓰러지지 않는다!");
+              return 1;
+            }
+            setTimeout(function() { sfx.bgmOff(); sfx.lose(); setScreen("defeat"); }, 500);
+            return 0;
+          }
+          return newVal;
+        });
+        showPassive("🧪 독! HP -" + mon.mPoison);
       }
 
       setTimeout(function() {
@@ -1148,7 +1191,7 @@ export default function DungeonHand() {
       var am = MONSTERS[ambushIdx];
       var amhp = am.hp;
       var amatk = am.atk;
-      setMonster({ name: am.name, emoji: am.emoji, img: am.img, hp: amhp, maxHp: amhp, atk: amatk, boss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false, steal: am.steal || 0, rage: am.rage || 0, regen: am.regen || 0 });
+      setMonster({ name: am.name, emoji: am.emoji, img: am.img, hp: amhp, maxHp: amhp, atk: amatk, boss: false, miniboss: false, freeze: am.freeze || 0, erode: am.erode || 0, burn: am.burn || 0, split: false, hasSplit: false, steal: am.steal || 0, rage: am.rage || 0, regen: am.regen || 0, shield: am.shield || 0, enrage: am.enrage || false, enraged: false, mPoison: am.mPoison || 0, weaken: am.weaken || 0 });
       var discBonus = relics.reduce(function(sum, r) { return r.eff.type === "disc" ? sum + r.eff.val : sum; }, 0);
       setDiscards(2 + discBonus + (upgradeLevels.nimble || 0));
       setRoundNum(1);
@@ -1355,7 +1398,7 @@ export default function DungeonHand() {
     campEvent: campEvent, stolenCard: stolenCard, campPhase: campPhase,
     overlay: overlay, enemyDmgShow: enemyDmgShow,
     passiveState: passiveState, gambleBuff: gambleBuff, gambleAnim: gambleAnim,
-    poison: poison, frozenIds: frozenIds, tenacityUsed: tenacityUsed,
+    poison: poison, frozenIds: frozenIds, tenacityUsed: tenacityUsed, weakenDebuff: weakenDebuff,
     bossDialogue: bossDialogue, encounterOverlay: encounterOverlay,
     gambitChoices: gambitChoices, splitMon: splitMon, passiveMsg: passiveMsg,
     deckView: deckView, deckSort: deckSort, newCardIds: newCardIds,

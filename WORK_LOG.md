@@ -1,30 +1,35 @@
 # WORK_LOG
 
 ## 현재 세션 계획
-> 세션 46 (2026-03-10) — 지도 시스템 구현
+> 세션 49 (2026-03-11) — 몬스터 특수능력 4종 구현
 
-### 세션 A: 데이터 레이어 ✅
-- [x] NODE_TYPES, MAP_ROWS, MAP_EVENTS 상수 추가
-- [x] MONSTERS 20→30종 확장 (층별 6마리, 고유 스킬: steal/rage/regen)
-- [x] generateFloorMap() 맵 생성 함수 (utils.js)
-- [x] floorMap state 추가
+### 세션 D: shield + enrage ✅
+- [x] beginBattle/캠프습격에 shield/enrage/enraged/mPoison/weaken 필드 추가
+- [x] submitCards: shield 데미지 감소 + UI 메시지
+- [x] submitCards: enrage HP 50% 이하 시 ATK x1.5 + enraged 상태 전환
+- [x] BattleScreen: 🛡️shield, 😤격노/폭주 아이콘 표시
 
-### 세션 B: 맵 화면 UI ✅
-- [x] screens/MapScreen.jsx 생성 (MapScreen + EventScreen)
-- [x] 7열 가로 노드 맵 + SVG 연결선
-- [x] 이벤트 화면 6종 처리
+### 세션 E: mPoison ✅
+- [x] enemyTurn: mPoison → 매턴 플레이어 HP 감소 (회피 무관)
+- [x] 집념(tenacity) 연동 — 독 사망 방지
+- [x] BattleScreen: 🧪mPoison 아이콘 표시
 
-### 세션 C: 플로우 연결 ✅
-- [x] advanceBattle 제거 → goToMap/goNextFloor/selectNode 도입
-- [x] 모든 화면 출구 → 맵으로 라우팅
-- [x] 보스 승리 → 유물 보상 → goNextFloor (층 전환)
-- [x] 저장/불러오기 floorMap 포함 (버전 2)
-- [x] BattleScreen 전투 카운터 → 몬스터 타입 표시
-- [x] BATTLE_TO_SLOT dead code 삭제 + beginBattle 간소화
+### 세션 F: weaken ✅
+- [x] weakenDebuff useState 추가 + resetBattleState 초기화
+- [x] buildPState에 weakenDebuff 포함
+- [x] enemyTurn: weaken 발동 (회피 무관)
+- [x] calcDamage: mult - weakenDebuff (최소 1)
+- [x] BattleScreen: 💧weaken 몬스터 아이콘 + 플레이어 약화 뱃지
+- [x] game 객체에 weakenDebuff 전달
 
-### 세션 D: TODO
-- [ ] 테스트 + 밸런스 조정
-- [ ] CLAUDE.md 업데이트
+### 이전 세션 (48)
+- [x] MONSTERS 30→50종 확장 (세션 A)
+- [x] BOSS_DIALOGUES 신규 엘리트 10종 대사 추가 (세션 A)
+- [x] MONSTERS_PER_FLOOR 6→10, BOSS_POINTS 재계산 (세션 B)
+- [x] generateFloorMap 엘리트 3종 랜덤 + 보스 monIdx=9 (세션 C)
+
+### 이전 세션 (46)
+> 지도 시스템 구현 (A~D)
 
 ### 이전 세션 (45)
 - [x] scaleMonsterHp/Atk 이중 스케일링 제거

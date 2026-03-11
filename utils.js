@@ -212,6 +212,11 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
   // === Passive: apply mult bonus ===
   mult = passive.applyMult(mult, pState || { stacks: 0 });
 
+  // === Weaken debuff: 배율 감소 ===
+  if (pState && pState.weakenDebuff > 0) {
+    mult = Math.max(1, mult - pState.weakenDebuff);
+  }
+
   // === Gamble relic buff ===
   if (pState && pState.gambleBuff) {
     mult += pState.gambleBuff;

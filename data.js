@@ -112,40 +112,60 @@ const REWARD_COMMONS = COMMONS.concat([
 ]);
 
 const MONSTERS = [
-  // Floor 1: 고블린 소굴 (indices 0-5) — 일반4 + 미니보스1 + 보스1
+  // Floor 1: 고블린 소굴 (indices 0-9) — 일반6 + 엘리트3 + 보스1
   { name: "고블린", emoji: "👺", img: "goblin", hp: 36, atk: 6 },
   { name: "고블린 궁수", emoji: "🏹", img: "goblin_archer", hp: 50, atk: 8 },
   { name: "고블린 도둑", emoji: "🗝️", img: "goblin_thief", hp: 42, atk: 7, steal: 5 },
   { name: "고블린 주술사", emoji: "🔮", img: "goblin_shaman", hp: 38, atk: 5, erode: 1 },
+  { name: "고블린 방패병", emoji: "🛡️", img: "goblin_shield", hp: 48, atk: 6, shield: 2 },
+  { name: "고블린 독침수", emoji: "🧪", img: "goblin_poison", hp: 40, atk: 5, mPoison: 2 },
   { name: "고블린 대장", emoji: "💪", img: "goblin_chief", hp: 72, atk: 9, miniboss: true },
+  { name: "고블린 전투광", emoji: "😤", img: "goblin_berserker", hp: 68, atk: 10, miniboss: true, enrage: true, steal: 4 },
+  { name: "고블린 마술사", emoji: "🎪", img: "goblin_mage", hp: 60, atk: 8, miniboss: true, weaken: 1, freeze: 1 },
   { name: "고블린 킹", emoji: "👑", img: "goblin_king", hp: 94, atk: 11, boss: true },
-  // Floor 2: 언데드 묘지 (indices 6-11)
+  // Floor 2: 언데드 묘지 (indices 10-19)
   { name: "해골 병사", emoji: "💀", img: "skeleton", hp: 59, atk: 7 },
   { name: "뱀파이어", emoji: "🧛", img: "vampire", hp: 72, atk: 9 },
   { name: "구울", emoji: "🧟", img: "ghoul", hp: 63, atk: 8, regen: 4 },
   { name: "레이스", emoji: "👻", img: "wraith_ghost", hp: 52, atk: 9, steal: 7 },
+  { name: "좀비 기사", emoji: "🧟‍♂️", img: "zombie_knight", hp: 65, atk: 8, shield: 3 },
+  { name: "독안개 유령", emoji: "🌫️", img: "poison_ghost", hp: 55, atk: 7, mPoison: 3 },
   { name: "망령 기사", emoji: "⚔️", img: "wraith", hp: 91, atk: 10, miniboss: true },
+  { name: "흡혈 백작", emoji: "🧛‍♂️", img: "vampire_count", hp: 85, atk: 11, miniboss: true, regen: 6, enrage: true },
+  { name: "저주술사", emoji: "💀", img: "curse_mage", hp: 78, atk: 9, miniboss: true, weaken: 2, erode: 1 },
   { name: "리치", emoji: "☠️", img: "lich", hp: 124, atk: 12, boss: true },
-  // Floor 3: 마법 탑 (indices 12-17)
+  // Floor 3: 마법 탑 (indices 20-29)
   { name: "골렘", emoji: "🗿", img: "golem", hp: 72, atk: 8, freeze: 1 },
   { name: "마녀", emoji: "🧙‍♀️", img: "witch", hp: 85, atk: 10, freeze: 2 },
   { name: "가고일", emoji: "🦇", img: "gargoyle", hp: 88, atk: 7, rage: 2 },
   { name: "원소술사", emoji: "🌪️", img: "elementalist", hp: 75, atk: 9, freeze: 1, burn: 1 },
+  { name: "마법 인형", emoji: "🎭", img: "magic_puppet", hp: 80, atk: 8, shield: 4, weaken: 1 },
+  { name: "독염 술사", emoji: "☠️", img: "poison_mage", hp: 76, atk: 9, mPoison: 2, burn: 1 },
   { name: "불꽃 정령", emoji: "🔥", img: "fire_elemental", hp: 104, atk: 11, miniboss: true, freeze: 1 },
+  { name: "수정 골렘", emoji: "💎", img: "crystal_golem", hp: 120, atk: 10, miniboss: true, shield: 5, rage: 2 },
+  { name: "마력 폭주자", emoji: "⚡", img: "mana_berserker", hp: 95, atk: 12, miniboss: true, enrage: true, freeze: 2, burn: 1 },
   { name: "대마법사", emoji: "🌀", img: "archmage", hp: 143, atk: 13, boss: true, freeze: 2, split: true },
-  // Floor 4: 심연 (indices 18-23)
+  // Floor 4: 심연 (indices 30-39)
   { name: "그림자 포식자", emoji: "🌑", img: "shadow", hp: 78, atk: 9 },
   { name: "심연의 눈", emoji: "👁️", img: "abyss_eye", hp: 98, atk: 11, erode: 1 },
   { name: "심연거미", emoji: "🕷️", img: "abyss_spider", hp: 85, atk: 10, freeze: 1, steal: 6 },
   { name: "공허흡수자", emoji: "🌀", img: "void_absorber", hp: 92, atk: 11, erode: 1, rage: 2 },
+  { name: "심연 독충", emoji: "🦂", img: "abyss_scorpion", hp: 88, atk: 10, mPoison: 4 },
+  { name: "공허 감시자", emoji: "👁️‍🗨️", img: "void_watcher", hp: 82, atk: 9, shield: 3, erode: 1 },
   { name: "공허의 사도", emoji: "🕳️", img: "void_apostle", hp: 124, atk: 12, miniboss: true, erode: 2 },
+  { name: "심연 포식왕", emoji: "🐙", img: "abyss_devourer", hp: 135, atk: 13, miniboss: true, mPoison: 3, steal: 8, enrage: true },
+  { name: "공허 직조자", emoji: "🕸️", img: "void_weaver", hp: 118, atk: 11, miniboss: true, weaken: 3, freeze: 2 },
   { name: "심연의 군주", emoji: "👿", img: "abyss_lord", hp: 176, atk: 15, boss: true, erode: 2 },
-  // Floor 5: 드래곤 둥지 (indices 24-29)
+  // Floor 5: 드래곤 둥지 (indices 40-49)
   { name: "드래곤 알지기", emoji: "🥚", img: "dragon_keeper", hp: 117, atk: 12 },
   { name: "드래곤 새끼", emoji: "🐉", img: "dragon_young", hp: 143, atk: 14, burn: 1 },
   { name: "용암도마뱀", emoji: "🦎", img: "lava_lizard", hp: 130, atk: 13, rage: 3, burn: 1 },
   { name: "드래곤 사제", emoji: "📿", img: "dragon_priest", hp: 125, atk: 11, regen: 10 },
+  { name: "용암 독사", emoji: "🐍", img: "lava_snake", hp: 135, atk: 13, mPoison: 5, burn: 1 },
+  { name: "드래곤 수호병", emoji: "🏰", img: "dragon_defender", hp: 148, atk: 12, shield: 6 },
   { name: "드래곤 근위병", emoji: "🛡️", img: "dragon_guard", hp: 182, atk: 16, miniboss: true, burn: 1 },
+  { name: "화염 폭군", emoji: "🌋", img: "flame_tyrant", hp: 195, atk: 17, miniboss: true, burn: 2, enrage: true, rage: 2 },
+  { name: "고대 용사제", emoji: "📿", img: "ancient_priest", hp: 170, atk: 14, miniboss: true, regen: 12, shield: 4, weaken: 2 },
   { name: "드래곤 로드", emoji: "🐲", img: "dragon_lord", hp: 260, atk: 20, boss: true, burn: 2 },
 ];
 
@@ -176,14 +196,24 @@ const FLOOR_NAMES = ["", "고블린 소굴", "언데드 묘지", "마법 탑", "
 // Boss/miniboss dialogue lines (keyed by monster name)
 const BOSS_DIALOGUES = {
   "고블린 대장": ["이 녀석들! 내 부하를 건드리다니!", "크하하! 쓸 만한 놈이군!"],
+  "고블린 전투광": ["으아아아! 피가 끓어오른다!", "멈출 수 없어... 더 싸워야 해!"],
+  "고블린 마술사": ["후후... 몸이 둔해지는 느낌이지?", "마법 앞에선 힘도 소용없다!"],
   "고블린 킹": ["감히 왕 앞에서 칼을 드나!", "이 왕관은 피로 지켜왔다!"],
   "망령 기사": ["죽음이 끝이 아니라는 걸 보여주지...", "검의 기억은 사라지지 않는다."],
+  "흡혈 백작": ["피의 향기... 훌륭하군.", "영원한 삶의 대가를 치러라!"],
+  "저주술사": ["저주가 너를 감싸고 있다...", "약해져라... 더, 더 약해져라!"],
   "리치": ["영원을 살아온 자에게 도전하겠다고?", "네 영혼... 좋은 재료가 되겠군."],
   "불꽃 정령": ["타올라! 모든 것을 재로!", "불꽃은 멈추지 않는다!"],
+  "수정 골렘": ["이 수정 갑옷을 뚫을 수 있겠나?", "부서지지 않는다... 영원히!"],
+  "마력 폭주자": ["제어가... 안 돼! 으아아아!", "마력이 폭주한다! 다 태워버리겠어!"],
   "대마법사": ["마법의 힘을 보여주마!", "이 탑의 주인은 나다!"],
   "공허의 사도": ["심연이 너를 부르고 있다...", "어둠 속에서 영원히 헤매거라."],
+  "심연 포식왕": ["배가 고프다... 네 모든 것을 삼키겠다!", "독과 어둠 속에서 끝나거라!"],
+  "공허 직조자": ["거미줄처럼 얽혀라...", "공허의 실이 너를 옥죈다!"],
   "심연의 군주": ["나는 심연 그 자체다!", "빛은 이곳에서 의미가 없다."],
   "드래곤 근위병": ["주인님을 건드리지 마라!", "이 비늘을 뚫을 수 있겠나!"],
+  "화염 폭군": ["불꽃의 분노를 맛봐라!", "모든 것을 태우고 나면 평화가 온다!"],
+  "고대 용사제": ["용의 축복이 나를 지킨다.", "치유와 수호... 끝없는 힘이다!"],
   "드래곤 로드": ["필멸자여, 나에게 도전하다니!", "이 땅의 최강은 바로 나다!"],
 };
 
@@ -274,7 +304,7 @@ const CAMP_HEAL = 10;
 const CAMP_REST_HEAL = 5;
 const BURN_DAMAGE = 3;
 
-const BOSS_POINTS = { 5: 1, 11: 2, 17: 3, 23: 4, 29: 6 }; // monster index (0-based) → points
+const BOSS_POINTS = { 9: 1, 19: 2, 29: 3, 39: 4, 49: 6 }; // monster index (0-based) → points
 
 const HAND_RANKINGS = [
   { emoji: "🌟", name: "스트레이트 플러시", mult: "x12", desc: "같은 문양 연속 3장+", tier: 5 },

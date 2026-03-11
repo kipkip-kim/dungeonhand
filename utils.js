@@ -261,7 +261,7 @@ function calcDamage(cards, hand, relics, pState, classDef, isPreview) {
 // 열별 노드 수: row1=3, row2=3, row3=2, row4=3, row5=2, row6=1
 function generateFloorMap(floor) {
   // Row configs: [nodeCount, typePool]
-  // 일반 몬스터 인덱스: 0~3 (4종), 미니보스: 4, 보스: 5
+  // 일반 몬스터 인덱스: 0~5 (6종), 엘리트: 6~8 (3종), 보스: 9
   var ROW_CONFIGS = [
     // row 1: 전투 위주
     { count: 3, types: function() {
@@ -275,9 +275,9 @@ function generateFloorMap(floor) {
       t.push(Math.random() < 0.4 ? "event" : "battle");
       return shuffle(t);
     }},
-    // row 3: 정예 1개 보장
-    { count: 2, types: function() {
-      return shuffle(["elite", Math.random() < 0.5 ? "shop" : "battle"]);
+    // row 3: 정예 2개 보장
+    { count: 3, types: function() {
+      return shuffle(["elite", "elite", Math.random() < 0.5 ? "shop" : "battle"]);
     }},
     // row 4: 상점 가능
     { count: 3, types: function() {
@@ -298,7 +298,7 @@ function generateFloorMap(floor) {
   rows.push([{ id: "0-0", type: "start", edges: [], visited: true }]);
 
   // Rows 1~5: 선택 노드
-  var normalMons = [0, 1, 2, 3]; // 일반 몬스터 슬롯 인덱스
+  var normalMons = [0, 1, 2, 3, 4, 5]; // 일반 몬스터 슬롯 인덱스
   for (var r = 0; r < ROW_CONFIGS.length; r++) {
     var cfg = ROW_CONFIGS[r];
     var types = cfg.types();
@@ -314,7 +314,7 @@ function generateFloorMap(floor) {
       if (node.type === "battle") {
         node.monIdx = normalMons[Math.floor(Math.random() * normalMons.length)];
       } else if (node.type === "elite") {
-        node.monIdx = 4; // 미니보스
+        node.monIdx = 6 + Math.floor(Math.random() * 3); // 엘리트 3종 중 랜덤
       }
       rowNodes.push(node);
     }
@@ -322,7 +322,7 @@ function generateFloorMap(floor) {
   }
 
   // Row 6: 보스
-  rows.push([{ id: "6-0", type: "boss", monIdx: 5, edges: [], visited: false }]);
+  rows.push([{ id: "6-0", type: "boss", monIdx: 9, edges: [], visited: false }]);
 
   // === 연결 생성 ===
   for (var ri = 0; ri < rows.length - 1; ri++) {

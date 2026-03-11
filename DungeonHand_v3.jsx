@@ -131,7 +131,7 @@ export default function DungeonHand() {
   const MAX_HAND = 7;
   const RELIC_SLOTS = 3 + (upgradeLevels.inventory || 0);
   const BASE_SUBMIT = 3;
-  const MONSTERS_PER_FLOOR = 6;
+  const MONSTERS_PER_FLOOR = 10;
 
   const classData = CLASSES.find(function(c) { return c.id === classId; }) || CLASSES[0];
 
@@ -909,7 +909,7 @@ export default function DungeonHand() {
     var isElite = mon && mon.miniboss;
     // 보스 포인트: floorMap에서 현재 노드의 monIdx로 계산
     if (isBoss && floorMap) {
-      var bossMonIdx = (floor - 1) * MONSTERS_PER_FLOOR + 5;
+      var bossMonIdx = (floor - 1) * MONSTERS_PER_FLOOR + (MONSTERS_PER_FLOOR - 1);
       if (BOSS_POINTS[bossMonIdx] !== undefined) {
         var pts = BOSS_POINTS[bossMonIdx];
         setBossesKilled(function(prev) { return prev.concat([pts]); });
@@ -1265,7 +1265,7 @@ export default function DungeonHand() {
       setMapEvent(evt);
       setScreen("event");
     } else if (node.type === "boss") {
-      var bossIdx = (floor - 1) * MONSTERS_PER_FLOOR + 5;
+      var bossIdx = (floor - 1) * MONSTERS_PER_FLOOR + (MONSTERS_PER_FLOOR - 1);
       beginBattle(deck, relics, floor, bossIdx);
     }
   }

@@ -363,4 +363,34 @@ function relicBorderColor(tier) {
   return tier >= 3 ? "var(--gd)" : tier >= 2 ? "var(--ac)" : "var(--bd)";
 }
 
-export { CardView, HpBar, Btn, DeckViewer, relicBorderColor };
+// === ASCII 배경 래퍼 ===
+function GameWrap(props) {
+  const game = props.game;
+  const children = props.children;
+  const extraStyle = props.extraStyle;
+  return (
+    <div style={extraStyle ? Object.assign({}, game.wrapStyle, extraStyle) : game.wrapStyle}>
+      <style>{game.CSS}</style>
+      {/* ASCII 배경 레이어 */}
+      <div style={{ position: "absolute", inset: "-15% 0 0 0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", zIndex: 0, background: "radial-gradient(ellipse at 50% 50%, " + game.asciiBg.color + "18 0%, #0a0806 80%)" }}>
+        <pre ref={game.bgPreRef} style={{
+          fontFamily: "'Courier New', 'Consolas', monospace",
+          lineHeight: 1.2, whiteSpace: "pre", textAlign: "center",
+          pointerEvents: "none", userSelect: "none",
+          color: game.asciiBg.color,
+          fontSize: "clamp(8px, calc(var(--gw) * 0.018 + 2px), 14px)",
+          transform: "scale(1.3)", transformOrigin: "center 40%",
+        }}>{game.asciiBg.art}</pre>
+      </div>
+      {/* 그라디언트 오버레이 */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+        background: "radial-gradient(ellipse at 50% 30%, rgba(26,21,16,0.5) 0%, rgba(15,12,8,0.65) 70%)" }} />
+      {/* 콘텐츠 레이어 */}
+      <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export { CardView, HpBar, Btn, DeckViewer, relicBorderColor, GameWrap };

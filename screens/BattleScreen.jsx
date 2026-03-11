@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FLOOR_NAMES, HAND_RANKINGS } from "../data.js";
-import { CardView, HpBar, Btn, DeckViewer } from "../components.jsx";
+import { CardView, HpBar, Btn, DeckViewer, GameWrap } from "../components.jsx";
+import { MON_ART } from "../ascii-art.js";
 
 export function BattleScreen({ game }) {
   var {
@@ -27,8 +28,7 @@ export function BattleScreen({ game }) {
   var hpColor = hpPct > 50 ? "var(--gn)" : hpPct > 25 ? "var(--wn)" : "var(--rd)";
 
   return (
-    <div style={Object.assign({}, wrapStyle, { minHeight: "auto", overflow: "hidden", position: "relative" })}>
-      <style>{CSS}</style>
+    <GameWrap game={game} extraStyle={{ minHeight: "auto", overflow: "hidden", position: "relative" }}>
       {audioButton}
       {encounterOverlay && (
         <div style={{
@@ -39,8 +39,19 @@ export function BattleScreen({ game }) {
             : "radial-gradient(circle, #1a1808 0%, var(--bg) 70%)",
         }}>
           <div style={{ animation: "encounterIn 0.6s ease", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div style={{ fontSize: 144, animation: "floatY 2s ease infinite", marginBottom: 12 }}>
-              {encounterOverlay.emoji}
+            <div style={{ animation: "floatY 2s ease infinite", marginBottom: 12, display: "flex", justifyContent: "center" }}>
+              {MON_ART[encounterOverlay.name] ? (
+                <pre style={{
+                  fontFamily: "'Courier New', 'Consolas', monospace",
+                  whiteSpace: "pre", lineHeight: 1.2, textAlign: "center",
+                  color: MON_ART[encounterOverlay.name].color,
+                  fontSize: "clamp(12px, calc(var(--gw) * 0.028), 18px)",
+                  filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.9))",
+                  margin: 0,
+                }}>{MON_ART[encounterOverlay.name].art}</pre>
+              ) : (
+                <span style={{ fontSize: 144 }}>{encounterOverlay.emoji}</span>
+              )}
             </div>
             <div style={{ fontSize: 24, fontWeight: 900, color: encounterOverlay.boss ? "var(--gd)" : "var(--ac)", textShadow: "0 0 20px currentColor", letterSpacing: 2 }}>
               {encounterOverlay.name}
@@ -95,38 +106,53 @@ export function BattleScreen({ game }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* === 1인칭 뷰: 몬스터(상) + 데미지(하) === */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", overflow: "hidden", position: "relative" }}>
-        {/* --- 몬스터 그룹 (위쪽) --- */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "stretch", gap: "clamp(4px, 1vh, 8px)", paddingBottom: "clamp(10px, 2vh, 20px)" }}>
-        <div style={{ textAlign: "center", padding: "2px 0", flexShrink: 0, position: "relative" }}>
+        {/* --- 몬스터 (정보 + 아트 일체형, 수직 중앙) --- */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", overflow: "hidden", position: "relative" }}>
+        <div style={{ textAlign: "center" }}>
           {monster && (
             <div>
-              <HpBar current={monster.hp} max={monster.maxHp} name={monster.name} boss={monster.boss} miniboss={monster.miniboss} />
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 3, visibility: monster.hp > 0 ? "visible" : "hidden", textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)" }}>
-                <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 2s ease infinite" }}>
-                  ⚔️{monster.atk}~{monster.atk + 2}
-                </span>
-                {monster.freeze > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--fr)", fontWeight: 700 }}>❄️{monster.freeze}</span>}
-                {monster.erode > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--ac)", fontWeight: 700 }}>🌑{monster.erode}</span>}
-                {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
-                {monster.shield > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#5dade2", fontWeight: 700 }}>🛡️{monster.shield}</span>}
-                {monster.enrage && !monster.enraged && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--wn)", fontWeight: 700 }}>😤격노</span>}
-                {monster.enraged && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 1s ease infinite" }}>😤폭주!</span>}
-                {monster.mPoison > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#9b59b6", fontWeight: 700 }}>🧪{monster.mPoison}</span>}
-                {monster.weaken > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#3498db", fontWeight: 700 }}>💧{monster.weaken}</span>}
-                {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
+              {/* 몬스터 정보 (머리 위) */}
+              <div style={{ marginBottom: "clamp(6px, 1.2vh, 14px)" }}>
+                <HpBar current={monster.hp} max={monster.maxHp} name={monster.name} boss={monster.boss} miniboss={monster.miniboss} />
+                <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 3, visibility: monster.hp > 0 ? "visible" : "hidden", textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)" }}>
+                  <span style={{ fontSize: "clamp(14px, calc(var(--gw) * 0.028), 22px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 2s ease infinite" }}>
+                    ⚔️{monster.atk}~{monster.atk + 2}
+                  </span>
+                  {monster.freeze > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--fr)", fontWeight: 700 }}>❄️{monster.freeze}</span>}
+                  {monster.erode > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--ac)", fontWeight: 700 }}>🌑{monster.erode}</span>}
+                  {monster.burn > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>🔥{monster.burn}</span>}
+                  {monster.shield > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#5dade2", fontWeight: 700 }}>🛡️{monster.shield}</span>}
+                  {monster.enrage && !monster.enraged && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--wn)", fontWeight: 700 }}>😤격노</span>}
+                  {monster.enraged && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--rd)", fontWeight: 700, animation: "intentPulse 1s ease infinite" }}>😤폭주!</span>}
+                  {monster.mPoison > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#9b59b6", fontWeight: 700 }}>🧪{monster.mPoison}</span>}
+                  {monster.weaken > 0 && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "#3498db", fontWeight: 700 }}>💧{monster.weaken}</span>}
+                  {monster.split && !monster.hasSplit && <span style={{ fontSize: "clamp(13px, calc(var(--gw) * 0.026), 20px)", color: "var(--or)", fontWeight: 700 }}>💥분열</span>}
+                </div>
               </div>
-              <div style={{ fontSize: monster.boss ? "clamp(96px, calc(var(--gw) * 0.192), 176px)" : "clamp(80px, calc(var(--gw) * 0.16), 144px)", marginTop: 3, animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
-                {monster.emoji}
+              {/* 몬스터 아트 */}
+              <div style={{ animation: monShake ? (monShakeHard ? "shakeHard 0.6s ease" : "shake 0.4s ease") : enemyAttacking ? "enemyAtk 0.5s ease" : "floatY 3s ease infinite", display: "flex", justifyContent: "center", overflow: "hidden" }}>
+                {MON_ART[monster.name] ? (
+                  <pre style={{
+                    fontFamily: "'Courier New', 'Consolas', monospace",
+                    whiteSpace: "pre", lineHeight: 1.2, textAlign: "center",
+                    color: MON_ART[monster.name].color,
+                    fontSize: monster.boss ? "clamp(12px, calc(var(--gw) * 0.032), 20px)" : "clamp(11px, calc(var(--gw) * 0.028), 18px)",
+                    filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.8))",
+                    margin: 0, padding: 0,
+                  }}>{MON_ART[monster.name].art}</pre>
+                ) : (
+                  <span style={{ fontSize: monster.boss ? "clamp(96px, calc(var(--gw) * 0.192), 176px)" : "clamp(80px, calc(var(--gw) * 0.16), 144px)" }}>{monster.emoji}</span>
+                )}
               </div>
               <div style={{
-                width: "40%",
+                width: "13%",
                 height: 0,
                 margin: "-2px auto 0",
-                boxShadow: "0 0 clamp(20px,4vw,40px) clamp(10px,2vw,20px) rgba(0,0,0,0.5)",
+                boxShadow: "0 0 clamp(7px,1.3vw,13px) clamp(3px,0.7vw,7px) rgba(0,0,0,0.5)",
                 borderRadius: "50%",
               }} />
               <div style={{ marginTop: 3, fontSize: "clamp(12px, calc(var(--gw) * 0.024), 18px)", color: "var(--dm)", background: splitMon ? "var(--cd)" : "transparent", borderRadius: 4, padding: "2px 8px", display: "inline-block", visibility: splitMon ? "visible" : "hidden" }}>
-                {splitMon ? "대기: " + splitMon.emoji + " HP" + splitMon.hp : "\u00A0"}
+                {splitMon ? "대기: " + (splitMon.emoji || splitMon.name) + " HP" + splitMon.hp : "\u00A0"}
               </div>
             </div>
           )}
@@ -378,6 +404,6 @@ export function BattleScreen({ game }) {
           </div>
         </div>
       )}
-    </div>
+    </GameWrap>
   );
 }

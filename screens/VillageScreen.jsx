@@ -1,5 +1,5 @@
 import { CLASSES, SKILL_TREES, ULTIMATE_SKILL } from "../data.js";
-import { Btn } from "../components.jsx";
+import { Btn, GameWrap } from "../components.jsx";
 import { sfx } from "../audio.js";
 
 export function VillageScreen({ game }) {
@@ -21,8 +21,7 @@ export function VillageScreen({ game }) {
   });
 
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, overflow: "auto" }}>
         <div style={{ textAlign: "center", marginBottom: 12 }}>
@@ -150,6 +149,6 @@ export function VillageScreen({ game }) {
           <Btn onClick={function() { saveMeta(); setScreen("menu"); sfx.bgmOn("home"); }} color="var(--rd)" style={{ padding: "10px 32px" }}>⚔️ 던전으로</Btn>
         </div>
       </div>
-    </div>
+    </GameWrap>
   );
 }

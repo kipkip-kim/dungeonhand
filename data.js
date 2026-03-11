@@ -322,21 +322,4 @@ const HAND_RANKINGS = [
   { emoji: "👊", name: "하이카드", mult: "x1", desc: "조합 없음", tier: 1 },
 ];
 
-const SCREEN_BG = {
-  menu: "images/bg/menu.png",
-  village: "images/bg/village.png",
-  shop: "images/bg/shop.png",
-};
-
-function getBattleBg(floor, isBoss) {
-  const f = Math.max(1, Math.min(5, floor || 1));
-  const prefix = isBoss ? "bossbattle" : "battle";
-  return "images/bg/" + prefix + "0" + f + ".png";
-}
-
-function getCampfireBg(floor) {
-  const f = Math.max(1, Math.min(5, floor || 1));
-  return "images/bg/campfire0" + f + ".png";
-}
-
-export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, HAND_RANKINGS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg, NODE_TYPES, MAP_ROWS, MAP_EVENTS };
+export { SUITS, CLASSES, COMMONS, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, HAND_RANKINGS, SUIT_ORDER, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, NODE_TYPES, MAP_ROWS, MAP_EVENTS };

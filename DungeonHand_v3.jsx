@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { sfx } from "./audio.js";
-import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, SCREEN_BG, getBattleBg, getCampfireBg, NODE_TYPES, MAP_EVENTS } from "./data.js";
+import { SUITS, CLASSES, REWARD_COMMONS, MONSTERS, CAMPFIRE_EVENTS, RELICS, FLOOR_NAMES, BOSS_DIALOGUES, KEYWORDS, SKILL_TREES, ULTIMATE_SKILL, BOSS_POINTS, CAMP_HEAL, CAMP_REST_HEAL, BURN_DAMAGE, NODE_TYPES, MAP_EVENTS } from "./data.js";
+import { BG_ART, getBgKey, animateBg } from "./ascii-art.js";
 import { shuffle, pickN, makeCard, makeDeck, getNextId, setNextId, getCardName, detectHand, calcDamage, generateFloorMap } from "./utils.js";
 import { CSS } from "./styles.js";
 import { CardView, Btn, DeckViewer } from "./components.jsx";
@@ -1035,7 +1036,7 @@ export default function DungeonHand() {
     if (relics.length < RELIC_SLOTS) {
       var newRelics = relics.concat([r]);
       setRelics(newRelics);
-      if (context === "wanderer") { goToMap(); } else { goNextFloor(); }
+      goToMap();
     } else {
       setPendingRelic(r);
       setRelicSwapContext(context);
@@ -1064,7 +1065,7 @@ export default function DungeonHand() {
     setPendingRelicCost(0);
     setRelicSwapContext(null);
     if (ctx === "boss") {
-      goNextFloor();
+      goToMap();
     } else if (ctx === "wanderer") {
       goToMap();
     }
@@ -1130,7 +1131,13 @@ export default function DungeonHand() {
   }
 
   function leaveShop() {
-    goToMap();
+    // 보스 후 상점(마지막 row의 shop 노드)이면 다음 층으로
+    if (floorMap && floorMap.currentRow >= floorMap.rows.length - 1
+        && floorMap.rows[floorMap.currentRow][0].type === "shop") {
+      goNextFloor();
+    } else {
+      goToMap();
+    }
   }
 
   function enhanceCard(card) {
@@ -1316,22 +1323,38 @@ export default function DungeonHand() {
   // 맵 이벤트 state
   const [mapEvent, setMapEvent] = s(null);
 
-  // === WRAPPER STYLE ===
-  const bgKey = screen === "classSelect" ? "menu"
+  // === WRAPPER STYLE (ASCII BG) ===
+  const bgScreenKey = screen === "classSelect" ? "menu"
     : screen === "reward" || screen === "enhance" || screen === "relicReward" ? "battle"
     : screen === "victory" || screen === "defeat" ? "menu"
     : screen === "map" || screen === "event" ? "village"
     : screen;
-  const bgPath = bgKey === "battle" ? getBattleBg(floor, monster && monster.boss)
-    : bgKey === "campfire" ? getCampfireBg(floor)
-    : SCREEN_BG[bgKey] || SCREEN_BG.menu;
-  const bgUrl = import.meta.env.BASE_URL + bgPath;
+  const asciiBgKey = getBgKey(bgScreenKey, floor, monster && monster.boss);
+  const asciiBg = BG_ART[asciiBgKey] || BG_ART.menu;
+
+  const bgAnimRef = useRef(null);
+  const bgPreRef = useRef(null);
+  const prevBgKeyRef = useRef(null);
+
+  // ASCII 배경 애니메이션 관리
+  useEffect(function() {
+    if (bgPreRef.current && asciiBgKey !== prevBgKeyRef.current) {
+      if (bgAnimRef.current) clearInterval(bgAnimRef.current);
+      bgPreRef.current.textContent = asciiBg.art;
+      bgPreRef.current.style.color = asciiBg.color;
+      bgAnimRef.current = animateBg(bgPreRef.current, asciiBgKey);
+      prevBgKeyRef.current = asciiBgKey;
+    }
+    return function() {
+      if (bgAnimRef.current) clearInterval(bgAnimRef.current);
+    };
+  }, [asciiBgKey]);
 
   const wrapStyle = {
     width: "min(100vw, calc(100vh * 9 / 16), 960px)",
     height: "min(100vh, calc(min(100vw, 960px) * 16 / 9))",
     margin: "auto",
-    background: "radial-gradient(ellipse at 50% 30%, rgba(26,21,16,0.55) 0%, rgba(15,12,8,0.7) 70%), url(" + bgUrl + ") center 65%/cover no-repeat",
+    background: "#0f0c08",
     color: "var(--tx)",
     fontFamily: "'Noto Sans KR', sans-serif",
     fontSize: "clamp(15px, calc(var(--gw) * 0.025 + 5px), 22px)",
@@ -1340,7 +1363,6 @@ export default function DungeonHand() {
     overflow: "hidden",
     position: "relative",
     boxShadow: "0 0 60px rgba(0,0,0,0.6)",
-    imageRendering: "pixelated",
   };
 
   // === AUDIO BUTTON ===
@@ -1384,7 +1406,7 @@ export default function DungeonHand() {
 
   // === GAME PROPS OBJECT ===
   const game = {
-    wrapStyle: wrapStyle, audioButton: audioButton, CSS: CSS, sfx: sfx,
+    wrapStyle: wrapStyle, audioButton: audioButton, CSS: CSS, sfx: sfx, asciiBg: asciiBg, bgPreRef: bgPreRef,
     screen: screen, classId: classId, classData: classData,
     floor: floor, gold: gold, hp: hp, MAX_HP: MAX_HP,
     metaPoints: metaPoints, upgradeLevels: upgradeLevels, resetCount: resetCount, skillTab: skillTab,
@@ -1423,25 +1445,27 @@ export default function DungeonHand() {
   };
 
   // === SCREEN ROUTING ===
-  if (pendingRelic) return <PendingRelicOverlay game={game} />;
-  if (screen === "map") return <MapScreen game={game} />;
-  if (screen === "event") return <EventScreen game={game} />;
-  if (screen === "village") return <VillageScreen game={game} />;
-  if (screen === "menu") return <MenuScreen game={game} />;
-  if (screen === "classSelect") return <ClassSelectScreen game={game} />;
-  if (screen === "campfire") return <CampfireScreen game={game} />;
-  if (screen === "battle") return <BattleScreen game={game} />;
-  if (screen === "reward") return <RewardScreen game={game} />;
-  if (screen === "enhance") return <EnhanceScreen game={game} />;
-  if (screen === "relicReward") return <RelicRewardScreen game={game} />;
-  if (screen === "shop") return <ShopScreen game={game} />;
-  if (screen === "victory") return <VictoryScreen game={game} />;
-  if (screen === "defeat") return <DefeatScreen game={game} />;
-
-  return (
+  let screenContent;
+  if (pendingRelic) screenContent = <PendingRelicOverlay game={game} />;
+  else if (screen === "map") screenContent = <MapScreen game={game} />;
+  else if (screen === "event") screenContent = <EventScreen game={game} />;
+  else if (screen === "village") screenContent = <VillageScreen game={game} />;
+  else if (screen === "menu") screenContent = <MenuScreen game={game} />;
+  else if (screen === "classSelect") screenContent = <ClassSelectScreen game={game} />;
+  else if (screen === "campfire") screenContent = <CampfireScreen game={game} />;
+  else if (screen === "battle") screenContent = <BattleScreen game={game} />;
+  else if (screen === "reward") screenContent = <RewardScreen game={game} />;
+  else if (screen === "enhance") screenContent = <EnhanceScreen game={game} />;
+  else if (screen === "relicReward") screenContent = <RelicRewardScreen game={game} />;
+  else if (screen === "shop") screenContent = <ShopScreen game={game} />;
+  else if (screen === "victory") screenContent = <VictoryScreen game={game} />;
+  else if (screen === "defeat") screenContent = <DefeatScreen game={game} />;
+  else screenContent = (
     <div style={wrapStyle}>
       <style>{CSS}</style>
       <div style={{ padding: 40, textAlign: "center" }}>로딩중...</div>
     </div>
   );
+
+  return screenContent;
 }

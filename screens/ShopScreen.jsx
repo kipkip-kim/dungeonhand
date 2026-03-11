@@ -1,11 +1,11 @@
 import { sfx } from "../audio.js";
 import { SUIT_ORDER } from "../data.js";
-import { relicBorderColor, CardView, Btn, DeckViewer } from "../components.jsx";
+import { relicBorderColor, CardView, Btn, DeckViewer, GameWrap } from "../components.jsx";
 
 export function ShopScreen({ game }) {
   var {
     wrapStyle, CSS, audioButton,
-    hp, MAX_HP, gold, deck, classData, relics, floor,
+    hp, MAX_HP, gold, deck, classData, relics, floor, floorMap,
     shopCards, shopRelic, shopHealed, shopRemoved, SHOP_MAX_REMOVE,
     upgradeLevels, deckView, deckSort,
     buyCard, buyRelic, removeCard, leaveShop,
@@ -28,8 +28,7 @@ export function ShopScreen({ game }) {
   });
 
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ padding: "12px 14px", background: "var(--pn)", borderBottom: "1px solid var(--bd)", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)" }}>
         <h2 style={{ fontSize: "var(--fs-xl)" }}>🏪 대장간</h2>
@@ -126,10 +125,10 @@ export function ShopScreen({ game }) {
       </div>
       <div style={{ padding: "clamp(8px, 1.5vh, 14px)", borderTop: "1px solid var(--bd)", textAlign: "center" }}>
         <Btn onClick={leaveShop} color="var(--rd)" style={{ fontSize: "var(--fs-md)", padding: "clamp(8px, 1.5vh, 14px) 36px" }}>
-          {floor >= 5 ? "🏆 클리어!" : "🗺️ 맵으로"}
+          {floorMap && floorMap.currentRow >= floorMap.rows.length - 1 ? (floor >= 5 ? "🏆 클리어!" : "⚔️ " + (floor + 1) + "층으로") : "🗺️ 맵으로"}
         </Btn>
       </div>
       <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-    </div>
+    </GameWrap>
   );
 }

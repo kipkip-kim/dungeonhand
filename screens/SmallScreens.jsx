@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { CLASSES, SUIT_ORDER } from "../data.js";
-import { relicBorderColor, CardView, Btn, DeckViewer } from "../components.jsx";
+import { relicBorderColor, CardView, Btn, DeckViewer, GameWrap } from "../components.jsx";
 
 // === RELIC SWAP OVERLAY ===
 export function PendingRelicOverlay({ game }) {
   var { wrapStyle, CSS, pendingRelic, relics, swapRelic, discardPendingRelic } = game;
   var prBorder = relicBorderColor(pendingRelic.tier);
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
         <div style={{ background: "var(--cd)", border: "1px solid var(--bd)", borderRadius: 16, padding: 24, maxWidth: 340, width: "90%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--rd)" }}>인벤토리가 가득 찼습니다!</div>
@@ -39,7 +38,7 @@ export function PendingRelicOverlay({ game }) {
           <Btn onClick={discardPendingRelic} style={{ marginTop: 6, background: "#5c1a0e" }}>버리기 (영구 삭제)</Btn>
         </div>
       </div>
-    </div>
+    </GameWrap>
   );
 }
 
@@ -58,8 +57,7 @@ export function MenuScreen({ game }) {
   }
 
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
         <div style={{ fontSize: 48, animation: "popIn 0.5s ease" }}>🗡️</div>
@@ -98,7 +96,7 @@ export function MenuScreen({ game }) {
           </div>
         </div>
       )}
-    </div>
+    </GameWrap>
   );
 }
 
@@ -106,8 +104,7 @@ export function MenuScreen({ game }) {
 export function ClassSelectScreen({ game }) {
   var { wrapStyle, CSS, audioButton, startRun } = game;
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20 }}>
         <h2 style={{ fontSize: "var(--fs-xl)" }}>직업을 선택하세요</h2>
@@ -132,7 +129,7 @@ export function ClassSelectScreen({ game }) {
           })}
         </div>
       </div>
-    </div>
+    </GameWrap>
   );
 }
 
@@ -140,8 +137,7 @@ export function ClassSelectScreen({ game }) {
 export function RewardScreen({ game }) {
   var { wrapStyle, CSS, audioButton, rewardCards, classData, addCardToDeck, setScreen, skipReward, deck, deckView, setDeckView, deckSort, setDeckSort } = game;
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <div style={{ fontSize: 38, animation: "popIn 0.4s ease" }}>⚔️ 승리!</div>
@@ -167,7 +163,7 @@ export function RewardScreen({ game }) {
         </div>
       </div>
       <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-    </div>
+    </GameWrap>
   );
 }
 
@@ -199,8 +195,7 @@ export function EnhanceScreen({ game }) {
     currentGroup.cards.push(c);
   });
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 16, overflow: "auto" }}>
         <h3 style={{ fontSize: "var(--fs-lg)" }}>강화할 카드 (등급+1, 카드당 최대2회)</h3>
@@ -228,7 +223,7 @@ export function EnhanceScreen({ game }) {
         </div>
       </div>
       <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-    </div>
+    </GameWrap>
   );
 }
 
@@ -237,8 +232,7 @@ export function RelicRewardScreen({ game }) {
   var { wrapStyle, CSS, audioButton, rewardRelics, relicContext, pickRelic, deck, classData, deckView, setDeckView, deckSort, setDeckSort, goToMap } = game;
   var isWanderer = relicContext === "wanderer";
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <div style={{ fontSize: 24, animation: "popIn 0.4s ease" }}>{isWanderer ? "🧙 방랑자" : "👑 보스 처치!"}</div>
@@ -263,7 +257,7 @@ export function RelicRewardScreen({ game }) {
         <Btn onClick={function() { setDeckView(true); }} style={{ marginTop: 6 }}>📦덱 보기</Btn>
       </div>
       <DeckViewer deck={deck} cls={classData} show={deckView} sortMode={deckSort} onSort={function(m) { setDeckSort(m); }} onClose={function() { setDeckView(false); }} />
-    </div>
+    </GameWrap>
   );
 }
 
@@ -271,8 +265,7 @@ export function RelicRewardScreen({ game }) {
 export function VictoryScreen({ game }) {
   var { wrapStyle, CSS, audioButton, gold, relics, runPoints, claimAndGo } = game;
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 48, animation: "victBounce 1.5s ease infinite" }}>🏆</div>
@@ -298,7 +291,7 @@ export function VictoryScreen({ game }) {
           <Btn onClick={function() { claimAndGo("menu"); }} color="var(--rd)">🃏 다시 도전</Btn>
         </div>
       </div>
-    </div>
+    </GameWrap>
   );
 }
 
@@ -306,8 +299,7 @@ export function VictoryScreen({ game }) {
 export function DefeatScreen({ game }) {
   var { wrapStyle, CSS, audioButton, floor, runPoints, claimAndGo } = game;
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(10px, 1.8vh, 18px)" }}>
         <div style={{ fontSize: 44 }}>💀</div>
@@ -321,6 +313,6 @@ export function DefeatScreen({ game }) {
           <Btn onClick={function() { claimAndGo("restart"); }} color="var(--rd)">🃏 다시 도전</Btn>
         </div>
       </div>
-    </div>
+    </GameWrap>
   );
 }

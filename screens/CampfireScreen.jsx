@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { FLOOR_NAMES, CAMP_HEAL, CAMP_REST_HEAL } from "../data.js";
-import { CardView, Btn } from "../components.jsx";
+import { CardView, Btn, GameWrap } from "../components.jsx";
 
 export function CampfireScreen({ game }) {
   var { wrapStyle, CSS, audioButton, campPhase, campEvent, hp, MAX_HP, floor, classData, passiveState, stolenCard, deck, enterPhase2, enterPhase3, leaveCampfire, resolveCampfire, sellCard } = game;
   var [pendingSell, setPendingSell] = useState(null);
 
   return (
-    <div style={wrapStyle}>
-      <style>{CSS}</style>
+    <GameWrap game={game}>
       {audioButton}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(12px, 2vh, 20px)", padding: "clamp(12px, 2vh, 20px)" }}>
 
@@ -190,6 +189,6 @@ export function CampfireScreen({ game }) {
           </div>
         )}
       </div>
-    </div>
+    </GameWrap>
   );
 }

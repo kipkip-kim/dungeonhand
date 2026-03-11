@@ -329,6 +329,9 @@ function generateFloorMap(floor) {
   // Row 6: 보스
   rows.push([{ id: "6-0", type: "boss", monIdx: 9, edges: [], visited: false }]);
 
+  // Row 7: 보스 후 상점
+  rows.push([{ id: "7-0", type: "shop", edges: [], visited: false }]);
+
   // === 연결 생성 ===
   for (var ri = 0; ri < rows.length - 1; ri++) {
     var currRow = rows[ri];
@@ -337,8 +340,8 @@ function generateFloorMap(floor) {
     if (ri === 0) {
       // 시작점 → row1: 모든 노드 연결
       currRow[0].edges = nextRow.map(function(_, i) { return i; });
-    } else if (ri === rows.length - 2) {
-      // row5 → 보스: 모든 노드 → 보스
+    } else if (nextRow.length === 1) {
+      // 모든 노드 → 단일 노드 (row5→보스, 보스→상점)
       currRow.forEach(function(node) { node.edges = [0]; });
     } else {
       // 중간 열: 같은 인덱스 직진 + 50% 확률 분기

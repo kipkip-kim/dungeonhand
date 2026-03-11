@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect } from "react";
 import { FLOOR_NAMES, NODE_TYPES, MAP_EVENTS } from "../data.js";
 import { getCardName } from "../utils.js";
-import { Btn } from "../components.jsx";
+import { Btn, GameWrap } from "../components.jsx";
 
 function MapScreen({ game }) {
   var g = game;
@@ -77,8 +77,7 @@ function MapScreen({ game }) {
   var mapHeight = (totalRows - 1) * rowStep + nodeSize + 20;
 
   return (
-    <div style={g.wrapStyle}>
-      <style>{g.CSS}</style>
+    <GameWrap game={g}>
       {g.audioButton}
 
       {/* Header */}
@@ -175,7 +174,7 @@ function MapScreen({ game }) {
           빛나는 노드를 터치하여 경로를 선택하세요
         </div>
       </div>
-    </div>
+    </GameWrap>
   );
 }
 
@@ -243,8 +242,7 @@ function EventScreen({ game }) {
   }
 
   return (
-    <div style={g.wrapStyle}>
-      <style>{g.CSS}</style>
+    <GameWrap game={g}>
       {g.audioButton}
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
@@ -279,7 +277,7 @@ function EventScreen({ game }) {
           </div>
         )}
       </div>
-    </div>
+    </GameWrap>
   );
 }
 

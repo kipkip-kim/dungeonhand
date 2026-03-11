@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII Background + Monster Prototype</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #e0d0b0; font-family: 'Noto Sans KR', sans-serif; }
+  .controls {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(0,0,0,0.95); padding: 8px 12px;
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid #333; font-size: 12px;
+  }
+  .controls button {
+    background: #2a2520; color: #e0d0b0; border: 1px solid #555;
+    border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 11px;
+  }
+  .controls button:hover { background: #3a3530; }
+  .controls button.active { background: #8b4513; border-color: #d4a574; }
+  .controls label { font-size: 11px; color: #999; margin-left: 8px; }
+  .controls input[type=range] { width: 60px; vertical-align: middle; }
+  .controls span.val { font-size: 11px; color: #ccc; min-width: 28px; display: inline-block; }
+  .sep { color: #333; margin: 0 4px; }
+
+  .preview-grid {
+    display: flex; flex-wrap: wrap; gap: 16px; padding: 52px 12px 16px;
+    justify-content: center;
+  }
+  .preview-card {
+    width: 240px; height: 426px;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid #333; position: relative; flex-shrink: 0;
+  }
+  .preview-card .label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.85); padding: 5px 8px;
+    font-size: 11px; text-align: center; z-index: 10;
+  }
+  .full-preview {
+    width: min(100vw, calc(100vh * 9 / 16), 480px);
+    height: min(100vh - 46px, calc(min(100vw, 480px) * 16 / 9));
+    margin: 52px auto 16px;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid #444; position: relative;
+  }
+  .ascii-layer {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; z-index: 0;
+  }
+  .ascii-layer pre {
+    font-family: 'Courier New', 'Consolas', monospace;
+    line-height: 1.2; white-space: pre; text-align: center;
+    pointer-events: none; user-select: none;
+    transform: scale(1.3);
+  }
+  .gradient-overlay {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  }
+  .content-layer {
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .monster-art {
+    font-family: 'Courier New', 'Consolas', monospace;
+    white-space: pre; line-height: 1.2; text-align: center;
+    filter: drop-shadow(0 2px 12px rgba(0,0,0,0.9));
+    animation: floatY 3s ease infinite;
+  }
+  .monster-name {
+    font-size: 16px; font-weight: 900;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin-top: 8px;
+  }
+  .monster-hp {
+    font-size: 12px; color: #e74c3c; font-weight: 700; margin-top: 3px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+  }
+  .status-icons {
+    display: flex; gap: 6px; margin-top: 4px; font-size: 12px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+  }
+  .shadow-blob {
+    width: 40%; height: 0; margin: -2px auto 0;
+    box-shadow: 0 0 30px 15px rgba(0,0,0,0.6); border-radius: 50%;
+  }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="controls" id="controls">
+  <button onclick="showAll()" id="btn-all" class="active">Grid</button>
+  <span class="sep">|</span>
+  <button onclick="showSingle('menu')">Menu</button>
+  <button onclick="showSingle('village')">Village</button>
+  <button onclick="showSingle('shop')">Shop</button>
+  <button onclick="showSingle('battle-1')">B1</button>
+  <button onclick="showSingle('battle-2')">B2</button>
+  <button onclick="showSingle('battle-3')">B3</button>
+  <button onclick="showSingle('battle-4')">B4</button>
+  <button onclick="showSingle('battle-5')">B5</button>
+  <button onclick="showSingle('campfire')">Camp</button>
+  <span class="sep">|</span>
+  <label>Overlay<input type="range" id="overlaySlider" min="0" max="100" value="60" oninput="updateOverlay()"><span class="val" id="overlayVal">60%</span></label>
+  <label>Size<input type="range" id="fontSlider" min="6" max="20" value="10" oninput="updateFont()"><span class="val" id="fontVal">10px</span></label>
+  <label><input type="checkbox" id="showMonster" checked onchange="render()"> Monster</label>
+</div>
+
+<div id="container"></div>
+
+<script>
+// ============================================================
+// ASCII ART MONSTERS (from ascii-prototype.html, 30 species)
+// key = monster name from data.js
+// ============================================================
+var MON = {};
+MON['고블린'] = { color:'#4ade80', art:
+`      /\\___/\\
+     ( o   o )
+      \\  ^  /
+     __|   |__
+    /  |   |  \\
+   /   |___|   \\
+       /   \\
+      /     \\` };
+
+MON['고블린 궁수'] = { color:'#4ade80', art:
+`      /\\___/\\
+     ( o _ o )
+      \\  ^  / ,
+     __|   |/====>
+    /  |   |  \\
+   /   |___|   \\
+       /   \\
+      /     \\` };
+
+MON['고블린 도둑'] = { color:'#4ade80', art:
+`     .-------.
+    / o   - /|
+   |   ^   | |
+   |  ___  |/
+    \\_|  |_/  $
+      |  | $/
+      |__|/
+     /    \\` };
+
+MON['고블린 주술사'] = { color:'#a78bfa', art:
+`    ~ * ~ * ~
+      /\\_/\\
+     ( o _ o )
+      \\ ^ /
+    *__|   |__*
+    / ||   || \\
+      |_____|
+      /     \\` };
+
+MON['고블린 대장'] = { color:'#facc15', art:
+`     ___,___
+    / O   O \\
+   |  \\___/  |
+   |_________|
+  /| |=====| |\\
+ / | |     | | \\
+   | |_____| |
+   |/   |   \\|
+   /    |    \\
+  /     |     \\` };
+
+MON['고블린 킹'] = { color:'#facc15', art:
+`     _/V|V\\_
+    / --|-- \\
+   /  @   @  \\
+  |   \\___/   |
+  |___________|
+  /|# |===| #|\\
+ / |# |   | #| \\
+   |##|___|##|
+   |##/   \\##|
+    _/     \\_
+   /         \\` };
+
+MON['해골 병사'] = { color:'#d4d4d4', art:
+`     .----.
+    / x  x \\
+   |  ====  |
+    \\ |  | /
+     '----'
+    __|    |__
+   /++|    |++\\
+     .|    |.
+     /      \\
+    /        \\` };
+
+MON['뱀파이어'] = { color:'#ef4444', art:
+`     .------.
+    / O    O \\
+   |   ----   |
+   |  /\\VV/\\  |
+    \\/      \\/
+    |      |
+    |      |
+    |______|
+      /    \\
+     /      \\` };
+
+MON['구울'] = { color:'#86efac', art:
+`     ,-----.
+    / o   o \\
+   | ~~~~~~~ |
+    \\_______/
+    /~~~~~~~\\
+   / ~~~~~~~ \\
+   \\ ~~~~~~~ /
+    \\_______/
+      /   \\` };
+
+MON['레이스'] = { color:'#67e8f9', art:
+`     .-----.
+    ( O   O )
+     \\  ~  /
+      |   |
+     /     \\
+    / ~ ~ ~ \\
+   ~  ~   ~  ~
+      ~ ~` };
+
+MON['망령 기사'] = { color:'#67e8f9', art:
+`     .=====.
+    / X   X \\
+   |  =====  |
+    \\_______/
+   /|+=====+|\\
+  / |+|   |+| \\
+    |+|   |+|
+    |+|___|+|
+     /     \\
+    /       \\` };
+
+MON['리치'] = { color:'#c084fc', art:
+`    * ~ * ~ *
+     .======.
+    / @@  @@ \\
+   |  ~~~~~~  |
+    \\________/
+  */|  ====  |\\*
+  / |  |##|  | \\
+    |  |##|  |
+    |________|
+  ~  /      \\  ~
+  ~ /        \\ ~` };
+
+MON['골렘'] = { color:'#9ca3af', art:
+`    [======]
+   [| O  O |]
+   [|      |]
+   [|______|]
+   [|      |]
+  [[|      |]]
+  [[|      |]]
+   [|______|]
+    /      \\
+   /________\\` };
+
+MON['마녀'] = { color:'#c084fc', art:
+`       /\\
+      /  \\
+     /____\\
+    / *  * \\
+   |  ~~~~  |
+    \\______/
+    /|    |\\
+   / | ~~ | \\
+     |    | *
+     /    \\` };
+
+MON['가고일'] = { color:'#78716c', art:
+`  /\\  .---.  /\\
+ /  \\/     \\/  \\
+ |  ( o   o )  |
+  \\  \\ === /  /
+   \\  '---'  /
+    |  |||  |
+    |  |||  |
+    /   |   \\
+   /    |    \\` };
+
+MON['원소술사'] = { color:'#67e8f9', art:
+`      /\\
+     /  \\
+    /____\\
+   ( *  * )
+    \\    /
+  ~*|    |*~
+  ~ |    | ~
+    |____|
+    /    \\` };
+
+MON['불꽃 정령'] = { color:'#f97316', art:
+`   ( ) ( ) ( )
+    \\  |  /
+     .-----.
+    ( *   * )
+     \\ ~~ /
+   ~*|    |*~
+   ~*|    |*~
+     \\    /
+    ~ \\  / ~
+      \\/` };
+
+MON['대마법사'] = { color:'#c084fc', art:
+`      ( * )
+       /\\
+      /  \\
+     /____\\
+    / @@  @@ \\
+   |  ~~~~~~  |
+    \\________/
+  *~|  ====  |~*
+  *~| |    | |~*
+    | |    | |
+    |_/    \\_|
+  ~~  /    \\  ~~` };
+
+MON['그림자 포식자'] = { color:'#525252', art:
+`     .======.
+    /  .  .  \\
+   |    V    |
+   |  '====' |
+    \\________/
+    /########\\
+   / ######## \\
+    \\########/
+      /    \\` };
+
+MON['심연의 눈'] = { color:'#a855f7', art:
+`    .========.
+   /  .-----.  \\
+  |  / .===.  \\ |
+  | |  ((@))  | |
+  |  \\ '==='  / |
+   \\  '-----'  /
+    '========'` };
+
+MON['심연거미'] = { color:'#525252', art:
+`  \\   .---.   /
+   \\/ o   o \\/
+    | ===== |
+   /\\_______/\\
+  / /       \\ \\
+ / /         \\ \\
+/./    / \\    \\.\\
+      /   \\` };
+
+MON['공허흡수자'] = { color:'#7c3aed', art:
+`  ~ ~ ~ ~ ~ ~
+    .--------.
+   ( O      O )
+   (    ~~    )
+    \\________/
+  ~ \\~~~~~~~~/ ~
+  ~  \\~~~~~~/  ~
+      '----'` };
+
+MON['공허의 사도'] = { color:'#7c3aed', art:
+`    ~ * ~ * ~
+     .======.
+    / @@  @@ \\
+   |  ======  |
+    \\________/
+   /| ###### |\\
+  / | ###### | \\
+    | ###### |
+    |________|
+  ~  /      \\  ~` };
+
+MON['심연의 군주'] = { color:'#ef4444', art:
+`   ~ ~ ~ ~ ~ ~ ~
+     ._========_.
+    / @@@    @@@ \\
+   |   \\~~~~~~/   |
+   |    '===='    |
+    \\_____________/
+   /|  |======|  |\\
+  / |  | #### |  | \\
+    |  |======|  |
+    |  |      |  |
+    |__|      |__|
+  ~~ /          \\ ~~` };
+
+MON['드래곤 알지기'] = { color:'#c88533', art:
+`     .-----.
+    / o   o \\
+   |  '---'  |
+    \\_______/
+   / | (()) | \\
+  /  |      |  \\
+     |______|
+      /    \\` };
+
+MON['드래곤 새끼'] = { color:'#f97316', art:
+`       /\\
+      /  \\
+     / @  @ \\
+    |  ====  |
+     \\______/
+  /\\  |    |  /\\
+ /  \\ |    | /  \\
+      |    |
+      /    \\
+     /      \\` };
+
+MON['용암도마뱀'] = { color:'#ef4444', art:
+`    ~~.-----.~~
+      / O   O \\
+     |  =====  |
+      \\_______/
+    ~/ |     | \\~
+    ~  |     |  ~
+       |_____|
+       /   \\ \\___
+      /     \\` };
+
+MON['드래곤 사제'] = { color:'#fbbf24', art:
+`        +
+       /|\\
+     .-----.
+    / o   o \\
+   |  '---'  |
+    \\_______/
+   /| ++++ |\\
+  / |      | \\
+    |______|
+     /    \\` };
+
+MON['드래곤 근위병'] = { color:'#f97316', art:
+`     .======.
+    / O    O \\
+   |  ======  |
+    \\________/
+   /|+=======+|\\
+  / |+|     |+| \\
+    |+|     |+|
+    |+|_____|+|
+     /       \\
+    /         \\` };
+
+MON['드래곤 로드'] = { color:'#ef4444', art:
+`         /\\
+  /\\    /  \\    /\\
+ /  \\  / @@  @@ \\  /  \\
+/    \\|  ======  |/    \\
+ \\    |  \\====/  |    /
+  \\    \\________/    /
+   \\  /|  ||||  |\\  /
+    \\/ | |||||| | \\/
+       |  ||||  |
+       |__|  |__|
+    ~~ /      \\ ~~
+    ~ /        \\ ~` };
+
+// ============================================================
+// ASCII ART BACKGROUNDS
+// ============================================================
+var ART = {};
+
+ART.menu = { color: '#7a6a52', art:
+`          .     .          .          .     .
+       .     .     .    .     .    .     .
+    ________________________________________________
+   |  .    .    .    .    .    .    .    .    .    . |
+   | .  __________________________________________. |
+   |   |  .    .    .    .    .    .    .    .   |   |
+   |   |     |##|                    |##|       |   |
+   |   |     |##|      ________      |##|       |   |
+   |   |     |  |     |        |     |  |       |   |
+   |   |     |  |     |        |     |  |       |   |
+   |   |     |  |     |  /  \\  |     |  |       |   |
+   |   |     |  |     | / .. \\ |     |  |       |   |
+   |   |     |  |     |/ .... \\|     |  |       |   |
+   |   |     |  |     /        \\     |  |       |   |
+   |   |_____|__|____/____  ____\\____|__|_______|   |
+   |   |________________________________________| . |
+   |________________________________________________|
+            ============================
+       .    .    .    .    .    .    .    .
+          .       .       .       .       .
+      .       .       .       .       .       .
+         .          .          .          .` };
+
+ART.village = { color: '#5a7a4a', art:
+`                          *           .
+            .                   *
+       .         *                          .
+                          /\\
+      *       /\\         /  \\       /\\
+             /  \\       /    \\     /  \\      *
+    .       /    \\     /______\\   /    \\
+           /______\\   |  []  |  /______\\       .
+          |  []  |    |  []  |  |  []  |
+    *     |  []  |    |______|  |  []  |
+          |______|              |______|     *
+           ______    /\\          ______
+     .    |  ||  |  /  \\        |  ||  |
+          |  ||  | /    \\       |  ||  |   .
+          |______| /______\\     |______|
+                  |  []  |
+    . . . . . . . |  []  | . . . . . . . .
+   -------+-------+------+-------+--------
+    . . . . . . . . . . . . . . . . . . .
+      .   .   .   .   .   .   .   .   .
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   . . . . . . . . . . . . . . . . . . .
+      .       .       .       .       .` };
+
+ART.shop = { color: '#8a7a3a', art:
+`     ____________________________________________
+    /                                            \\
+   /     *    SHOP    *     SHOP    *     SHOP    \\
+  /==============================================\\
+  |   ________    ________    ________    ____   |
+  |  | [==]  |  |  {@@}  |  | <**>  |  | !! |  |
+  |  | [==]  |  |  {@@}  |  | <**>  |  | !! |  |
+  |  |_______|  |________|  |________|  |____|  |
+  |   ________    ________    ________    ____   |
+  |  | +..+  |  |  #%%#  |  | (())  |  | ?? |  |
+  |  | +..+  |  |  #%%#  |  | (())  |  | ?? |  |
+  |  |_______|  |________|  |________|  |____|  |
+  |                                              |
+  |  ==========================================  |
+  |  |  .  .  .  .  .  COUNTER  .  .  .  .  .|  |
+  |  ==========================================  |
+  |                                              |
+  |    $     $     $     $     $     $     $     |
+  |  .   .   .   .   .   .   .   .   .   .   .  |
+  |______________________________________________|
+      .    .    .    .    .    .    .    .
+         .       .       .       .       .` };
+
+ART['battle-1'] = { color: '#4a7a3a',
+  monster: '고블린 대장', monName: '고블린 대장',
+  monHp: '72/72', monStatus: '⚔️9', art:
+`  ################        ################
+  ###    .    ####        ####    .    ###
+  ##  .    .   ###      ###   .    .   ##
+  #  .  .   .   ##      ##  .   .  .   #
+     .    .   .  ##    ##  .   .    .
+  .    .    .  .  #    #  .  .    .    .
+     .   .   .    #    #    .   .   .
+  .    .    .  .  #    #  .  .    .    .
+     .   .   .    #    #    .   .   .
+  .    .    .  .         .  .    .    .
+     .   .   .     ....     .   .   .
+  .    .    . .   ......   . .    .    .
+     .   .      ..........      .   .
+  .    .       ............       .    .
+     .   .    ..............    .   .
+  .    .     ................     .    .
+     .      ..................      .
+  . . . . . .................. . . . . .
+  . . . . . .................. . . . . .
+     .   .  ..................  .   .
+  .    .    ..................    .    .
+     .   .  ..................  .   .
+  ////////////////////////////////////////
+  ####  ####  ####  ####  ####  ####  ####` };
+
+ART['battle-2'] = { color: '#7a5a8a',
+  monster: '리치', monName: '리치',
+  monHp: '124/124', monStatus: '❄️2  👥분열', art:
+`  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+    ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+
+       _|_       _|_       _|_       _|_
+      /   \\     /   \\     /   \\     /   \\
+     | RIP |   | RIP |   | RIP |   | RIP |
+     |_____|   |_____|   |_____|   |_____|
+      . . .     . . .     . . .     . . .
+
+    .    .    .    .    .    .    .    .
+  .  . _|_ .  . _|_ .  . _|_ .  . _|_ . .
+      /   \\     /   \\     /   \\     /   \\
+     | RIP |   |  +  |   | RIP |   |  +  |
+     |_____|   |_____|   |_____|   |_____|
+      . . .     . . .     . . .     . . .
+    .    .    .    .    .    .    .    .
+  . . . . . . . . . . . . . . . . . . . .
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+    .    .    .    .    .    .    .    .` };
+
+ART['battle-3'] = { color: '#4a6a9a',
+  monster: '대마법사', monName: '대마법사',
+  monHp: '143/143', monStatus: '❄️2  👥분열', art:
+`       *    .  *    .  *    .  *    .  *
+    .    *    .   *    .   *    .   *
+  |    |    |    |    |    |    |    |    |
+  |    |    |    |    |    |    |    |    |
+  |____|    |____|    |____|    |____|
+       |____|    |____|    |____|    |____
+  .  *  .  *  .  *  .  *  .  *  .  *  .
+    .  *  .  *  .  *  .  *  .  *  .  *
+  |              ______              |
+  |             /      \\             |
+  |            / *  * * \\            |
+  |           /  *    *  \\           |
+  |          /    *  *    \\          |
+  |         (  *   **   *  )         |
+  |          \\    *  *    /          |
+  |           \\  *    *  /           |
+  |            \\ *  * * /            |
+  |             \\______/             |
+  |    .  *  .  *  .  *  .  *  .     |
+  |  *  .  *  .  *  .  *  .  *  .   |
+  |____|    |____|    |____|    |____|
+       |____|    |____|    |____|` };
+
+ART['battle-4'] = { color: '#6a3a7a',
+  monster: '심연의 군주', monName: '심연의 군주',
+  monHp: '176/176', monStatus: '🦴2', art:
+`  . . . . . . . . . . . . . . . . . . .
+  .   .   .   .   .   .   .   .   .   .
+  . . . . . (@) . . . . . (@) . . . . .
+  .   .   .   .   .   .   .   .   .   .
+  . . \\ . . / . \\ . . / . \\ . . / . . .
+  .   .\\ . /   . \\ . /   . \\ . /   .  .
+  . .  .\\./  .  . \\./  .  . \\./  . . .
+  .   . .\\.  .  . .\\.  .  . .\\.  .   .
+  . .  . .\\. . . . .\\. . . . .\\. .  .
+  .   .   (@)  .   (@)  .   (@)  .   .
+  . .  . ./. . . . ./. . . . ./. .  . .
+  .   . ./ .  .  . ./ .  .  . ./ .   .
+  . .  ./  .  .  . ./  .  .  ./  . . .
+  .   ./  .   .  ./  .   .  ./  .    .
+  . . / . . \\ . / . . \\ . / . . \\ . .
+  .   .   .   .   .   .   .   .   .   .
+  . . . . . (@) . . . . . (@) . . . . .
+  .   .   .   .   .   .   .   .   .   .
+  . . . . . . . . . . . . . . . . . . .
+  .   .   .   .   .   .   .   .   .   .
+  . . . . . . . . . . . . . . . . . . .` };
+
+ART['battle-5'] = { color: '#9a5a2a',
+  monster: '드래곤 로드', monName: '드래곤 로드',
+  monHp: '260/260', monStatus: '🔥2', art:
+`         /\\              /\\              /\\
+        /  \\    /\\      /  \\    /\\      /  \\
+       / /\\ \\  /  \\    / /\\ \\  /  \\    / /\\ \\
+      / /  \\ \\/    \\  / /  \\ \\/    \\  / /  \\ \\
+     / /    \\  /\\   \\/ /    \\  /\\   \\/ /    \\ \\
+    /_/      \\/  \\  /_/      \\/  \\  /_/      \\_\\
+  .  . .  . .  . .  . .  . .  . .  . .  . .  . .
+  . . . . . . . . . . . . . . . . . . . . . . . .
+  . $  . $ .  $ . $ .  $ . $ .  $ . $ .  $ . $ .
+  .  $ . $ . $  . $ . $  . $ . $  . $ . $  . $ .
+  . . . . . . . . . . . . . . . . . . . . . . . .
+  ~~   ~~   ~~   ~~   ~~   ~~   ~~   ~~   ~~   ~~
+  ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+  ~~   ~~   ~~   ~~   ~~   ~~   ~~   ~~   ~~   ~~
+  . . . . . . . . . . . . . . . . . . . . . . . .
+  .  $ . $ . $  . $ . $  . $ . $  . $ . $  . $ .
+  . $  . $ .  $ . $ .  $ . $ .  $ . $ .  $ . $ .
+  . . . . . . . . . . . . . . . . . . . . . . . .
+  .  . .  . .  . .  . .  . .  . .  . .  . .  . .
+  . . . . . . . . . . . . . . . . . . . . . . . .` };
+
+ART.campfire = { color: '#b8860b', art:
+`    .     .          .          .     .
+       .     .    .     .    .     .
+  .       .       .       .       .
+     .       .       .       .       .
+  .     .       .       .       .     .
+     .     .       .       .     .
+                   ( )
+  .     .        (     )      .     .
+     .          (  * *  )        .
+  .     .      (  ** **  )    .     .
+     .        (  * *** *  )      .
+  .     .    (  **  *  **  )  .     .
+     .      (  * ** * ** *  )    .
+  .     .    \\  ** *** **  /  .     .
+     .        \\  * * * *  /      .
+  .     .      \\ ** * ** /    .     .
+     .          \\  ***  /        .
+  .     .     ___\\     /___   .     .
+     .       /             \\     .
+  . . . ._../_______________\\.._ . . .
+  _________/                 \\_________
+             . . . . . . . .
+  .     .       .       .       .     .
+     .     .       .       .     .
+  .       .       .       .       .` };
+
+// Fallback monster for scenes without specific one
+var FALLBACK_MONSTERS = {
+  'menu': null, 'village': null, 'shop': null, 'campfire': null,
+  'battle-1': '고블린 대장',
+  'battle-2': '리치',
+  'battle-3': '대마법사',
+  'battle-4': '심연의 군주',
+  'battle-5': '드래곤 로드',
+};
+
+// ============================================================
+// RENDERING
+// ============================================================
+var overlayOpacity = 0.6;
+var fontSize = 10;
+var currentMode = 'all';
+var currentKey = null;
+
+function getGradient(op) {
+  return 'radial-gradient(ellipse at 50% 30%, rgba(26,21,16,' + (op*0.9).toFixed(2) + ') 0%, rgba(15,12,8,' + op.toFixed(2) + ') 70%)';
+}
+
+function createPreview(key, isGrid) {
+  var data = ART[key];
+  if (!data) return null;
+
+  var div = document.createElement('div');
+  div.className = isGrid ? 'preview-card' : 'full-preview';
+
+  // ASCII BG layer
+  var asciiLayer = document.createElement('div');
+  asciiLayer.className = 'ascii-layer';
+  var pre = document.createElement('pre');
+  pre.textContent = data.art;
+  pre.style.color = data.color;
+  pre.style.fontSize = (isGrid ? Math.max(6, fontSize - 2) : fontSize) + 'px';
+  asciiLayer.appendChild(pre);
+
+  // Gradient overlay
+  var gradLayer = document.createElement('div');
+  gradLayer.className = 'gradient-overlay';
+  gradLayer.style.background = getGradient(overlayOpacity);
+
+  div.appendChild(asciiLayer);
+  div.appendChild(gradLayer);
+
+  // Monster ASCII art overlay
+  var showMon = document.getElementById('showMonster').checked;
+  var monKey = data.monster || FALLBACK_MONSTERS[key];
+  if (showMon && monKey && MON[monKey]) {
+    var mon = MON[monKey];
+    var contentLayer = document.createElement('div');
+    contentLayer.className = 'content-layer';
+
+    var artPre = document.createElement('pre');
+    artPre.className = 'monster-art';
+    artPre.textContent = mon.art;
+    artPre.style.color = mon.color;
+    artPre.style.fontSize = (isGrid ? 8 : 12) + 'px';
+
+    var shadow = document.createElement('div');
+    shadow.className = 'shadow-blob';
+
+    var nameDv = document.createElement('div');
+    nameDv.className = 'monster-name';
+    nameDv.textContent = data.monName || monKey;
+    nameDv.style.color = mon.color;
+
+    var hpDv = document.createElement('div');
+    hpDv.className = 'monster-hp';
+    hpDv.textContent = 'HP ' + (data.monHp || '???');
+
+    var statusDv = document.createElement('div');
+    statusDv.className = 'status-icons';
+    statusDv.textContent = data.monStatus || '';
+
+    contentLayer.appendChild(artPre);
+    contentLayer.appendChild(shadow);
+    contentLayer.appendChild(nameDv);
+    contentLayer.appendChild(hpDv);
+    contentLayer.appendChild(statusDv);
+    div.appendChild(contentLayer);
+  }
+
+  // Label
+  var label = document.createElement('div');
+  label.className = 'label';
+  var names = {
+    'menu':'Menu','village':'Village','shop':'Shop','campfire':'Campfire',
+    'battle-1':'1F Goblin Cave','battle-2':'2F Undead Graveyard',
+    'battle-3':'3F Magic Tower','battle-4':'4F Abyss','battle-5':'5F Dragon Nest'
+  };
+  label.textContent = (names[key]||key) + (monKey ? ' — ' + monKey : '');
+  div.appendChild(label);
+
+  return div;
+}
+
+function render() {
+  var container = document.getElementById('container');
+  container.innerHTML = '';
+  var keys = ['menu','village','shop','battle-1','battle-2','battle-3','battle-4','battle-5','campfire'];
+
+  if (currentMode === 'all') {
+    var grid = document.createElement('div');
+    grid.className = 'preview-grid';
+    keys.forEach(function(k) {
+      var card = createPreview(k, true);
+      if (card) grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  } else {
+    var card = createPreview(currentKey, false);
+    if (card) container.appendChild(card);
+  }
+  updateButtons();
+}
+
+function showAll() { currentMode = 'all'; currentKey = null; render(); }
+function showSingle(k) { currentMode = 'single'; currentKey = k; render(); }
+
+function updateButtons() {
+  document.querySelectorAll('.controls button').forEach(function(b) { b.classList.remove('active'); });
+  if (currentMode === 'all') {
+    document.getElementById('btn-all').classList.add('active');
+  }
+}
+
+function updateOverlay() {
+  overlayOpacity = document.getElementById('overlaySlider').value / 100;
+  document.getElementById('overlayVal').textContent = Math.round(overlayOpacity*100) + '%';
+  render();
+}
+function updateFont() {
+  fontSize = parseInt(document.getElementById('fontSlider').value);
+  document.getElementById('fontVal').textContent = fontSize + 'px';
+  render();
+}
+
+render();
+
+// ============================================================
+// ASCII ANIMATIONS
+// ============================================================
+var animFrames = {};
+var animTimers = [];
+
+// 캠프파이어: 불꽃 글자 랜덤 교체 + 색상 흔들림
+var FLAME_CHARS = ['*', '~', '^', '.', '+', "'"];
+var FLAME_COLORS = ['#f97316', '#ef4444', '#fbbf24', '#fb923c', '#dc2626', '#f59e0b'];
+
+function animateCampfire(pre) {
+  var original = ART.campfire.art;
+  var lines = original.split('\n');
+  // 불꽃 영역: 줄 6~17 (( ) 부터 ___\ 까지)
+  var fireStart = 6, fireEnd = 17;
+
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (i >= fireStart && i <= fireEnd) {
+        var chars = lines[i].split('');
+        for (var j = 0; j < chars.length; j++) {
+          if ('*~^'.indexOf(chars[j]) >= 0 && Math.random() < 0.3) {
+            chars[j] = FLAME_CHARS[Math.floor(Math.random() * FLAME_CHARS.length)];
+          }
+        }
+        result.push(chars.join(''));
+      } else {
+        result.push(lines[i]);
+      }
+    }
+    pre.textContent = result.join('\n');
+    pre.style.color = FLAME_COLORS[Math.floor(Math.random() * FLAME_COLORS.length)];
+  }
+  return setInterval(tick, 200);
+}
+
+// 전투1 고블린동굴: 나뭇잎/먼지 흔들림
+function animateForest(pre) {
+  var original = ART['battle-1'].art;
+  var lines = original.split('\n');
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '.' && Math.random() < 0.08) {
+          chars[j] = Math.random() < 0.5 ? ',' : "'";
+        } else if ((chars[j] === ',' || chars[j] === "'") && Math.random() < 0.08) {
+          chars[j] = '.';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+  }
+  return setInterval(tick, 400);
+}
+
+// 전투2 묘지: 안개 흔들림
+function animateGraveyard(pre) {
+  var original = ART['battle-2'].art;
+  var lines = original.split('\n');
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '~' && Math.random() < 0.15) {
+          chars[j] = Math.random() < 0.5 ? '-' : '`';
+        } else if ((chars[j] === '-' || chars[j] === '`') && Math.random() < 0.15) {
+          chars[j] = '~';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+  }
+  return setInterval(tick, 350);
+}
+
+// 전투3 마법탑: 마법 반짝임
+function animateTower(pre) {
+  var original = ART['battle-3'].art;
+  var lines = original.split('\n');
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '*' && Math.random() < 0.2) {
+          chars[j] = Math.random() < 0.5 ? '+' : '.';
+        } else if ((chars[j] === '+' || chars[j] === '.') && i > 0 && i < 8 && Math.random() < 0.1) {
+          chars[j] = '*';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+  }
+  return setInterval(tick, 300);
+}
+
+// 전투4 심연: 공허 맥동
+function animateAbyss(pre) {
+  var original = ART['battle-4'].art;
+  var lines = original.split('\n');
+  var VOID_COLORS = ['#6a3a7a', '#7c3aed', '#5b21b6', '#4c1d95', '#8b5cf6'];
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '.' && Math.random() < 0.06) {
+          chars[j] = Math.random() < 0.5 ? ':' : ' ';
+        } else if ((chars[j] === ':' || (chars[j] === ' ' && lines[i][j] === '.')) && Math.random() < 0.06) {
+          chars[j] = '.';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+    pre.style.color = VOID_COLORS[Math.floor(Math.random() * VOID_COLORS.length)];
+  }
+  return setInterval(tick, 250);
+}
+
+// 전투5 드래곤둥지: 용암/불 흔들림
+function animateDragon(pre) {
+  var original = ART['battle-5'].art;
+  var lines = original.split('\n');
+  var LAVA_COLORS = ['#9a5a2a', '#ef4444', '#f97316', '#dc2626', '#b45309'];
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '~' && Math.random() < 0.2) {
+          chars[j] = Math.random() < 0.5 ? '=' : '-';
+        } else if ((chars[j] === '=' || chars[j] === '-') && Math.random() < 0.2) {
+          chars[j] = '~';
+        }
+        if (chars[j] === '$' && Math.random() < 0.15) {
+          chars[j] = Math.random() < 0.5 ? '*' : '.';
+        } else if ((chars[j] === '*' || chars[j] === '.') && lines[i][j] === '$' && Math.random() < 0.15) {
+          chars[j] = '$';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+    pre.style.color = LAVA_COLORS[Math.floor(Math.random() * LAVA_COLORS.length)];
+  }
+  return setInterval(tick, 200);
+}
+
+// 메뉴: 별 반짝임
+function animateMenu(pre) {
+  var original = ART.menu.art;
+  var lines = original.split('\n');
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '.' && i < 3 && Math.random() < 0.1) {
+          chars[j] = '*';
+        } else if (chars[j] === '*' && i < 3 && Math.random() < 0.1) {
+          chars[j] = '.';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+  }
+  return setInterval(tick, 500);
+}
+
+// 마을: 별 반짝임
+function animateVillage(pre) {
+  var original = ART.village.art;
+  var lines = original.split('\n');
+  function tick() {
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+      var chars = lines[i].split('');
+      for (var j = 0; j < chars.length; j++) {
+        if (chars[j] === '*' && Math.random() < 0.15) {
+          chars[j] = '.';
+        } else if (chars[j] === '.' && i < 4 && Math.random() < 0.05) {
+          chars[j] = '*';
+        }
+      }
+      result.push(chars.join(''));
+    }
+    pre.textContent = result.join('\n');
+  }
+  return setInterval(tick, 600);
+}
+
+var ANIM_MAP = {
+  'campfire': animateCampfire,
+  'battle-1': animateForest,
+  'battle-2': animateGraveyard,
+  'battle-3': animateTower,
+  'battle-4': animateAbyss,
+  'battle-5': animateDragon,
+  'menu': animateMenu,
+  'village': animateVillage
+};
+
+// Patch render to start animations
+var _origRender = render;
+render = function() {
+  // Clear existing timers
+  animTimers.forEach(function(t) { clearInterval(t); });
+  animTimers = [];
+  _origRender();
+  // Start animations on rendered pre elements
+  document.querySelectorAll('[data-anim-key]').forEach(function(pre) {
+    var key = pre.getAttribute('data-anim-key');
+    if (ANIM_MAP[key]) {
+      animTimers.push(ANIM_MAP[key](pre));
+    }
+  });
+};
+
+// Patch createPreview to tag pre elements
+var _origCreate = createPreview;
+createPreview = function(key, isGrid) {
+  var el = _origCreate(key, isGrid);
+  if (el) {
+    var pre = el.querySelector('.ascii-layer pre');
+    if (pre) pre.setAttribute('data-anim-key', key);
+  }
+  return el;
+};
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII 맵 데모</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0c08;
+    color: #e8d5b0;
+    font-family: 'Courier New', monospace;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; padding: 20px;
+  }
+  h1 { color: #fbbf24; margin-bottom: 4px; font-size: 20px; }
+  .sub { color: #a89070; margin-bottom: 20px; font-size: 13px; }
+
+  .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab {
+    padding: 6px 14px; background: #1a1510; border: 1px solid #3a3020;
+    border-radius: 6px; color: #a89070; cursor: pointer;
+    font-family: inherit; font-size: 13px;
+  }
+  .tab.active { background: #3a3020; color: #fbbf24; border-color: #fbbf24; }
+  .section { display: none; width: 100%; max-width: 500px; }
+  .section.active { display: block; }
+
+  /* Map container */
+  .map-frame {
+    background: rgba(15,12,8,0.95);
+    border: 2px solid #3a3020;
+    border-radius: 12px;
+    padding: 16px;
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+  .map-header {
+    text-align: center; padding-bottom: 10px;
+    border-bottom: 1px solid #3a3020; margin-bottom: 12px;
+  }
+  .map-header h2 { color: #fbbf24; font-size: 16px; }
+  .map-header .stats {
+    display: flex; justify-content: center; gap: 16px;
+    margin-top: 4px; font-size: 12px; color: #a89070;
+  }
+
+  /* ASCII map rendering */
+  .map-art {
+    white-space: pre;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .map-legend {
+    text-align: center; padding-top: 10px;
+    border-top: 1px solid #3a3020; margin-top: 12px;
+    font-size: 11px; color: #a89070;
+  }
+  .map-legend span { margin: 0 6px; }
+
+  /* Node styles */
+  .n-battle { color: #ef4444; }
+  .n-elite { color: #f97316; }
+  .n-camp { color: #fbbf24; }
+  .n-shop { color: #22c55e; }
+  .n-event { color: #a855f7; }
+  .n-boss { color: #ef4444; font-weight: bold; }
+  .n-start { color: #67e8f9; }
+  .n-visited { color: #555; }
+  .n-current { color: #fbbf24; }
+  .n-selectable { color: #67e8f9; cursor: pointer; }
+  .line-active { color: #fbbf24; }
+  .line-visited { color: #555; }
+  .line-dim { color: #333; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .blink { animation: blink 1.5s ease infinite; }
+
+  .info-box {
+    background: rgba(26,21,16,0.9); border: 1px solid #3a3020;
+    border-radius: 8px; padding: 12px; margin: 16px auto;
+    max-width: 460px; font-size: 12px; color: #a89070;
+  }
+  .info-box h3 { color: #fbbf24; font-size: 14px; margin-bottom: 8px; }
+  .info-box code { color: #e8d5b0; background: #1a1510; padding: 1px 4px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>던전핸드 — ASCII 맵 데모</h1>
+<p class="sub">로그라이크 스타일 던전 맵</p>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="showTab('style1')">스타일 A: 심플</button>
+  <button class="tab" onclick="showTab('style2')">스타일 B: 박스형</button>
+  <button class="tab" onclick="showTab('style3')">스타일 C: 와이드</button>
+</div>
+
+<!-- ===== STYLE A: 심플 ===== -->
+<div id="style1" class="section active">
+
+<div class="map-frame">
+  <div class="map-header">
+    <h2>1층 — 고블린 소굴</h2>
+    <div class="stats">
+      <span>HP 70/70</span>
+      <span>Gold 30G</span>
+    </div>
+  </div>
+
+<pre class="map-art">
+
+         <span class="n-boss">[BOSS]</span>
+        <span class="n-boss">/  \\</span>
+       <span class="n-boss">/    \\</span>
+
+   <span class="n-camp">[camp]</span>    <span class="n-shop">[shop]</span>
+      <span class="line-dim">\      /</span>
+       <span class="line-dim">\    /</span>
+        <span class="line-dim">\  /</span>
+
+   <span class="n-battle">[mob]</span>  <span class="n-elite">[ELT]</span>  <span class="n-event">[???]</span>
+     <span class="line-dim">\     |     /</span>
+      <span class="line-dim">\    |    /</span>
+
+   <span class="n-event">[???]</span>  <span class="n-battle">[mob]</span>  <span class="n-camp">[camp]</span>
+     <span class="line-dim">\     |     /</span>
+      <span class="line-dim">\    |    /</span>
+
+   <span class="n-battle">[mob]</span>  <span class="n-battle">[mob]</span>  <span class="n-shop">[shop]</span>
+     <span class="line-active">\     |     /</span>
+      <span class="line-active">\    |    /</span>
+
+  <span class="n-selectable blink">[mob]</span>  <span class="n-selectable blink">[mob]</span>  <span class="n-selectable blink">[mob]</span>
+      <span class="line-active">\    |    /</span>
+       <span class="line-active">\   |   /</span>
+
+         <span class="n-current">[@]</span>
+       <span class="n-start">START</span>
+
+</pre>
+
+  <div class="map-legend">
+    <span class="n-battle">[mob]전투</span>
+    <span class="n-elite">[ELT]정예</span>
+    <span class="n-camp">[camp]캠프</span>
+    <span class="n-shop">[shop]상점</span>
+    <span class="n-event">[???]이벤트</span>
+    <span class="n-boss">[BOSS]보스</span>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== STYLE B: 박스형 ===== -->
+<div id="style2" class="section">
+
+<div class="map-frame">
+  <div class="map-header">
+    <h2>1층 — 고블린 소굴</h2>
+    <div class="stats">
+      <span>HP 65/70</span>
+      <span>Gold 45G</span>
+    </div>
+  </div>
+
+<pre class="map-art">
+     <span class="n-boss">+========+</span>
+     <span class="n-boss">| BOSS!! |</span>
+     <span class="n-boss">+========+</span>
+         <span class="n-boss">|</span>
+     ----+----
+    <span class="line-dim">/         \</span>
+<span class="n-camp">+------+</span>   <span class="n-shop">+------+</span>
+<span class="n-camp">| camp |</span>   <span class="n-shop">| shop |</span>
+<span class="n-camp">+------+</span>   <span class="n-shop">+------+</span>
+   <span class="line-dim">\    |    /</span>
+    <span class="line-dim">\   |   /</span>
+<span class="n-battle">+-----+</span> <span class="n-elite">+-----+</span> <span class="n-event">+-----+</span>
+<span class="n-battle">| mob |</span> <span class="n-elite">| ELT |</span> <span class="n-event">| ??? |</span>
+<span class="n-battle">+-----+</span> <span class="n-elite">+-----+</span> <span class="n-event">+-----+</span>
+   <span class="line-dim">\    |    /</span>
+    <span class="line-dim">\   |   /</span>
+<span class="n-event">+-----+</span> <span class="n-battle">+-----+</span> <span class="n-camp">+-----+</span>
+<span class="n-event">| ??? |</span> <span class="n-battle">| mob |</span> <span class="n-camp">| camp|</span>
+<span class="n-event">+-----+</span> <span class="n-battle">+-----+</span> <span class="n-camp">+-----+</span>
+   <span class="line-visited">\    |    /</span>
+    <span class="line-visited">\   |   /</span>
+<span class="n-visited">+-----+</span> <span class="n-visited">+-----+</span> <span class="n-visited">+-----+</span>
+<span class="n-visited">|  X  |</span> <span class="n-current">| YOU |</span> <span class="n-visited">|  X  |</span>
+<span class="n-visited">+-----+</span> <span class="n-current">+-----+</span> <span class="n-visited">+-----+</span>
+    <span class="line-visited">\   |   /</span>
+     <span class="line-visited">\  |  /</span>
+     <span class="n-visited">+-----+</span>
+     <span class="n-visited">|START|</span>
+     <span class="n-visited">+-----+</span>
+</pre>
+
+  <div class="map-legend">
+    <span class="n-current">YOU=현재</span>
+    <span class="n-visited">X=방문</span>
+    <span class="n-battle">[mob]</span>
+    <span class="n-elite">[ELT]</span>
+    <span class="n-camp">[camp]</span>
+    <span class="n-shop">[shop]</span>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== STYLE C: 와이드 ===== -->
+<div id="style3" class="section">
+
+<div class="map-frame">
+  <div class="map-header">
+    <h2>1층 — 고블린 소굴</h2>
+    <div class="stats">
+      <span>HP 52/70</span>
+      <span>Gold 60G</span>
+    </div>
+  </div>
+
+<pre class="map-art" style="font-size:12px;">
+<span style="color:#555;">───────────────────────────────────</span>
+             <span class="n-boss">&lt;##BOSS##&gt;</span>
+            <span class="n-boss">/          \</span>
+           <span class="n-boss">/            \</span>
+<span style="color:#555;">───────────────────────────────────</span>
+      <span class="n-camp">&lt;~camp~&gt;</span> ──── <span class="n-shop">&lt;$shop$&gt;</span>
+         <span class="line-dim">\            /</span>
+          <span class="line-dim">\          /</span>
+<span style="color:#555;">───────────────────────────────────</span>
+  <span class="n-battle">&lt;*mob*&gt;</span> ── <span class="n-elite">&lt;!ELT!&gt;</span> ── <span class="n-event">&lt;?????&gt;</span>
+     <span class="line-dim">\         |         /</span>
+      <span class="line-dim">\        |        /</span>
+<span style="color:#555;">───────────────────────────────────</span>
+  <span class="n-event">&lt;?????&gt;</span> ── <span class="n-battle">&lt;*mob*&gt;</span> ── <span class="n-camp">&lt;~camp~&gt;</span>
+     <span class="line-dim">\         |         /</span>
+      <span class="line-dim">\        |        /</span>
+<span style="color:#555;">───────────────────────────────────</span>
+  <span class="n-visited">──X──</span>  ── <span class="n-visited">──X──</span>  ── <span class="n-visited">──X──</span>
+     <span class="line-visited">\         |         /</span>
+      <span class="line-visited">\        |        /</span>
+<span style="color:#555;">───────────────────────────────────</span>
+  <span class="n-selectable blink">&lt;*mob*&gt;</span> ── <span class="n-selectable blink">&lt;*mob*&gt;</span> ── <span class="n-selectable blink">&lt;*mob*&gt;</span>
+        <span class="line-active">\       |       /</span>
+         <span class="line-active">\      |      /</span>
+<span style="color:#555;">───────────────────────────────────</span>
+            <span class="n-current">&lt;&lt; @ &gt;&gt;</span>
+           <span class="n-start">= START =</span>
+<span style="color:#555;">───────────────────────────────────</span>
+</pre>
+
+  <div class="map-legend">
+    <span class="n-battle">&lt;*mob*&gt;</span>
+    <span class="n-elite">&lt;!ELT!&gt;</span>
+    <span class="n-camp">&lt;~camp~&gt;</span>
+    <span class="n-shop">&lt;$shop$&gt;</span>
+    <span class="n-event">&lt;?????&gt;</span>
+    <span class="n-boss">&lt;##BOSS##&gt;</span>
+  </div>
+</div>
+
+</div>
+
+<!-- INFO -->
+<div class="info-box">
+  <h3>구현 방식</h3>
+  <p style="margin-bottom:8px;">실제 게임 적용 시, <code>generateFloorMap()</code>의 rows 데이터를 기반으로 ASCII 문자열을 동적 생성합니다.</p>
+  <p style="margin-bottom:8px;">각 노드 타입별 심볼:</p>
+  <pre style="color:#e8d5b0;font-size:11px;line-height:1.4;margin:6px 0;">
+  battle:   <span class="n-battle">[mob]</span>  or  <span class="n-battle">&lt;*mob*&gt;</span>
+  elite:    <span class="n-elite">[ELT]</span>  or  <span class="n-elite">&lt;!ELT!&gt;</span>
+  campfire: <span class="n-camp">[camp]</span> or  <span class="n-camp">&lt;~camp~&gt;</span>
+  shop:     <span class="n-shop">[shop]</span> or  <span class="n-shop">&lt;$shop$&gt;</span>
+  event:    <span class="n-event">[???]</span>  or  <span class="n-event">&lt;?????&gt;</span>
+  boss:     <span class="n-boss">[BOSS]</span> or  <span class="n-boss">&lt;##BOSS##&gt;</span>
+  visited:  <span class="n-visited">  X  </span>
+  current:  <span class="n-current"> [@] </span>  (blink)
+  </pre>
+  <p style="margin-bottom:8px;">연결선: <code>/</code> <code>\</code> <code>|</code> — 색상으로 활성/방문/미방문 구분</p>
+  <p>노드 클릭 → 기존 <code>selectNode(ni)</code> 그대로 호출. 선택 가능 노드는 깜빡임.</p>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

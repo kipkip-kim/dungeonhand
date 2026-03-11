@@ -2,12 +2,12 @@
   "version": "1.0",
   "enabled": false,
   "teamName": "",
-  "feature": "밸런스-논의",
-  "pdcaPhase": "design",
+  "feature": "dh",
+  "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
-  "startedAt": "2026-03-09T13:24:39.259Z",
-  "lastUpdated": "2026-03-09T21:48:00.586Z",
+  "startedAt": "2026-03-11T11:33:40.663Z",
+  "lastUpdated": "2026-03-11T12:43:45.889Z",
   "teammates": [],
   "progress": {
     "totalTasks": 0,
@@ -17,5 +17,5 @@
     "pendingTasks": 0
   },
   "recentMessages": [],
-  "sessionId": "e1693532-e6cd-4eba-bfb7-fc1e08a3eb83"
+  "sessionId": "461a34c3-9dea-46ca-b3d9-91dde445e94c"
 }

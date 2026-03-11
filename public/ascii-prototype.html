@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>던전핸드 ASCII 아트 프로토타입 v3</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0c08;
+    color: #e8d5b0;
+    font-family: 'Courier New', 'Consolas', monospace;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h1 { color: #fbbf24; text-align: center; margin-bottom: 4px; font-size: 22px; }
+  .sub { text-align:center;color:#a89070;margin-bottom:20px;font-size:13px; }
+
+  .floor-label {
+    background: linear-gradient(90deg, #3a3020, transparent);
+    color: #fbbf24; padding: 6px 14px; margin: 24px 0 12px;
+    font-size: 16px; font-weight: bold; border-left: 3px solid #fbbf24;
+  }
+  .monster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px; margin: 12px 0;
+  }
+  .monster-card {
+    background: rgba(26,21,16,0.8); border: 1px solid #3a3020;
+    border-radius: 8px; padding: 12px; text-align: center;
+    transition: border-color 0.2s;
+  }
+  .monster-card:hover { border-color: #fbbf24; }
+  .monster-card.mini { border-color: #f59e0b; }
+  .monster-card.boss { border-color: #ef4444; border-width: 2px; }
+  .monster-name { font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .monster-card.mini .monster-name { color: #f59e0b; }
+  .monster-card.boss .monster-name { color: #ef4444; }
+  .monster-stats { font-size: 11px; color: #a89070; margin-top: 6px; }
+
+  .art {
+    white-space: pre; font-family: 'Courier New', monospace;
+    font-size: 12px; line-height: 1.2; display: inline-block; text-align: left;
+  }
+
+  .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab {
+    padding: 6px 14px; background: #1a1510; border: 1px solid #3a3020;
+    border-radius: 6px; color: #a89070; cursor: pointer;
+    font-family: inherit; font-size: 13px;
+  }
+  .tab.active { background: #3a3020; color: #fbbf24; border-color: #fbbf24; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .float { animation: floatY 3s ease infinite; }
+
+  .battle-mock {
+    max-width: 420px; margin: 20px auto;
+    background: rgba(15,12,8,0.95); border: 2px solid #3a3020;
+    border-radius: 12px; padding: 16px; text-align: center;
+  }
+  .hp-bar-track {
+    width: 80%; height: 14px; background: #1a1510;
+    border-radius: 7px; margin: 6px auto; overflow: hidden; border: 1px solid #3a3020;
+  }
+  .hp-bar-fill { height:100%; background:linear-gradient(180deg,#ef4444,#b91c1c); border-radius:7px; }
+  .battle-info { font-size: 12px; color: #a89070; margin: 4px 0; }
+
+  .bg-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px; margin: 12px 0;
+  }
+  .bg-card {
+    background: rgba(26,21,16,0.9); border: 1px solid #3a3020;
+    border-radius: 8px; padding: 10px; overflow: hidden;
+  }
+  .bg-label { text-align:center; color:#fbbf24; font-size:13px; margin-top:6px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h1>던전핸드 v3 — ASCII 아트 프로토타입 v3</h1>
+<p class="sub">전통 ASCII 문자 기반 몬스터 30종 + 배경 + 전투 UI</p>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="showTab('monsters')">몬스터 (30종)</button>
+  <button class="tab" onclick="showTab('bg')">배경</button>
+  <button class="tab" onclick="showTab('battle')">전투 UI</button>
+</div>
+
+<!-- ==================== MONSTERS ==================== -->
+<div id="monsters" class="section active">
+
+<!-- FLOOR 1 -->
+<div class="floor-label">1층: 고블린 소굴</div>
+<div class="monster-grid">
+
+<div class="monster-card">
+<div class="monster-name">고블린</div>
+<pre class="art" style="color:#4ade80;">
+      /\___/\
+     ( o   o )
+      \  ^  /
+     __|   |__
+    /  |   |  \
+   /   |___|   \
+       /   \
+      /     \
+</pre>
+<div class="monster-stats">HP 36 / ATK 6</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">고블린 궁수</div>
+<pre class="art" style="color:#4ade80;">
+      /\___/\
+     ( o _ o )
+      \  ^  / ,
+     __|   |/====>
+    /  |   |  \
+   /   |___|   \
+       /   \
+      /     \
+</pre>
+<div class="monster-stats">HP 50 / ATK 8</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">고블린 도둑</div>
+<pre class="art" style="color:#4ade80;">
+     .-------.
+    / o   <span style="color:#666;">-</span> /|
+   |   ^   | |
+   |  ___  |/
+    \_|  |_/  <span style="color:#fbbf24;">$</span>
+      |  | <span style="color:#fbbf24;">$</span>/
+      |__|/
+     /    \
+</pre>
+<div class="monster-stats">HP 42 / ATK 7 / steal 5</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">고블린 주술사</div>
+<pre class="art" style="color:#4ade80;">
+    <span style="color:#a855f7;">~ * ~ * ~</span>
+      /\_/\
+     ( <span style="color:#a855f7;">o</span> _ <span style="color:#a855f7;">o</span> )
+      \ ^ /
+    <span style="color:#a855f7;">*</span>__|   |__<span style="color:#a855f7;">*</span>
+    / ||   || \
+      |_____|
+      /     \
+</pre>
+<div class="monster-stats">HP 38 / ATK 5 / erode 1</div>
+</div>
+
+<div class="monster-card mini">
+<div class="monster-name">고블린 대장</div>
+<pre class="art" style="color:#facc15;">
+     ___,___
+    / <span style="color:#ef4444;">O</span>   <span style="color:#ef4444;">O</span> \
+   |  \___/  |
+   |_________|
+  /| |=====| |\
+ / | |     | | \
+   | |_____| |
+   |/   |   \|
+   /    |    \
+  /     |     \
+</pre>
+<div class="monster-stats">HP 72 / ATK 9 (정예)</div>
+</div>
+
+<div class="monster-card boss">
+<div class="monster-name">고블린 킹</div>
+<pre class="art" style="color:#facc15;">
+     _/V|V\_
+    / --|-- \
+   /  <span style="color:#ef4444;">@</span>   <span style="color:#ef4444;">@</span>  \
+  |   \___/   |
+  |___________|
+  /|# |===| #|\
+ / |# |   | #| \
+   |##|___|##|
+   |##/   \##|
+    _/     \_
+   /         \
+</pre>
+<div class="monster-stats">HP 94 / ATK 11 (보스)</div>
+</div>
+</div>
+
+<!-- FLOOR 2 -->
+<div class="floor-label">2층: 언데드 묘지</div>
+<div class="monster-grid">
+
+<div class="monster-card">
+<div class="monster-name">해골 병사</div>
+<pre class="art" style="color:#d4d4d4;">
+     .----.
+    / x  x \
+   |  ====  |
+    \ |  | /
+     '----'
+    __|    |__
+   /++|    |++\
+     .|    |.
+     /      \
+    /        \
+</pre>
+<div class="monster-stats">HP 59 / ATK 7</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">뱀파이어</div>
+<pre class="art" style="color:#ef4444;">
+     .------.
+    / <span style="color:#fff;">O</span>    <span style="color:#fff;">O</span> \
+   |   ----   |
+   |  /\<span style="color:#fff;">VV</span>/\  |
+    \/      \/
+  <span style="color:#444;">{{}}</span>|      |<span style="color:#444;">{{}}</span>
+  <span style="color:#444;">{{}}</span>|      |<span style="color:#444;">{{}}</span>
+  <span style="color:#444;">{{}}</span>|______|<span style="color:#444;">{{}}</span>
+      /    \
+     /      \
+</pre>
+<div class="monster-stats">HP 72 / ATK 9</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">구울</div>
+<pre class="art" style="color:#86efac;">
+     ,-----.
+    / <span style="color:#fff;">o</span>   <span style="color:#fff;">o</span> \
+   | ~~~~~~~ |
+    \_______/
+    /~~~~~~~\
+   / ~~~~~~~ \
+   \ ~~~~~~~ /
+    \_______/
+      /   \
+</pre>
+<div class="monster-stats">HP 63 / ATK 8 / regen 4</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">레이스</div>
+<pre class="art" style="color:#67e8f9;">
+    <span style="color:#164e63;">.  .</span>  <span style="color:#164e63;">.  .</span>
+     .-----.
+    ( <span style="color:#fff;">O</span>   <span style="color:#fff;">O</span> )
+     \  ~  /
+      |   |
+     /     \
+    / ~ ~ ~ \
+   ~  ~   ~  ~
+      ~ ~
+</pre>
+<div class="monster-stats">HP 52 / ATK 9 / steal 7</div>
+</div>
+
+<div class="monster-card mini">
+<div class="monster-name">망령 기사</div>
+<pre class="art" style="color:#67e8f9;">
+     .=====.
+    / <span style="color:#fff;">X</span>   <span style="color:#fff;">X</span> \
+   |  =====  |
+    \_______/
+   /|+=====+|\
+  / |+|   |+| \
+    |+|   |+|
+    |+|___|+|
+     /     \
+    /       \
+</pre>
+<div class="monster-stats">HP 91 / ATK 10 (정예)</div>
+</div>
+
+<div class="monster-card boss">
+<div class="monster-name">리치</div>
+<pre class="art" style="color:#c084fc;">
+    <span style="color:#a855f7;">* ~ * ~ *</span>
+     .======.
+    / <span style="color:#22d3ee;">@@</span>  <span style="color:#22d3ee;">@@</span> \
+   |  ~~~~~~  |
+    \________/
+  <span style="color:#a855f7;">*</span>/|  ====  |\ <span style="color:#a855f7;">*</span>
+  / |  |##|  | \
+    |  |##|  |
+    |________|
+  <span style="color:#a855f7;">~</span>  /      \  <span style="color:#a855f7;">~</span>
+  <span style="color:#a855f7;">~</span> /        \ <span style="color:#a855f7;">~</span>
+</pre>
+<div class="monster-stats">HP 124 / ATK 12 (보스)</div>
+</div>
+</div>
+
+<!-- FLOOR 3 -->
+<div class="floor-label">3층: 마법 탑</div>
+<div class="monster-grid">
+
+<div class="monster-card">
+<div class="monster-name">골렘</div>
+<pre class="art" style="color:#9ca3af;">
+    [======]
+   [| <span style="color:#3b82f6;">O</span>  <span style="color:#3b82f6;">O</span> |]
+   [|      |]
+   [|______|]
+   [|      |]
+  [[|      |]]
+  [[|      |]]
+   [|______|]
+    /      \
+   /________\
+</pre>
+<div class="monster-stats">HP 72 / ATK 8 / freeze 1</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">마녀</div>
+<pre class="art" style="color:#c084fc;">
+       /\
+      /  \
+     /____\
+    / <span style="color:#22d3ee;">*</span>  <span style="color:#22d3ee;">*</span> \
+   |  ~~~~  |
+    \______/
+    /|    |\
+   / | <span style="color:#a855f7;">~~</span> | \
+     |    | <span style="color:#a855f7;">*</span>
+     /    \
+</pre>
+<div class="monster-stats">HP 85 / ATK 10 / freeze 2</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">가고일</div>
+<pre class="art" style="color:#78716c;">
+  /\  .---.  /\
+ /  \/     \/  \
+ |  ( <span style="color:#ef4444;">o</span>   <span style="color:#ef4444;">o</span> )  |
+  \  \ === /  /
+   \  '---'  /
+    |  |||  |
+    |  |||  |
+    /   |   \
+   /    |    \
+</pre>
+<div class="monster-stats">HP 88 / ATK 7 / rage 2</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">원소술사</div>
+<pre class="art" style="color:#67e8f9;">
+      /\
+     /  \
+    /____\
+   ( <span style="color:#ef4444;">*</span>  <span style="color:#3b82f6;">*</span> )
+    \    /
+  <span style="color:#ef4444;">~*</span>|    |<span style="color:#3b82f6;">*~</span>
+  <span style="color:#ef4444;">~</span> |    | <span style="color:#3b82f6;">~</span>
+    |____|
+    /    \
+</pre>
+<div class="monster-stats">HP 75 / ATK 9 / freeze1 burn1</div>
+</div>
+
+<div class="monster-card mini">
+<div class="monster-name">불꽃 정령</div>
+<pre class="art" style="color:#f97316;">
+   <span style="color:#ef4444;">( ) ( ) ( )</span>
+    <span style="color:#ef4444;">\  |  /</span>
+     .-----.
+    ( <span style="color:#fbbf24;">*</span>   <span style="color:#fbbf24;">*</span> )
+     \ ~~ /
+   <span style="color:#ef4444;">~*</span>|    |<span style="color:#ef4444;">*~</span>
+   <span style="color:#ef4444;">~*</span>|    |<span style="color:#ef4444;">*~</span>
+     \    /
+    <span style="color:#ef4444;">~</span> \  / <span style="color:#ef4444;">~</span>
+      <span style="color:#ef4444;">\/</span>
+</pre>
+<div class="monster-stats">HP 104 / ATK 11 (정예)</div>
+</div>
+
+<div class="monster-card boss">
+<div class="monster-name">대마법사</div>
+<pre class="art" style="color:#c084fc;">
+      <span style="color:#fbbf24;">( * )</span>
+       /\
+      /  \
+     /____\
+    / <span style="color:#22d3ee;">@@</span>  <span style="color:#22d3ee;">@@</span> \
+   |  ~~~~~~  |
+    \________/
+  <span style="color:#a855f7;">*~</span>|  ====  |<span style="color:#a855f7;">~*</span>
+  <span style="color:#a855f7;">*~</span>| |    | |<span style="color:#a855f7;">~*</span>
+    | |    | |
+    |_/    \_|
+  <span style="color:#a855f7;">~~</span>  /    \  <span style="color:#a855f7;">~~</span>
+</pre>
+<div class="monster-stats">HP 143 / ATK 13 (보스) freeze2 split</div>
+</div>
+</div>
+
+<!-- FLOOR 4 -->
+<div class="floor-label">4층: 심연</div>
+<div class="monster-grid">
+
+<div class="monster-card">
+<div class="monster-name">그림자 포식자</div>
+<pre class="art" style="color:#525252;">
+     .======.
+    /  <span style="color:#a855f7;">.</span>  <span style="color:#a855f7;">.</span>  \
+   |    <span style="color:#ef4444;">V</span>    |
+   |  '====' |
+    \________/
+    /########\
+   / ######## \
+    \########/
+      /    \
+</pre>
+<div class="monster-stats">HP 78 / ATK 9</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">심연의 눈</div>
+<pre class="art" style="color:#a855f7;">
+    .========.
+   /  .-----.  \
+  |  / <span style="color:#ef4444;">.===.</span>  \ |
+  | |  <span style="color:#ef4444;">(</span><span style="color:#fff;">(@)</span><span style="color:#ef4444;">)</span>  | |
+  |  \ <span style="color:#ef4444;">'==='</span>  / |
+   \  '-----'  /
+    '========'
+</pre>
+<div class="monster-stats">HP 98 / ATK 11 / erode 1</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">심연거미</div>
+<pre class="art" style="color:#525252;">
+  \   .---.   /
+   \/ <span style="color:#ef4444;">o</span>   <span style="color:#ef4444;">o</span> \/
+    | ===== |
+   /\_______/\
+  / /       \ \
+ / /         \ \
+/./    / \    \.\
+      /   \
+</pre>
+<div class="monster-stats">HP 85 / ATK 10 / freeze1 steal6</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">공허흡수자</div>
+<pre class="art" style="color:#7c3aed;">
+  <span style="color:#581c87;">~ ~ ~ ~ ~ ~</span>
+    .--------.
+   ( <span style="color:#c084fc;">O</span>      <span style="color:#c084fc;">O</span> )
+   (    ~~    )
+    \________/
+  <span style="color:#581c87;">~</span> \~~~~~~~~/ <span style="color:#581c87;">~</span>
+  <span style="color:#581c87;">~</span>  \~~~~~~/  <span style="color:#581c87;">~</span>
+      '----'
+</pre>
+<div class="monster-stats">HP 92 / ATK 11 / erode1 rage2</div>
+</div>
+
+<div class="monster-card mini">
+<div class="monster-name">공허의 사도</div>
+<pre class="art" style="color:#7c3aed;">
+    <span style="color:#581c87;">~ * ~ * ~</span>
+     .======.
+    / <span style="color:#c084fc;">@@</span>  <span style="color:#c084fc;">@@</span> \
+   |  ======  |
+    \________/
+   /| ###### |\
+  / | ###### | \
+    | ###### |
+    |________|
+  <span style="color:#581c87;">~</span>  /      \  <span style="color:#581c87;">~</span>
+</pre>
+<div class="monster-stats">HP 124 / ATK 12 (정예) erode2</div>
+</div>
+
+<div class="monster-card boss">
+<div class="monster-name">심연의 군주</div>
+<pre class="art" style="color:#ef4444;">
+   <span style="color:#581c87;">~ ~ ~ ~ ~ ~ ~</span>
+     ._========_.
+    / <span style="color:#fff;">@@@</span>    <span style="color:#fff;">@@@</span> \
+   |   \~~~~~~/   |
+   |    '===='    |
+    \_____________/
+   /|  |======|  |\
+  / |  | <span style="color:#7c3aed;">####</span> |  | \
+    |  |======|  |
+    |  |      |  |
+    |__|      |__|
+  <span style="color:#581c87;">~~</span> /          \ <span style="color:#581c87;">~~</span>
+</pre>
+<div class="monster-stats">HP 176 / ATK 15 (보스) erode2</div>
+</div>
+</div>
+
+<!-- FLOOR 5 -->
+<div class="floor-label">5층: 드래곤 둥지</div>
+<div class="monster-grid">
+
+<div class="monster-card">
+<div class="monster-name">드래곤 알지기</div>
+<pre class="art" style="color:#c88533;">
+     .-----.
+    / <span style="color:#fff;">o</span>   <span style="color:#fff;">o</span> \
+   |  '---'  |
+    \_______/
+   / | <span style="color:#fbbf24;">(())</span> | \
+  /  |      |  \
+     |______|
+      /    \
+</pre>
+<div class="monster-stats">HP 117 / ATK 12</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">드래곤 새끼</div>
+<pre class="art" style="color:#f97316;">
+       /\
+      /  \
+     / <span style="color:#ef4444;">@</span>  <span style="color:#ef4444;">@</span> \
+    |  ====  |
+     \______/
+  /\  |    |  /\
+ /  \ |    | /  \
+      |    |
+      /    \
+     /      \
+</pre>
+<div class="monster-stats">HP 143 / ATK 14 / burn 1</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">용암도마뱀</div>
+<pre class="art" style="color:#ef4444;">
+    <span style="color:#f97316;">~ ~</span>.-----.<span style="color:#f97316;">~ ~</span>
+      / <span style="color:#fbbf24;">O</span>   <span style="color:#fbbf24;">O</span> \
+     |  =====  |
+      \_______/
+    <span style="color:#f97316;">~</span>/ |     | \<span style="color:#f97316;">~</span>
+    <span style="color:#f97316;">~</span>  |     |  <span style="color:#f97316;">~</span>
+       |_____|
+       /   \ \___
+      /     \
+</pre>
+<div class="monster-stats">HP 130 / ATK 13 / rage3 burn1</div>
+</div>
+
+<div class="monster-card">
+<div class="monster-name">드래곤 사제</div>
+<pre class="art" style="color:#fbbf24;">
+        <span style="color:#fff;">+</span>
+       <span style="color:#fff;">/|\</span>
+     .-----.
+    / <span style="color:#fff;">o</span>   <span style="color:#fff;">o</span> \
+   |  '---'  |
+    \_______/
+   /| <span style="color:#fff;">++++</span> |\
+  / |      | \
+    |______|
+     /    \
+</pre>
+<div class="monster-stats">HP 125 / ATK 11 / regen 10</div>
+</div>
+
+<div class="monster-card mini">
+<div class="monster-name">드래곤 근위병</div>
+<pre class="art" style="color:#f97316;">
+     .======.
+    / <span style="color:#ef4444;">O</span>    <span style="color:#ef4444;">O</span> \
+   |  ======  |
+    \________/
+   /|+=======+|\
+  / |+|     |+| \
+    |+|     |+|
+    |+|_____|+|
+     /       \
+    /         \
+</pre>
+<div class="monster-stats">HP 182 / ATK 16 (정예) burn1</div>
+</div>
+
+<div class="monster-card boss">
+<div class="monster-name">드래곤 로드</div>
+<pre class="art" style="color:#ef4444;">
+         /\
+  /\    /  \    /\
+ /  \  / <span style="color:#fbbf24;">@@</span>  <span style="color:#fbbf24;">@@</span> \  /  \
+/    \|  ======  |/    \
+ \    |  \====/  |    /
+  \    \________/    /
+   \  /|  ||||  |\  /
+    \/ | <span style="color:#fbbf24;">||||||</span> | \/
+       |  ||||  |
+       |__|  |__|
+    <span style="color:#f97316;">~~</span> /      \ <span style="color:#f97316;">~~</span>
+    <span style="color:#f97316;">~</span> /        \ <span style="color:#f97316;">~</span>
+</pre>
+<div class="monster-stats">HP 260 / ATK 20 (보스) burn2</div>
+</div>
+</div>
+
+</div>
+
+<!-- ==================== BACKGROUNDS ==================== -->
+<div id="bg" class="section">
+<h2 style="color:#fbbf24;margin:0 0 16px;">배경 ASCII 아트</h2>
+<div class="bg-grid">
+
+<div class="bg-card">
+<pre class="art" style="color:#4ade80;font-size:10px;line-height:1.15;">
+      <span style="color:#2d5a2d;">,</span>    <span style="color:#3a7a3a;">/\</span>     <span style="color:#2d5a2d;">,</span>        <span style="color:#3a7a3a;">/\</span>     <span style="color:#2d5a2d;">,</span>
+     <span style="color:#3a7a3a;">/||\</span>  <span style="color:#4a9a4a;">/||\\</span>  <span style="color:#3a7a3a;">/||\</span>    <span style="color:#4a9a4a;">/||\\</span>  <span style="color:#3a7a3a;">/||\</span>
+    <span style="color:#4a9a4a;">/||||\ /||||\\ /||||\\</span>  <span style="color:#3a7a3a;">/||||\\ /||||\\</span>
+   <span style="color:#2d5a2d;">/||||||V||||||V||||||V||||||V||||||\\</span>
+   <span style="color:#1a3a1a;">||||||||||||||||||||||||||||||||||||</span>
+   <span style="color:#1a3a1a;">||||||||||||||||||||||||||||||||||||</span>
+<span style="color:#5a3a1a;">===================================</span>
+<span style="color:#3a2a1a;">###################################</span>
+<span style="color:#2a1a0a;">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+</pre>
+<div class="bg-label">1층: 고블린 소굴 (숲)</div>
+</div>
+
+<div class="bg-card">
+<pre class="art" style="color:#6b7280;font-size:10px;line-height:1.15;">
+<span style="color:#374151;">                                      </span>
+<span style="color:#4b5563;">   .---.    .---.    .---.    .---.</span>
+<span style="color:#6b7280;">   | R |    | R |    | R |    | R |</span>
+<span style="color:#6b7280;">   | I |    | I |    | I |    | I |</span>
+<span style="color:#4b5563;">   | P |    | P |    | P |    | P |</span>
+<span style="color:#374151;">  _|___|_  _|___|_  _|___|_  _|___|_</span>
+<span style="color:#374151;">===================================</span>
+<span style="color:#1f2937;">#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.</span>
+<span style="color:#111827;">###################################</span>
+</pre>
+<div class="bg-label">2층: 언데드 묘지</div>
+</div>
+
+<div class="bg-card">
+<pre class="art" style="color:#3b82f6;font-size:10px;line-height:1.15;">
+<span style="color:#1e3a5f;">  .  *    .    *  .    .  *    .</span>
+<span style="color:#1e3a5f;">     .  *    .    *  .    .  *</span>
+<span style="color:#2563eb;">         /\            /\</span>
+<span style="color:#3b82f6;">        /  \          /  \</span>
+<span style="color:#3b82f6;">       /    \        /    \</span>
+<span style="color:#2563eb;">      /  []  \      /  []  \</span>
+<span style="color:#1d4ed8;">     / []==[] \    / []==[] \</span>
+<span style="color:#1e40af;">  __/==========\__/==========\__</span>
+<span style="color:#1e3a8a;">====================================</span>
+</pre>
+<div class="bg-label">3층: 마법 탑</div>
+</div>
+
+<div class="bg-card">
+<pre class="art" style="color:#581c87;font-size:10px;line-height:1.15;">
+<span style="color:#1a0533;"> .   .   .   .   .   .   .   .   .</span>
+<span style="color:#2d0a4e;">   .   .   .   .   .   .   .   .</span>
+<span style="color:#3b0764;"> .   .   .   .   .   .   .   .   .</span>
+<span style="color:#4c0a85;">   .   .   .   .   .   .   .   .</span>
+<span style="color:#3b0764;"> .   .   .   .   .   .   .   .   .</span>
+<span style="color:#2d0a4e;">   .   .   .   .   .   .   .   .</span>
+<span style="color:#1a0533;"> .   .   .   .   .   .   .   .   .</span>
+<span style="color:#0f0020;">====================================</span>
+</pre>
+<div class="bg-label">4층: 심연 (공허)</div>
+</div>
+
+<div class="bg-card">
+<pre class="art" style="color:#ef4444;font-size:10px;line-height:1.15;">
+<span style="color:#991b1b;">  ^   ^   ^ ^  ^  ^ ^   ^   ^  ^</span>
+<span style="color:#b91c1c;"> /|\ /|\ /|\/|\/|\/|\ /|\ /|\/|\</span>
+<span style="color:#dc2626;">  ^   ^   ^ ^  ^  ^ ^   ^   ^  ^</span>
+<span style="color:#f97316;">~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~</span>
+<span style="color:#dc2626;">====================================</span>
+<span style="color:#f97316;">.~.~<span style="color:#fbbf24;">*</span>~.~.~.~.~<span style="color:#fbbf24;">*</span>~.~.~.~.~<span style="color:#fbbf24;">*</span>~.~.~.</span>
+<span style="color:#b91c1c;">====================================</span>
+<span style="color:#7f1d1d;">####################################</span>
+</pre>
+<div class="bg-label">5층: 드래곤 둥지 (용암)</div>
+</div>
+
+<div class="bg-card">
+<pre class="art" style="font-size:10px;line-height:1.15;">
+<span style="color:#1a1510;">                                      </span>
+<span style="color:#2a2018;">                                      </span>
+<span style="color:#3a3020;">                                      </span>
+<span style="color:#3a3020;">          </span><span style="color:#f97316;">  (  (</span>
+<span style="color:#3a3020;">          </span><span style="color:#ef4444;"> ) )  )</span>
+<span style="color:#3a3020;">          </span><span style="color:#fbbf24;">(  ( (</span>
+<span style="color:#3a3020;">         </span><span style="color:#f97316;">/|`--'|\</span>
+<span style="color:#3a3020;">         </span><span style="color:#c88533;">\|.  .|/</span>
+<span style="color:#5a4a3a;">====================================</span>
+<span style="color:#3a2a1a;">####################################</span>
+</pre>
+<div class="bg-label">캠프파이어</div>
+</div>
+
+</div>
+</div>
+
+<!-- ==================== BATTLE UI ==================== -->
+<div id="battle" class="section">
+<h2 style="color:#fbbf24;margin:0 0 16px;">전투 UI 목업</h2>
+
+<div class="battle-mock" style="border-color:#ef4444;">
+<div style="font-size:12px;color:#a89070;">5층 - 드래곤 둥지</div>
+<div style="font-size:14px;margin:8px 0 2px;color:#ef4444;">드래곤 로드</div>
+<div class="hp-bar-track"><div class="hp-bar-fill" style="width:88%;"></div></div>
+<div class="battle-info">HP 229/260 | ATK 20~22 | burn2</div>
+<div style="margin:16px 0;">
+<pre class="art float" style="color:#ef4444;font-size:14px;line-height:1.2;display:inline-block;">
+         /\
+  /\    /  \    /\
+ /  \  / <span style="color:#fbbf24;">@@</span>  <span style="color:#fbbf24;">@@</span> \  /  \
+/    \|  ======  |/    \
+ \    |  \====/  |    /
+  \    \________/    /
+   \  /|  ||||  |\  /
+    \/ | <span style="color:#fbbf24;">||||||</span> | \/
+       |  ||||  |
+       |__|  |__|
+    <span style="color:#f97316;">~~</span> /      \ <span style="color:#f97316;">~~</span>
+    <span style="color:#f97316;">~</span> /        \ <span style="color:#f97316;">~</span></pre>
+</div>
+<div style="width:50%;height:0;margin:-4px auto 8px;box-shadow:0 0 40px 20px rgba(0,0,0,0.5);border-radius:50%;"></div>
+</div>
+
+<div class="battle-mock">
+<div style="font-size:12px;color:#a89070;">1층 - 고블린 소굴</div>
+<div style="font-size:14px;margin:8px 0 2px;">고블린</div>
+<div class="hp-bar-track"><div class="hp-bar-fill" style="width:100%;"></div></div>
+<div class="battle-info">HP 36/36 | ATK 6~8</div>
+<div style="margin:16px 0;">
+<pre class="art float" style="color:#4ade80;font-size:14px;line-height:1.2;display:inline-block;">
+      /\___/\
+     ( o   o )
+      \  ^  /
+     __|   |__
+    /  |   |  \
+   /   |___|   \
+       /   \
+      /     \</pre>
+</div>
+<div style="width:30%;height:0;margin:-4px auto 8px;box-shadow:0 0 20px 10px rgba(0,0,0,0.5);border-radius:50%;"></div>
+</div>
+
+<div class="battle-mock">
+<div style="font-size:12px;color:#a89070;">2층 - 언데드 묘지</div>
+<div style="font-size:14px;margin:8px 0 2px;color:#ef4444;">리치</div>
+<div class="hp-bar-track"><div class="hp-bar-fill" style="width:65%;"></div></div>
+<div class="battle-info">HP 81/124 | ATK 12~14</div>
+<div style="margin:16px 0;">
+<pre class="art float" style="color:#c084fc;font-size:14px;line-height:1.2;display:inline-block;">
+    <span style="color:#a855f7;">* ~ * ~ *</span>
+     .======.
+    / <span style="color:#22d3ee;">@@</span>  <span style="color:#22d3ee;">@@</span> \
+   |  ~~~~~~  |
+    \________/
+  <span style="color:#a855f7;">*</span>/|  ====  |\ <span style="color:#a855f7;">*</span>
+  / |  |##|  | \
+    |  |##|  |
+    |________|
+  <span style="color:#a855f7;">~</span>  /      \  <span style="color:#a855f7;">~</span>
+  <span style="color:#a855f7;">~</span> /        \ <span style="color:#a855f7;">~</span></pre>
+</div>
+<div style="width:40%;height:0;margin:-4px auto 8px;box-shadow:0 0 30px 15px rgba(0,0,0,0.5);border-radius:50%;"></div>
+</div>
+
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
